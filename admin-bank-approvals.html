@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="kylrx-theme-init.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bank Detail Approvals | Kylrx AI Admin</title>
@@ -83,7 +84,7 @@
         }
 
         .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
-        h1 { font-size: 2.25rem; font-weight: 800; letter-spacing: -1.5px; color: #1e293b; margin-bottom: 8px; }
+        h1 { font-size: 2.25rem; font-weight: 800; letter-spacing: -1.5px; color: var(--k-text); margin-bottom: 8px; }
 
         .approval-card {
             background: white;
@@ -114,7 +115,7 @@
         
         .card-body { padding: 2rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
         .data-point label { display: block; font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; }
-        .data-point p { font-weight: 700; font-size: 1rem; color: #1e293b; }
+        .data-point p { font-weight: 700; font-size: 1rem; color: var(--k-text); }
 
         .card-footer {
             padding: 1.5rem 2rem;
@@ -151,9 +152,9 @@
 
         .btn-primary { background: var(--primary); color: white; box-shadow: 0 8px 16px rgba(59, 130, 246, 0.3); }
         .btn-primary:hover { transform: translateY(-2px); background: var(--primary-dark); box-shadow: 0 12px 20px rgba(59, 130, 246, 0.4); }
-        .btn-outline { background: white; border: 1px solid var(--border); color: #475569; }
-        .btn-outline:hover { background: #f8fafc; border-color: #cbd5e1; transform: translateY(-2px); }
-        .btn-danger { background: #fee2e2; color: var(--danger); }
+        .btn-outline { background: white; border: 1px solid var(--border); color: var(--k-text-2); }
+        .btn-outline:hover { background: var(--k-subtle); border-color: var(--k-border); transform: translateY(-2px); }
+        .btn-danger { background: var(--k-danger-soft); color: var(--danger); }
         .btn-danger:hover { background: var(--danger); color: white; transform: translateY(-2px); box-shadow: 0 8px 16px rgba(239, 68, 68, 0.2); }
 
         /* Modal */
@@ -170,6 +171,10 @@
         @keyframes modalPop { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
     </style>
     <link rel="stylesheet" href="sidebar-lock.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="kylrx-theme.css">
 </head>
 <body>
 
@@ -296,14 +301,14 @@
     <!-- Centered Confirmation Modal -->
     <div id="confirmModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 6000; align-items: center; justify-content: center;">
         <div style="background: white; padding: 2rem; border-radius: 24px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid var(--border); animation: modalPop 0.4s cubic-bezier(0.4, 0, 0.2, 1);">
-            <div style="width: 64px; height: 64px; background: #eff6ff; color: #3b82f6; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+            <div style="width: 64px; height: 64px; background: var(--k-accent-soft); color: var(--k-accent-text); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
                 <i data-lucide="check-square" size="32"></i>
             </div>
-            <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; color: #1e293b;" id="confirmModalTitle">Approve Bank Details</h2>
+            <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--k-text);" id="confirmModalTitle">Approve Bank Details</h2>
             <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 2rem; line-height: 1.6;" id="confirmModalDesc">Are you sure you want to approve these bank details? This will sync to payroll.</p>
             <div style="display: flex; gap: 12px;">
                 <button class="btn btn-outline" style="flex: 1; padding: 14px; border-radius: 12px; justify-content: center;" onclick="document.getElementById('confirmModal').style.display='none'">Cancel</button>
-                <button class="btn btn-primary" style="flex: 1; background: #10b981; border: none; padding: 14px; border-radius: 12px; justify-content: center;" id="confirmModalBtn">Approve</button>
+                <button class="btn btn-primary" style="flex: 1; background: var(--k-success); border: none; padding: 14px; border-radius: 12px; justify-content: center;" id="confirmModalBtn">Approve</button>
             </div>
         </div>
     </div>
@@ -314,7 +319,7 @@
             <div id="alertModalIconBg" style="width: 64px; height: 64px; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
                 <i id="alertModalIcon" data-lucide="info" size="32"></i>
             </div>
-            <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; color: #1e293b;" id="alertModalTitle">Notification</h2>
+            <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--k-text);" id="alertModalTitle">Notification</h2>
             <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 2rem; line-height: 1.6;" id="alertModalDesc">Description</p>
             <button class="btn btn-primary" style="width: 100%; padding: 14px; border-radius: 12px; justify-content: center;" onclick="document.getElementById('alertModal').style.display='none'">Dismiss</button>
         </div>
@@ -363,7 +368,7 @@
                                     <p style="font-size: 0.75rem; color: var(--text-muted);">Submitted: ${data.submittedAt?.toDate().toLocaleDateString() || 'Today'}</p>
                                 </div>
                             </div>
-                            <span class="status-badge" style="background: ${data.status === 'Resubmitted' ? '#fef3c7; color:#d97706' : '#dcfce7; color:#16a34a'}">
+                            <span class="status-badge" style="background: ${data.status === 'Resubmitted' ? 'var(--k-warning-soft); color:var(--k-warning-text)' : '#dcfce7; color:var(--k-success-text)'}">
                                 <i data-lucide="${data.status === 'Resubmitted' ? 'alert-circle' : 'clock'}" size="12"></i> ${data.status}
                             </span>
                         </div>
@@ -482,27 +487,27 @@
                 justify-content: center;
             }
             #customAppsModal .modal {
-                background: #ffffff !important;
-                color: #0f172a !important;
+                background: var(--k-surface) !important;
+                color: var(--k-text) !important;
                 padding: 2rem;
                 border-radius: 24px;
                 width: 90%;
                 max-width: 500px;
                 box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-                border: 1px solid #e2e8f0;
+                border: 1px solid var(--k-border);
                 position: relative;
                 text-align: left;
             }
             #customAppsModal .modal h2 {
                 font-weight: 800;
                 font-size: 1.25rem;
-                color: #0f172a !important;
+                color: var(--k-text) !important;
                 margin-bottom: 4px;
                 margin-top: 0;
             }
             #customAppsModal .modal p {
                 font-size: 0.75rem;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 margin: 0;
             }
             #customAppsModal .modal .form-group {
@@ -514,7 +519,7 @@
             #customAppsModal .modal label {
                 font-size: 0.7rem;
                 font-weight: 800;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 text-transform: uppercase;
                 display: block;
                 margin-bottom: 4px;
@@ -523,9 +528,9 @@
                 width: 100%;
                 padding: 12px 16px;
                 border-radius: 12px;
-                border: 1px solid #cbd5e1 !important;
-                background: #ffffff !important;
-                color: #0f172a !important;
+                border: 1px solid var(--k-border) !important;
+                background: var(--k-surface) !important;
+                color: var(--k-text) !important;
                 outline: none;
                 margin-top: 4px;
                 font-family: inherit;
@@ -533,15 +538,15 @@
                 transition: border-color 0.2s, box-shadow 0.2s;
             }
             #customAppsModal .modal input:focus {
-                border-color: #3b82f6 !important;
+                border-color: var(--k-accent) !important;
                 box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
             }
             #customAppsModal .modal input::placeholder {
-                color: #94a3b8 !important;
+                color: var(--k-muted) !important;
                 opacity: 0.8;
             }
             #customAppsModal .modal button.map-btn {
-                background: #3b82f6;
+                background: var(--k-accent);
                 color: white !important;
                 border: none;
                 border-radius: 12px;
@@ -555,13 +560,13 @@
                 margin-top: 0.5rem;
             }
             #customAppsModal .modal button.map-btn:hover {
-                background: #2563eb;
+                background: var(--k-accent);
                 transform: translateY(-1px);
             }
             #customAppsModal .modal h3 {
                 font-size: 0.7rem;
                 font-weight: 800;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 text-transform: uppercase;
                 margin-bottom: 10px;
                 margin-top: 0;
@@ -573,8 +578,8 @@
                 width: 36px;
                 height: 36px;
                 border-radius: 10px;
-                background: #f8fafc;
-                color: #64748b !important;
+                background: var(--k-subtle);
+                color: var(--k-muted) !important;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -583,8 +588,8 @@
                 border: none;
             }
             #customAppsModal .close-modal:hover {
-                color: #ef4444 !important;
-                background: #fee2e2;
+                color: var(--k-danger-text) !important;
+                background: var(--k-danger-soft);
             }
         </style>
         <div class="modal">
@@ -608,7 +613,7 @@
                 <button class="map-btn" onclick="addCustomApp()">Map Tool Link</button>
             </div>
 
-            <div style="border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
+            <div style="border-top: 1px solid var(--k-border); padding-top: 1.25rem;">
                 <h3>Mapped Connections</h3>
                 <div id="registryAppsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;">
                     <!-- Mapped apps inside the registry panel -->

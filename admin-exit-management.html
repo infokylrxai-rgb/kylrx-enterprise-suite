@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="kylrx-theme-init.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enterprise Exit Management | Kylrx AI</title>
@@ -19,7 +20,7 @@
         }
 
         .pipeline-column {
-            min-width: 0; background: #f8fafc; border-radius: 20px; padding: 1.25rem;
+            min-width: 0; background: var(--k-subtle); border-radius: 20px; padding: 1.25rem;
             border: 1px solid var(--border);
         }
 
@@ -38,7 +39,7 @@
         .status-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; display: inline-block; }
 
         .meeting-box {
-            background: #eff6ff; border-radius: 12px; padding: 0.75rem; margin-top: 10px;
+            background: var(--k-accent-soft); border-radius: 12px; padding: 0.75rem; margin-top: 10px;
             display: flex; align-items: center; gap: 10px; font-size: 0.75rem; color: var(--primary-dark);
         }
 
@@ -56,6 +57,10 @@
 
         .checklist-item:last-child { border-bottom: none; }
     </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="kylrx-theme.css">
 </head>
 <body class="admin-dashboard">
     <div class="dashboard-container">
@@ -200,7 +205,7 @@
                 <div class="checklist-card" id="checklistContainer">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                         <h3 style="font-weight: 800;">Offboarding Checklist</h3>
-                        <span id="checklistTargetName" class="badge" style="display: none; background: #eff6ff; color: var(--primary);"></span>
+                        <span id="checklistTargetName" class="badge" style="display: none; background: var(--k-accent-soft); color: var(--primary);"></span>
                     </div>
                     <div id="dynamicChecklist">
                         <div style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.8rem;">
@@ -210,7 +215,7 @@
                     </div>
                 </div>
 
-                <div class="checklist-card" style="background: #f8fafc;">
+                <div class="checklist-card" style="background: var(--k-subtle);">
                     <h3 style="font-weight: 800; margin-bottom: 1.5rem;">Exit Analytics Insight</h3>
                     <div style="display: grid; gap: 1.5rem;">
                         <div style="background: white; padding: 1.25rem; border-radius: 16px; border: 1px solid var(--border);">
@@ -223,7 +228,7 @@
                         </div>
                         <div style="background: white; padding: 1.25rem; border-radius: 16px; border: 1px solid var(--border);">
                             <p class="nav-label" style="margin:0">Interview Sentiment</p>
-                            <h4 style="font-weight: 800; color: #10b981; margin-top: 4px;">Positive (82%)</h4>
+                            <h4 style="font-weight: 800; color: var(--k-success-text); margin-top: 4px;">Positive (82%)</h4>
                         </div>
                     </div>
                 </div>
@@ -286,16 +291,16 @@
             </div>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
-                <div style="padding: 1.5rem; background: #f8fafc; border-radius: 20px;">
+                <div style="padding: 1.5rem; background: var(--k-subtle); border-radius: 20px;">
                     <h4 style="font-weight: 800; font-size: 0.875rem; margin-bottom: 1rem;">Exit Distribution</h4>
                     <div id="exitDistributionList" style="display: flex; flex-direction: column; gap: 10px;">
                         <!-- Dynamic distribution will go here -->
                         <div style="text-align: center; font-size: 0.75rem; color: var(--text-muted);">Loading data...</div>
                     </div>
                 </div>
-                <div style="padding: 1.5rem; background: #eff6ff; border-radius: 20px; border: 1px solid var(--primary-soft);">
+                <div style="padding: 1.5rem; background: var(--k-accent-soft); border-radius: 20px; border: 1px solid var(--primary-soft);">
                     <h4 style="font-weight: 800; font-size: 0.875rem; margin-bottom: 1rem; color: var(--primary);">Retention Risk Heatmap</h4>
-                    <p style="font-size: 0.75rem; color: #1e40af; line-height: 1.6;">High probability of attrition detected in <strong>Engineering</strong> and <strong>Product Design</strong> units over the next 120 days based on sentiment analysis.</p>
+                    <p style="font-size: 0.75rem; color: var(--k-accent-text); line-height: 1.6;">High probability of attrition detected in <strong>Engineering</strong> and <strong>Product Design</strong> units over the next 120 days based on sentiment analysis.</p>
                     <button class="btn btn-primary" id="btnDownloadForecast" style="margin-top: 1.5rem; width: 100%; font-size: 0.75rem; justify-content: center; background: #1e40af;">Download AI Forecast</button>
                 </div>
             </div>
@@ -316,19 +321,19 @@
         }
         @keyframes modalSlide { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
         .input-box {
-            background: #f8fafc; border: 1px solid var(--border);
+            background: var(--k-subtle); border: 1px solid var(--border);
             border-radius: 12px; padding: 0.75rem 1rem; font-family: inherit;
-            font-weight: 600; font-size: 0.875rem; color: #1e293b; outline: none;
+            font-weight: 600; font-size: 0.875rem; color: var(--k-text); outline: none;
             transition: 0.2s;
         }
         .input-box:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.05); }
         .action-icon {
-            background: #f1f5f9; border: none; width: 32px; height: 32px;
+            background: var(--k-subtle); border: none; width: 32px; height: 32px;
             border-radius: 10px; display: flex; align-items: center; justify-content: center;
-            color: #64748b; cursor: pointer; transition: 0.2s;
+            color: var(--k-muted); cursor: pointer; transition: 0.2s;
         }
-        .action-icon:hover { background: #e2e8f0; color: #1e293b; }
-        .badge { background: #f1f5f9; color: #475569; padding: 4px 8px; border-radius: 6px; font-weight: 700; }
+        .action-icon:hover { background: var(--k-border); color: var(--k-text); }
+        .badge { background: var(--k-subtle); color: var(--k-text-2); padding: 4px 8px; border-radius: 6px; font-weight: 700; }
     </style>
 
     <!-- Success Toast -->
@@ -340,7 +345,7 @@
     <!-- Confirm Modal -->
     <div class="modal-overlay" id="confirmModal">
         <div class="modal-card" style="width: 100%; max-width: 400px; text-align: center; padding: 2rem 2rem;">
-            <div style="background: #eff6ff; width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--primary); margin: 0 auto 1.5rem;">
+            <div style="background: var(--k-accent-soft); width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--primary); margin: 0 auto 1.5rem;">
                 <i data-lucide="help-circle" size="32"></i>
             </div>
             <h3 style="font-weight: 800; font-size: 1.25rem; margin-bottom: 10px;" id="confirmTitle">Confirm Action</h3>
@@ -361,8 +366,8 @@
             border: 1px solid var(--border); animation: toastIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         .toast-notification.active { display: flex; }
-        .toast-notification i { color: #10b981; width: 24px; height: 24px; }
-        .toast-notification span { font-weight: 700; color: #1e293b; font-size: 1rem; }
+        .toast-notification i { color: var(--k-success-text); width: 24px; height: 24px; }
+        .toast-notification span { font-weight: 700; color: var(--k-text); font-size: 1rem; }
         @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -40%) scale(0.9); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
     </style>
 
@@ -451,7 +456,7 @@
                         </div>
                         <div style="background: white; padding: 1.25rem; border-radius: 16px; border: 1px solid var(--border);">
                             <p class="nav-label" style="margin:0">Interview Sentiment</p>
-                            <h4 style="font-weight: 800; color: #10b981; margin-top: 4px;">${esc(analytics.sentiment)}</h4>
+                            <h4 style="font-weight: 800; color: var(--k-success-text); margin-top: 4px;">${esc(analytics.sentiment)}</h4>
                         </div>
                     </div>
                 `;
@@ -465,7 +470,7 @@
                     } else {
                         distList.innerHTML = analytics.distribution.map((item, idx) => `
                             <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-top: ${idx > 0 ? '5px' : '0'};"><span>${esc(item.label)}</span><span style="font-weight: 800;">${item.percent}%</span></div>
-                            <div style="height: 6px; background: #e2e8f0; border-radius: 10px; overflow: hidden;"><div style="width: ${item.percent}%; height: 100%; background: ${colors[idx % colors.length]};"></div></div>
+                            <div style="height: 6px; background: var(--k-border); border-radius: 10px; overflow: hidden;"><div style="width: ${item.percent}%; height: 100%; background: ${colors[idx % colors.length]};"></div></div>
                         `).join('');
                     }
                 }
@@ -746,27 +751,27 @@
                 justify-content: center;
             }
             #customAppsModal .modal {
-                background: #ffffff !important;
-                color: #0f172a !important;
+                background: var(--k-surface) !important;
+                color: var(--k-text) !important;
                 padding: 2rem;
                 border-radius: 24px;
                 width: 90%;
                 max-width: 500px;
                 box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-                border: 1px solid #e2e8f0;
+                border: 1px solid var(--k-border);
                 position: relative;
                 text-align: left;
             }
             #customAppsModal .modal h2 {
                 font-weight: 800;
                 font-size: 1.25rem;
-                color: #0f172a !important;
+                color: var(--k-text) !important;
                 margin-bottom: 4px;
                 margin-top: 0;
             }
             #customAppsModal .modal p {
                 font-size: 0.75rem;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 margin: 0;
             }
             #customAppsModal .modal .form-group {
@@ -778,7 +783,7 @@
             #customAppsModal .modal label {
                 font-size: 0.7rem;
                 font-weight: 800;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 text-transform: uppercase;
                 display: block;
                 margin-bottom: 4px;
@@ -787,9 +792,9 @@
                 width: 100%;
                 padding: 12px 16px;
                 border-radius: 12px;
-                border: 1px solid #cbd5e1 !important;
-                background: #ffffff !important;
-                color: #0f172a !important;
+                border: 1px solid var(--k-border) !important;
+                background: var(--k-surface) !important;
+                color: var(--k-text) !important;
                 outline: none;
                 margin-top: 4px;
                 font-family: inherit;
@@ -797,15 +802,15 @@
                 transition: border-color 0.2s, box-shadow 0.2s;
             }
             #customAppsModal .modal input:focus {
-                border-color: #3b82f6 !important;
+                border-color: var(--k-accent) !important;
                 box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
             }
             #customAppsModal .modal input::placeholder {
-                color: #94a3b8 !important;
+                color: var(--k-muted) !important;
                 opacity: 0.8;
             }
             #customAppsModal .modal button.map-btn {
-                background: #3b82f6;
+                background: var(--k-accent);
                 color: white !important;
                 border: none;
                 border-radius: 12px;
@@ -819,13 +824,13 @@
                 margin-top: 0.5rem;
             }
             #customAppsModal .modal button.map-btn:hover {
-                background: #2563eb;
+                background: var(--k-accent);
                 transform: translateY(-1px);
             }
             #customAppsModal .modal h3 {
                 font-size: 0.7rem;
                 font-weight: 800;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 text-transform: uppercase;
                 margin-bottom: 10px;
                 margin-top: 0;
@@ -837,8 +842,8 @@
                 width: 36px;
                 height: 36px;
                 border-radius: 10px;
-                background: #f8fafc;
-                color: #64748b !important;
+                background: var(--k-subtle);
+                color: var(--k-muted) !important;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -847,8 +852,8 @@
                 border: none;
             }
             #customAppsModal .close-modal:hover {
-                color: #ef4444 !important;
-                background: #fee2e2;
+                color: var(--k-danger-text) !important;
+                background: var(--k-danger-soft);
             }
         </style>
         <div class="modal">
@@ -872,7 +877,7 @@
                 <button class="map-btn" onclick="addCustomApp()">Map Tool Link</button>
             </div>
 
-            <div style="border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
+            <div style="border-top: 1px solid var(--k-border); padding-top: 1.25rem;">
                 <h3>Mapped Connections</h3>
                 <div id="registryAppsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;">
                     <!-- Mapped apps inside the registry panel -->

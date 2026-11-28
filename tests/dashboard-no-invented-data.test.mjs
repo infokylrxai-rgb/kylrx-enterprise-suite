@@ -151,12 +151,20 @@ describe('charts say what is going on', () => {
   });
 });
 
-describe('the theme layer is gone', () => {
-  it('no page loads it', () => {
+/*
+ * The first theme attempt (kylrx-theme.js) was a stylesheet layered over thousands of
+ * hard-coded colours it could not override, so it only partly applied and was removed.
+ * The overhaul brief then asked for a full dark/light system, which now exists in a
+ * different form: kylrx-theme-init.js plus token-based colours throughout (see
+ * tests/theme-system.test.mjs). What must stay gone is the old partial layer.
+ */
+describe('the old partial theme layer is gone', () => {
+  it('no page loads kylrx-theme.js', () => {
     const left = fs.readdirSync(ROOT)
       .filter(f => /\.html$/.test(f))
-      .filter(f => fs.readFileSync(path.join(ROOT, f), 'utf8').includes('kylrx-theme'));
-    assert.deepEqual(left, [], 'these pages still reference the removed theme');
+      .filter(f => /src="kylrx-theme\.js"/.test(fs.readFileSync(path.join(ROOT, f), 'utf8')));
+    assert.deepEqual(left, [], 'these pages still load the removed partial theme');
+    assert.ok(!fs.existsSync(path.join(ROOT, 'kylrx-theme.js')));
   });
 
   it('but the greeting fix it carried is kept', () => {

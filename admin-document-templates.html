@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="kylrx-theme-init.js"></script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document & Template Engine | Kylrx AI</title>
@@ -74,15 +75,15 @@
 
         body {
             font-family: 'Outfit', 'Inter', -apple-system, sans-serif;
-            background: #f8fafc;
-            color: #0f172a;
+            background: var(--k-subtle);
+            color: var(--k-text);
             min-height: 100vh;
         }
 
         .dashboard-container {
             display: flex;
             min-height: 100vh;
-            background: #f8fafc;
+            background: var(--k-subtle);
         }
 
         .main-content {
@@ -90,7 +91,7 @@
             flex: 1;
             min-height: 100vh;
             padding: 2rem 2rem;
-            background: #f8fafc;
+            background: var(--k-subtle);
             width: calc(100% - var(--sidebar-width, 280px));
             overflow-x: hidden;
             box-sizing: border-box;
@@ -124,7 +125,7 @@
         .header-left h1 {
             font-size: 1.5rem;
             font-weight: 800;
-            color: #0f172a;
+            color: var(--k-text);
             margin: 0 0 4px 0;
             letter-spacing: -0.5px;
             display: flex;
@@ -154,14 +155,14 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #64748b;
+            color: var(--k-muted);
             cursor: pointer;
             transition: var(--transition);
         }
         .action-icon:hover {
-            background: #f1f5f9;
+            background: var(--k-subtle);
             color: var(--primary);
-            border-color: #cbd5e1;
+            border-color: var(--k-border);
         }
         .action-icon i, .action-icon svg {
             width: 17px;
@@ -185,7 +186,7 @@
         }
         .btn-primary {
             background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-            color: #ffffff;
+            color: var(--k-on-accent);
             box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
         }
         .btn-primary:hover {
@@ -193,20 +194,20 @@
             box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
         }
         .btn-secondary, .btn-outline {
-            background: #ffffff;
-            color: #334155;
+            background: var(--k-surface);
+            color: var(--k-text-2);
             border: 1px solid var(--border);
             box-shadow: var(--shadow-sm);
         }
         .btn-secondary:hover, .btn-outline:hover {
-            background: #f8fafc;
+            background: var(--k-subtle);
             color: var(--primary);
-            border-color: #cbd5e1;
+            border-color: var(--k-border);
             transform: translateY(-1px);
         }
         .btn-green {
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: #ffffff;
+            color: var(--k-on-success);
             box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
         }
         .btn-green:hover {
@@ -227,7 +228,7 @@
             margin-bottom: 2rem;
         }
         .stat-card {
-            background: #ffffff;
+            background: var(--k-surface);
             border: 1px solid var(--border);
             border-radius: var(--radius);
             padding: 1.25rem 1.5rem;
@@ -238,7 +239,7 @@
             box-shadow: var(--shadow-sm);
         }
         .stat-card:hover {
-            border-color: #93c5fd;
+            border-color: var(--k-accent-border);
             transform: translateY(-2px);
             box-shadow: var(--shadow-glow);
         }
@@ -252,15 +253,15 @@
             font-size: 19px;
             flex-shrink: 0;
         }
-        .stat-icon.blue { background: #eff6ff; color: #2563eb; }
-        .stat-icon.green { background: #ecfdf5; color: #10b981; }
-        .stat-icon.gold { background: #fffbeb; color: #d97706; }
+        .stat-icon.blue { background: var(--k-accent-soft); color: var(--k-accent-text); }
+        .stat-icon.green { background: var(--k-success-soft); color: var(--k-success-text); }
+        .stat-icon.gold { background: var(--k-warning-soft); color: var(--k-warning-text); }
         .stat-icon.teal { background: #f0fdfa; color: #0d9488; }
         .stat-icon.purple { background: #f5f3ff; color: #7c3aed; }
         .stat-info label {
             font-size: 0.7rem;
             font-weight: 800;
-            color: #64748b;
+            color: var(--k-muted);
             text-transform: uppercase;
             letter-spacing: 0.6px;
             display: block;
@@ -269,7 +270,7 @@
         .stat-info span {
             font-size: 1.5rem;
             font-weight: 800;
-            color: #0f172a;
+            color: var(--k-text);
             display: block;
             line-height: 1.1;
         }
@@ -278,7 +279,7 @@
         .tabs {
             display: flex;
             gap: 6px;
-            background: #f1f5f9;
+            background: var(--k-subtle);
             border: 1px solid var(--border);
             border-radius: 14px;
             padding: 5px;
@@ -290,7 +291,7 @@
             border: none;
             border-radius: 10px;
             background: transparent;
-            color: #64748b;
+            color: var(--k-muted);
             font-size: 0.8rem;
             font-weight: 700;
             cursor: pointer;
@@ -301,12 +302,12 @@
             font-family: inherit;
         }
         .tab-btn.active {
-            background: #ffffff;
-            color: #2563eb;
+            background: var(--k-surface);
+            color: var(--k-accent-text);
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
         }
         .tab-btn:hover:not(.active) {
-            color: #0f172a;
+            color: var(--k-text);
         }
 
         /* ─── TOOLBAR & SEARCH ─── */
@@ -321,7 +322,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            background: #ffffff;
+            background: var(--k-surface);
             border: 1px solid var(--border);
             border-radius: 12px;
             padding: 0 16px;
@@ -329,11 +330,11 @@
             transition: var(--transition);
         }
         .search-box:focus-within {
-            border-color: #2563eb;
+            border-color: var(--k-accent);
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
         }
         .search-box i, .search-box svg {
-            color: #94a3b8;
+            color: var(--k-muted);
             font-size: 14px;
         }
         .search-box input {
@@ -341,20 +342,20 @@
             background: none;
             border: none;
             outline: none;
-            color: #0f172a;
+            color: var(--k-text);
             font-size: 0.875rem;
             padding: 11px 0;
             font-family: inherit;
             font-weight: 500;
         }
         .search-box input::placeholder {
-            color: #94a3b8;
+            color: var(--k-muted);
         }
         .filter-select {
-            background: #ffffff;
+            background: var(--k-surface);
             border: 1px solid var(--border);
             border-radius: 12px;
-            color: #334155;
+            color: var(--k-text-2);
             padding: 10px 16px;
             font-size: 0.875rem;
             font-weight: 600;
@@ -365,7 +366,7 @@
             transition: var(--transition);
         }
         .filter-select:focus {
-            border-color: #2563eb;
+            border-color: var(--k-accent);
         }
 
         /* ─── TEMPLATE GRID & CARDS ─── */
@@ -375,7 +376,7 @@
             gap: 1.25rem;
         }
         .template-card {
-            background: #ffffff;
+            background: var(--k-surface);
             border: 1px solid var(--border);
             border-radius: var(--radius);
             padding: 1.5rem;
@@ -388,7 +389,7 @@
             box-shadow: var(--shadow-sm);
         }
         .template-card:hover {
-            border-color: #93c5fd;
+            border-color: var(--k-accent-border);
             transform: translateY(-3px);
             box-shadow: 0 12px 30px rgba(37, 99, 235, 0.08);
         }
@@ -413,13 +414,13 @@
         .template-card-title h3 {
             font-size: 1rem;
             font-weight: 800;
-            color: #0f172a;
+            color: var(--k-text);
             margin: 0 0 4px 0;
             line-height: 1.25;
         }
         .template-card-title p {
             font-size: 0.8rem;
-            color: #64748b;
+            color: var(--k-muted);
             line-height: 1.5;
             margin: 0;
         }
@@ -439,29 +440,29 @@
             align-items: center;
             gap: 4px;
         }
-        .tag-blue { background: #eff6ff; color: #2563eb; }
-        .tag-green { background: #ecfdf5; color: #059669; }
-        .tag-gold { background: #fffbeb; color: #d97706; }
-        .tag-red { background: #fef2f2; color: #dc2626; }
+        .tag-blue { background: var(--k-accent-soft); color: var(--k-accent-text); }
+        .tag-green { background: var(--k-success-soft); color: var(--k-success-text); }
+        .tag-gold { background: var(--k-warning-soft); color: var(--k-warning-text); }
+        .tag-red { background: var(--k-danger-soft); color: var(--k-danger-text); }
         .tag-purple { background: #f5f3ff; color: #7c3aed; }
         .tag-teal { background: #f0fdfa; color: #0d9488; }
-        .tag-gray { background: #f1f5f9; color: #475569; }
+        .tag-gray { background: var(--k-subtle); color: var(--k-text-2); }
 
         .template-card-footer {
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding-top: 12px;
-            border-top: 1px solid #f1f5f9;
+            border-top: 1px solid var(--k-border);
             margin-top: auto;
         }
         .template-version-info {
             font-size: 0.75rem;
-            color: #94a3b8;
+            color: var(--k-muted);
             font-weight: 600;
         }
         .template-version-info span {
-            color: #2563eb;
+            color: var(--k-accent-text);
             font-weight: 700;
         }
         .template-actions {
@@ -491,7 +492,7 @@
             top: 0;
             bottom: 0;
             width: 100%; max-width: min(580px, 90vw);
-            background: #ffffff;
+            background: var(--k-surface);
             border-left: 1px solid var(--border);
             z-index: 2100;
             display: flex;
@@ -510,18 +511,18 @@
             display: flex;
             align-items: center;
             gap: 14px;
-            background: #ffffff;
+            background: var(--k-surface);
         }
         .panel-header h2 {
             font-size: 1.125rem;
             font-weight: 800;
-            color: #0f172a;
+            color: var(--k-text);
             margin: 0;
         }
         .panel-close {
-            background: #f1f5f9;
+            background: var(--k-subtle);
             border: none;
-            color: #64748b;
+            color: var(--k-muted);
             cursor: pointer;
             width: 32px;
             height: 32px;
@@ -532,8 +533,8 @@
             transition: var(--transition);
         }
         .panel-close:hover {
-            background: #fee2e2;
-            color: #ef4444;
+            background: var(--k-danger-soft);
+            color: var(--k-danger-text);
         }
 
         .panel-body {
@@ -543,11 +544,11 @@
             display: flex;
             flex-direction: column;
             gap: 1.25rem;
-            background: #f8fafc;
+            background: var(--k-subtle);
         }
 
         .section-card {
-            background: #ffffff;
+            background: var(--k-surface);
             border: 1px solid var(--border);
             border-radius: 14px;
             padding: 1.25rem 1.5rem;
@@ -558,7 +559,7 @@
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.8px;
-            color: #64748b;
+            color: var(--k-muted);
             margin-bottom: 12px;
             display: flex;
             align-items: center;
@@ -568,7 +569,7 @@
             content: '';
             flex: 1;
             height: 1px;
-            background: #f1f5f9;
+            background: var(--k-subtle);
         }
 
         /* ─── VERSION LIST ─── */
@@ -581,14 +582,14 @@
             display: flex;
             align-items: flex-start;
             gap: 12px;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
+            background: var(--k-subtle);
+            border: 1px solid var(--k-border);
             border-radius: 12px;
             padding: 12px 14px;
         }
         .version-item.active-version {
-            border-color: #86efac;
-            background: #f0fdf4;
+            border-color: var(--k-success-border);
+            background: var(--k-success-soft);
         }
         .version-dot {
             width: 10px;
@@ -606,16 +607,16 @@
         .version-info strong {
             font-size: 0.875rem;
             font-weight: 800;
-            color: #0f172a;
+            color: var(--k-text);
         }
         .version-info p {
             font-size: 0.8rem;
-            color: #475569;
+            color: var(--k-text-2);
             margin: 3px 0;
         }
         .version-info small {
             font-size: 0.7rem;
-            color: #94a3b8;
+            color: var(--k-muted);
         }
 
         /* ─── FIELD MAPPING TABLE ─── */
@@ -627,7 +628,7 @@
         .field-table th {
             text-align: left;
             padding: 8px 10px;
-            color: #64748b;
+            color: var(--k-muted);
             font-size: 0.7rem;
             text-transform: uppercase;
             letter-spacing: 0.6px;
@@ -636,15 +637,15 @@
         }
         .field-table td {
             padding: 10px;
-            border-bottom: 1px solid #f1f5f9;
+            border-bottom: 1px solid var(--k-border);
             vertical-align: middle;
         }
         .token-badge {
             font-family: 'Courier New', monospace;
             font-size: 0.75rem;
             font-weight: 700;
-            background: #eff6ff;
-            color: #2563eb;
+            background: var(--k-accent-soft);
+            color: var(--k-accent-text);
             padding: 3px 8px;
             border-radius: 6px;
         }
@@ -653,7 +654,7 @@
             width: 6px;
             height: 6px;
             border-radius: 50%;
-            background: #ef4444;
+            background: var(--k-danger);
         }
 
         /* ─── PERMISSIONS GRID ─── */
@@ -663,7 +664,7 @@
             gap: 8px;
         }
         .permission-item {
-            background: #f8fafc;
+            background: var(--k-subtle);
             border: 1px solid var(--border);
             border-radius: 8px;
             padding: 8px 12px;
@@ -674,12 +675,12 @@
             font-weight: 600;
         }
         .permission-item.allowed {
-            border-color: #bbf7d0;
-            background: #f0fdf4;
-            color: #166534;
+            border-color: var(--k-success-border);
+            background: var(--k-success-soft);
+            color: var(--k-success-text);
         }
         .permission-item.restricted {
-            color: #94a3b8;
+            color: var(--k-muted);
         }
 
         /* ─── GENERATED DOCS TABLE ─── */
@@ -691,28 +692,28 @@
         .docs-table th {
             text-align: left;
             padding: 12px 16px;
-            color: #64748b;
+            color: var(--k-muted);
             font-size: 0.7rem;
             text-transform: uppercase;
             letter-spacing: 0.6px;
             font-weight: 800;
-            background: #f8fafc;
+            background: var(--k-subtle);
             border-bottom: 1px solid var(--border);
         }
         .docs-table td {
             padding: 14px 16px;
             border-bottom: 1px solid var(--border);
             vertical-align: middle;
-            color: #1e293b;
+            color: var(--k-text);
         }
         .docs-table tr:hover td {
-            background: #f8fafc;
+            background: var(--k-subtle);
         }
         .hash-text {
             font-family: 'Courier New', monospace;
             font-size: 0.7rem;
-            color: #64748b;
-            background: #f1f5f9;
+            color: var(--k-muted);
+            background: var(--k-subtle);
             padding: 2px 6px;
             border-radius: 4px;
         }
@@ -726,26 +727,26 @@
             border-radius: 20px;
         }
         .status-badge.generated, .status-badge.approved {
-            background: #ecfdf5;
-            color: #059669;
+            background: var(--k-success-soft);
+            color: var(--k-success-text);
         }
         .status-badge.draft {
-            background: #fffbeb;
-            color: #d97706;
+            background: var(--k-warning-soft);
+            color: var(--k-warning-text);
         }
 
         /* ─── PREVIEW FRAME (A4 Realistic Paper) ─── */
         .preview-frame {
-            background: #ffffff;
+            background: var(--k-surface);
             border-radius: 12px;
             padding: 2rem;
             min-height: 350px;
-            color: #1e293b;
+            color: var(--k-text);
             font-size: 0.875rem;
             line-height: 1.8;
             overflow-y: auto;
             max-height: 520px;
-            border: 1px solid #e2e8f0;
+            border: 1px solid var(--k-border);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
         }
         .preview-loading {
@@ -757,8 +758,8 @@
         .spinner {
             width: 32px;
             height: 32px;
-            border: 3px solid #e2e8f0;
-            border-top-color: #2563eb;
+            border: 3px solid var(--k-border);
+            border-top-color: var(--k-accent);
             border-radius: 50%;
             animation: spin 0.6s linear infinite;
         }
@@ -777,7 +778,7 @@
             gap: 10px;
         }
         .toast {
-            background: #ffffff;
+            background: var(--k-surface);
             border: 1px solid var(--border);
             border-radius: 14px;
             padding: 14px 20px;
@@ -802,7 +803,7 @@
         .empty-state {
             text-align: center;
             padding: 60px 20px;
-            color: #94a3b8;
+            color: var(--k-muted);
         }
         .empty-state i, .empty-state svg {
             font-size: 40px;
@@ -813,7 +814,7 @@
         }
         .empty-state h3 {
             font-size: 1.125rem;
-            color: #334155;
+            color: var(--k-text-2);
             margin-bottom: 6px;
             font-weight: 700;
         }
@@ -831,6 +832,7 @@
             .side-panel { width: 100%; }
         }
     </style>
+    <link rel="stylesheet" href="kylrx-theme.css">
 </head>
 <body class="admin-dashboard">
     <div class="dashboard-container">
@@ -1062,7 +1064,7 @@
                         <i data-lucide="rotate-cw" style="width: 14px; height: 14px;"></i> Refresh
                     </button>
                 </div>
-                <div style="background: #ffffff; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm);">
+                <div style="background: var(--k-surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm);">
                     <table class="docs-table">
                         <thead>
                             <tr>
@@ -1096,7 +1098,7 @@
                             Security Gating Rules
                         </div>
                         <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 1rem;">
-                            The Document Template Engine strictly enforces caller module permissions. Only explicitly authorized modules are permitted to invoke <code style="background: #eff6ff; color: #2563eb; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-family: monospace;">generateDocument()</code>. Any unpermitted attempts result in an immediate <strong>403 Forbidden</strong> response.
+                            The Document Template Engine strictly enforces caller module permissions. Only explicitly authorized modules are permitted to invoke <code style="background: var(--k-accent-soft); color: var(--k-accent-text); padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-family: monospace;">generateDocument()</code>. Any unpermitted attempts result in an immediate <strong>403 Forbidden</strong> response.
                         </p>
                         <div style="display: flex; flex-direction: column; gap: 8px;" id="gating-rules-list">
                             <div style="text-align: center; padding: 20px; color: var(--text-muted); font-size: 0.8rem;">Loading gating policies…</div>
@@ -1106,19 +1108,19 @@
                     <!-- Stage 8 Audit Trail Card -->
                     <div class="section-card">
                         <div class="section-card-title">
-                            <i data-lucide="shield-check" style="width: 16px; height: 16px; color: #10b981;"></i>
+                            <i data-lucide="shield-check" style="width: 16px; height: 16px; color: var(--k-success-text);"></i>
                             Stage 8 Audit Trail
                         </div>
                         <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 1rem;">
                             Every single document generation lifecycle event is recorded in the immutable <strong>Automation Engine Stage 8 Audit Trail</strong>. Each log entry preserves caller provenance, template version, recipient context, and a cryptographic hash.
                         </p>
-                        <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; font-size: 0.8rem; color: var(--text-secondary); line-height: 1.8;">
-                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; color: #059669; font-weight: 700;">
+                        <div style="background: var(--k-subtle); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; font-size: 0.8rem; color: var(--text-secondary); line-height: 1.8;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; color: var(--k-success-text); font-weight: 700;">
                                 <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
                                 Immutable audit records — tamper-resistant and permanently retained
                             </div>
                             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                                <i data-lucide="fingerprint" style="width: 16px; height: 16px; color: #2563eb;"></i>
+                                <i data-lucide="fingerprint" style="width: 16px; height: 16px; color: var(--k-accent-text);"></i>
                                 Cryptographic SHA-256 hash calculated and attached to every dispatch
                             </div>
                             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
@@ -1130,7 +1132,7 @@
                                 Effective date version resolution recorded for compliance verification
                             </div>
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <i data-lucide="alert-octagon" style="width: 16px; height: 16px; color: #ef4444;"></i>
+                                <i data-lucide="alert-octagon" style="width: 16px; height: 16px; color: var(--k-danger-text);"></i>
                                 Unauthorized calls logged as security compliance violation alerts
                             </div>
                         </div>
@@ -1145,30 +1147,30 @@
                         <div style="display: flex; align-items: center; justify-content: space-between; padding: 1.5rem 0; max-width: 900px; margin: 0 auto;">
                             <!-- Stage 1: Draft -->
                             <div style="text-align: center; flex: 1;">
-                                <div style="width: 48px; height: 48px; border-radius: 50%; background: #fffbeb; border: 2px solid #d97706; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; color: #d97706;">
+                                <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--k-warning-soft); border: 2px solid #d97706; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; color: var(--k-warning-text);">
                                     <i data-lucide="edit-3" style="width: 20px; height: 20px;"></i>
                                 </div>
-                                <div style="font-weight: 800; font-size: 0.875rem; color: #0f172a;">1. Draft</div>
+                                <div style="font-weight: 800; font-size: 0.875rem; color: var(--k-text);">1. Draft</div>
                                 <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">HR Admin creates new template draft</div>
                             </div>
                             <div style="flex: 1; height: 3px; background: linear-gradient(90deg, #d97706, #2563eb); border-radius: 2px; margin: 0 10px;"></div>
                             
                             <!-- Stage 2: Pending Approval -->
                             <div style="text-align: center; flex: 1;">
-                                <div style="width: 48px; height: 48px; border-radius: 50%; background: #eff6ff; border: 2px solid #2563eb; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; color: #2563eb;">
+                                <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--k-accent-soft); border: 2px solid var(--k-accent); display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; color: var(--k-accent-text);">
                                     <i data-lucide="send" style="width: 20px; height: 20px;"></i>
                                 </div>
-                                <div style="font-weight: 800; font-size: 0.875rem; color: #0f172a;">2. Review Gate</div>
+                                <div style="font-weight: 800; font-size: 0.875rem; color: var(--k-text);">2. Review Gate</div>
                                 <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Submitted to HR Director for validation</div>
                             </div>
                             <div style="flex: 1; height: 3px; background: linear-gradient(90deg, #2563eb, #10b981); border-radius: 2px; margin: 0 10px;"></div>
                             
                             <!-- Stage 3: Approved -->
                             <div style="text-align: center; flex: 1;">
-                                <div style="width: 48px; height: 48px; border-radius: 50%; background: #ecfdf5; border: 2px solid #10b981; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; color: #10b981;">
+                                <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--k-success-soft); border: 2px solid #10b981; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; color: var(--k-success-text);">
                                     <i data-lucide="check-circle" style="width: 20px; height: 20px;"></i>
                                 </div>
-                                <div style="font-weight: 800; font-size: 0.875rem; color: #0f172a;">3. Approved</div>
+                                <div style="font-weight: 800; font-size: 0.875rem; color: var(--k-text);">3. Approved</div>
                                 <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Active &amp; published for production dispatch</div>
                             </div>
                             <div style="flex: 1; height: 3px; background: linear-gradient(90deg, #10b981, #0d9488); border-radius: 2px; margin: 0 10px;"></div>
@@ -1178,7 +1180,7 @@
                                 <div style="width: 48px; height: 48px; border-radius: 50%; background: #f0fdfa; border: 2px solid #0d9488; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; color: #0d9488;">
                                     <i data-lucide="file-check" style="width: 20px; height: 20px;"></i>
                                 </div>
-                                <div style="font-weight: 800; font-size: 0.875rem; color: #0f172a;">4. Generated</div>
+                                <div style="font-weight: 800; font-size: 0.875rem; color: var(--k-text);">4. Generated</div>
                                 <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Dispatched with SHA-256 hash &amp; archived</div>
                             </div>
                         </div>
@@ -1257,27 +1259,27 @@
                 justify-content: center;
             }
             #customAppsModal .modal {
-                background: #ffffff !important;
-                color: #0f172a !important;
+                background: var(--k-surface) !important;
+                color: var(--k-text) !important;
                 padding: 2rem;
                 border-radius: 24px;
                 width: 90%;
                 max-width: 500px;
                 box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-                border: 1px solid #e2e8f0;
+                border: 1px solid var(--k-border);
                 position: relative;
                 text-align: left;
             }
             #customAppsModal .modal h2 {
                 font-weight: 800;
                 font-size: 1.25rem;
-                color: #0f172a !important;
+                color: var(--k-text) !important;
                 margin-bottom: 4px;
                 margin-top: 0;
             }
             #customAppsModal .modal p {
                 font-size: 0.75rem;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 margin: 0;
             }
             #customAppsModal .modal .form-group {
@@ -1289,7 +1291,7 @@
             #customAppsModal .modal label {
                 font-size: 0.7rem;
                 font-weight: 800;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 text-transform: uppercase;
                 display: block;
                 margin-bottom: 4px;
@@ -1298,9 +1300,9 @@
                 width: 100%;
                 padding: 12px 16px;
                 border-radius: 12px;
-                border: 1px solid #cbd5e1 !important;
-                background: #ffffff !important;
-                color: #0f172a !important;
+                border: 1px solid var(--k-border) !important;
+                background: var(--k-surface) !important;
+                color: var(--k-text) !important;
                 outline: none;
                 margin-top: 4px;
                 font-family: inherit;
@@ -1308,15 +1310,15 @@
                 transition: border-color 0.2s, box-shadow 0.2s;
             }
             #customAppsModal .modal input:focus {
-                border-color: #3b82f6 !important;
+                border-color: var(--k-accent) !important;
                 box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
             }
             #customAppsModal .modal input::placeholder {
-                color: #94a3b8 !important;
+                color: var(--k-muted) !important;
                 opacity: 0.8;
             }
             #customAppsModal .modal button.map-btn {
-                background: #3b82f6;
+                background: var(--k-accent);
                 color: white !important;
                 border: none;
                 border-radius: 12px;
@@ -1330,7 +1332,7 @@
                 margin-top: 0.5rem;
             }
             #customAppsModal .modal button.map-btn:hover {
-                background: #2563eb;
+                background: var(--k-accent);
                 transform: translateY(-1px);
             }
             #customAppsModal .close-modal {
@@ -1340,8 +1342,8 @@
                 width: 36px;
                 height: 36px;
                 border-radius: 10px;
-                background: #f8fafc;
-                color: #64748b !important;
+                background: var(--k-subtle);
+                color: var(--k-muted) !important;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -1350,8 +1352,8 @@
                 border: none;
             }
             #customAppsModal .close-modal:hover {
-                color: #ef4444 !important;
-                background: #fee2e2;
+                color: var(--k-danger-text) !important;
+                background: var(--k-danger-soft);
             }
         </style>
         <div class="modal">
@@ -1375,8 +1377,8 @@
                 <button class="map-btn" onclick="addCustomApp()">Map Tool Link</button>
             </div>
 
-            <div style="border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
-                <h3 style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 10px;">Mapped Connections</h3>
+            <div style="border-top: 1px solid var(--k-border); padding-top: 1.25rem;">
+                <h3 style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase; margin-bottom: 10px;">Mapped Connections</h3>
                 <div id="registryAppsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;"></div>
             </div>
         </div>

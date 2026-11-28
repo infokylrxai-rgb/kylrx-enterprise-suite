@@ -86,16 +86,16 @@
         `;
 
         toast.innerHTML = `
-            <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(239, 68, 68, 0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #ef4444; font-size: 20px;">
+            <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(239, 68, 68, 0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--k-danger-text); font-size: 20px;">
                 🛡️
             </div>
             <div style="flex: 1;">
                 <div style="font-weight: 700; font-size: 0.9rem; color: #f87171; letter-spacing: -0.2px;">Cross-Portal Navigation Restricted</div>
-                <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 3px; line-height: 1.35;">
+                <div style="font-size: 0.78rem; color: var(--k-muted); margin-top: 3px; line-height: 1.35;">
                     Manager Command Center is restricted from navigating to Admin, HRMS, or Employee portals.
                 </div>
             </div>
-            <button onclick="this.parentElement.remove()" style="background: none; border: none; color: #64748b; font-size: 18px; cursor: pointer; padding: 4px; line-height: 1;">✕</button>
+            <button onclick="this.parentElement.remove()" style="background: none; border: none; color: var(--k-muted); font-size: 18px; cursor: pointer; padding: 4px; line-height: 1;">✕</button>
         `;
 
         if (!document.getElementById('mgrNavRestrictedStyles')) {

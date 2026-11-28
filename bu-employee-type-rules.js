@@ -789,18 +789,18 @@
         let tableHtml = `
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 10px;">
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="font-size: 0.85rem; font-weight: 700; color: #475569;">
+                    <span style="font-size: 0.85rem; font-weight: 700; color: var(--k-text-2);">
                         Configured Units: <strong>${rules.length}</strong>
                     </span>
-                    <span style="font-size: 0.72rem; background: #dcfce7; color: #166534; font-weight: 800; padding: 2px 8px; border-radius: 9999px;">
+                    <span style="font-size: 0.72rem; background: var(--k-success-soft); color: var(--k-success-text); font-weight: 800; padding: 2px 8px; border-radius: 9999px;">
                         ${rules.filter(r => r.isActive).length} Active
                     </span>
                 </div>
                 <div style="display: flex; gap: 8px;">
-                    <button type="button" class="btn btn-outline" onclick="window.KylrxBuRules.openBuModal()" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; font-size: 0.82rem; border-radius: 10px; font-weight: 700; border: 1.5px solid #cbd5e1; background: white; cursor: pointer;">
-                        <i class="fas fa-plus-circle" style="color: #2563eb;"></i> Add Business Unit
+                    <button type="button" class="btn btn-outline" onclick="window.KylrxBuRules.openBuModal()" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; font-size: 0.82rem; border-radius: 10px; font-weight: 700; border: 1.5px solid var(--k-border); background: white; cursor: pointer;">
+                        <i class="fas fa-plus-circle" style="color: var(--k-accent-text);"></i> Add Business Unit
                     </button>
-                    <button type="button" class="btn btn-primary" onclick="window.KylrxBuRules.saveAllRules()" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 0.82rem; border-radius: 10px; font-weight: 700; background: #2563eb; color: white; border: none; cursor: pointer;">
+                    <button type="button" class="btn btn-primary" onclick="window.KylrxBuRules.saveAllRules()" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 0.82rem; border-radius: 10px; font-weight: 700; background: var(--k-accent); color: white; border: none; cursor: pointer;">
                         <i class="fas fa-save"></i> Save All
                     </button>
                 </div>
@@ -832,9 +832,9 @@
                     <label class="bu-type-pill ${isChecked ? 'active' : ''}" style="
                         display: inline-flex; align-items: center; gap: 6px; padding: 7px 13px; border-radius: 9999px;
                         font-size: 0.78rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all .15s;
-                        background: ${isChecked ? '#2563eb' : '#ffffff'};
-                        color: ${isChecked ? '#ffffff' : '#475569'};
-                        border: 1px solid ${isChecked ? '#2563eb' : '#cbd5e1'};
+                        background: ${isChecked ? 'var(--k-accent)' : 'var(--k-surface)'};
+                        color: ${isChecked ? 'var(--k-on-accent)' : 'var(--k-text-2)'};
+                        border: 1px solid ${isChecked ? 'var(--k-accent)' : 'var(--k-border)'};
                     ">
                         <input type="checkbox" style="display:none;"
                             data-bu="${rule.businessUnitCode}"
@@ -853,16 +853,16 @@
             // stacked pills. A card gives the chips the full width.
             tableHtml += `
                 <div id="row_bu_${rule.businessUnitCode}" style="
-                    border: 1px solid #e2e8f0; border-radius: 14px; background: #fff; padding: 16px 18px;
+                    border: 1px solid var(--k-border); border-radius: 14px; background: var(--k-surface); padding: 16px 18px;
                     opacity: ${rule.isActive ? '1' : '0.55'};
                 ">
                     <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
                         <div style="min-width: 220px;">
-                            <div style="font-size: 1rem; font-weight: 700; color: #0f172a;">
+                            <div style="font-size: 1rem; font-weight: 700; color: var(--k-text);">
                                 ${rule.businessUnitName}
                             </div>
-                            <div style="font-size: 0.78rem; color: #64748b; margin-top: 3px;">
-                                <span style="font-family: monospace; font-weight: 700; color: #2563eb;">${rule.businessUnitCode}</span>
+                            <div style="font-size: 0.78rem; color: var(--k-muted); margin-top: 3px;">
+                                <span style="font-family: monospace; font-weight: 700; color: var(--k-accent-text);">${rule.businessUnitCode}</span>
                                 &nbsp;&middot;&nbsp; Head: ${headName || 'Unassigned'}
                             </div>
                         </div>
@@ -870,22 +870,22 @@
                             <button type="button"
                                 onclick="window.KylrxBuRules.toggleActiveStatus('${rule.businessUnitCode}')"
                                 title="Click to turn this business unit on or off"
-                                style="cursor: pointer; border: 1px solid ${rule.isActive ? '#bbf7d0' : '#e2e8f0'};
-                                       background: ${rule.isActive ? '#f0fdf4' : '#f8fafc'};
-                                       color: ${rule.isActive ? '#15803d' : '#64748b'};
+                                style="cursor: pointer; border: 1px solid ${rule.isActive ? 'var(--k-success-border)' : 'var(--k-border)'};
+                                       background: ${rule.isActive ? 'var(--k-success-soft)' : 'var(--k-subtle)'};
+                                       color: ${rule.isActive ? 'var(--k-success-text)' : 'var(--k-muted)'};
                                        border-radius: 9999px; padding: 5px 12px; font-size: 0.76rem; font-weight: 700;">
                                 ${rule.isActive ? 'Active' : 'Inactive'}
                             </button>
                             <button type="button" class="btn btn-outline" title="Edit this business unit"
                                 onclick="window.KylrxBuRules.openBuModal('${rule.businessUnitCode}')"
-                                style="padding: 5px 11px; font-size: 0.76rem; border-radius: 8px; border: 1px solid #cbd5e1; background:#fff; color:#475569; cursor:pointer;">
+                                style="padding: 5px 11px; font-size: 0.76rem; border-radius: 8px; border: 1px solid var(--k-border); background:var(--k-surface); color:var(--k-text-2); cursor:pointer;">
                                 Edit
                             </button>
                         </div>
                     </div>
 
                     <div style="margin-top: 14px;">
-                        <div style="font-size: 0.74rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 8px;">
+                        <div style="font-size: 0.74rem; font-weight: 700; color: var(--k-muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 8px;">
                             Employee types this unit may hire
                         </div>
                         <div style="display: flex; flex-wrap: wrap; gap: 8px;">
@@ -919,64 +919,64 @@
         `;
 
         modalDiv.innerHTML = `
-            <div class="modal" style="background: white; border-radius: 24px; padding: 2rem; max-width: 580px; width: 92%; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; position: relative;">
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem; margin-bottom: 1.25rem;">
+            <div class="modal" style="background: white; border-radius: 24px; padding: 2rem; max-width: 580px; width: 92%; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); border: 1px solid var(--k-border); position: relative;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--k-border); padding-bottom: 1rem; margin-bottom: 1.25rem;">
                     <div>
-                        <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0;" id="buModalTitle">Add Business Unit</h2>
-                        <p style="font-size: 0.8rem; color: #64748b; margin: 3px 0 0;">Ingest and store business unit matching PRD Sections 1 & 10</p>
+                        <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--k-text); margin: 0;" id="buModalTitle">Add Business Unit</h2>
+                        <p style="font-size: 0.8rem; color: var(--k-muted); margin: 3px 0 0;">Ingest and store business unit matching PRD Sections 1 & 10</p>
                     </div>
-                    <button type="button" onclick="window.KylrxBuRules.closeBuModal()" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #64748b;">
+                    <button type="button" onclick="window.KylrxBuRules.closeBuModal()" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--k-muted);">
                         &times;
                     </button>
                 </div>
 
-                <div id="buModalOrgNotice" role="alert" style="display: none; margin-bottom: 1rem; padding: 10px 14px; border-radius: 10px; background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; font-size: 0.85rem; font-weight: 700;"></div>
-                <div id="buModalError" role="alert" style="display: none; margin-bottom: 1rem; padding: 10px 14px; border-radius: 10px; background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; font-size: 0.85rem;"></div>
+                <div id="buModalOrgNotice" role="alert" style="display: none; margin-bottom: 1rem; padding: 10px 14px; border-radius: 10px; background: var(--k-danger-soft); color: var(--k-danger-text); border: 1px solid var(--k-danger-border); font-size: 0.85rem; font-weight: 700;"></div>
+                <div id="buModalError" role="alert" style="display: none; margin-bottom: 1rem; padding: 10px 14px; border-radius: 10px; background: var(--k-danger-soft); color: var(--k-danger-text); border: 1px solid var(--k-danger-border); font-size: 0.85rem;"></div>
 
                 <form id="buModalForm" onsubmit="event.preventDefault(); window.KylrxBuRules.handleModalSubmit();">
                     <input type="hidden" id="buModalIsEdit" value="false">
 
                     <!-- Field 1: Business_Unit_Code -->
                     <div style="margin-bottom: 1rem;">
-                        <label style="display: block; font-size: 0.75rem; font-weight: 800; color: #475569; text-transform: uppercase; margin-bottom: 4px;">
+                        <label style="display: block; font-size: 0.75rem; font-weight: 800; color: var(--k-text-2); text-transform: uppercase; margin-bottom: 4px;">
                             1. Business Unit Code (Business_Unit_Code) *
                         </label>
                         <input type="text" id="buModalCode" required placeholder="e.g. BU_CORP_01 or BU-TECH" 
-                            style="width: 100%; padding: 10px 14px; border-radius: 10px; border: 1.5px solid #cbd5e1; font-family: monospace; font-size: 0.9rem; font-weight: 700; text-transform: uppercase; outline: none; box-sizing: border-box;"
+                            style="width: 100%; padding: 10px 14px; border-radius: 10px; border: 1.5px solid var(--k-border); font-family: monospace; font-size: 0.9rem; font-weight: 700; text-transform: uppercase; outline: none; box-sizing: border-box;"
                         />
-                        <span style="font-size: 0.7rem; color: #94a3b8; margin-top: 2px; display: block;">Primary document key under organizations/{orgId}/business_units</span>
+                        <span style="font-size: 0.7rem; color: var(--k-muted); margin-top: 2px; display: block;">Primary document key under organizations/{orgId}/business_units</span>
                     </div>
 
                     <!-- Field 2: Business_Unit_Name -->
                     <div style="margin-bottom: 1rem;">
-                        <label style="display: block; font-size: 0.75rem; font-weight: 800; color: #475569; text-transform: uppercase; margin-bottom: 4px;">
+                        <label style="display: block; font-size: 0.75rem; font-weight: 800; color: var(--k-text-2); text-transform: uppercase; margin-bottom: 4px;">
                             2. Business Unit Name (Business_Unit_Name) *
                         </label>
                         <input type="text" id="buModalName" required placeholder="e.g. Corporate Operations" 
-                            style="width: 100%; padding: 10px 14px; border-radius: 10px; border: 1.5px solid #cbd5e1; font-size: 0.9rem; outline: none; box-sizing: border-box;"
+                            style="width: 100%; padding: 10px 14px; border-radius: 10px; border: 1.5px solid var(--k-border); font-size: 0.9rem; outline: none; box-sizing: border-box;"
                         />
                     </div>
 
                     <!-- Field 3: Head_Employee_ID with Dynamic Head Selection -->
                     <div style="margin-bottom: 1rem;">
-                        <label style="display: block; font-size: 0.75rem; font-weight: 800; color: #475569; text-transform: uppercase; margin-bottom: 4px;">
+                        <label style="display: block; font-size: 0.75rem; font-weight: 800; color: var(--k-text-2); text-transform: uppercase; margin-bottom: 4px;">
                             3. BU Head (Head_Employee_ID)
                         </label>
                         <select id="buModalHeadSelect" 
-                            style="width: 100%; padding: 10px 14px; border-radius: 10px; border: 1.5px solid #cbd5e1; font-size: 0.88rem; outline: none; background: white; box-sizing: border-box;"
+                            style="width: 100%; padding: 10px 14px; border-radius: 10px; border: 1.5px solid var(--k-border); font-size: 0.88rem; outline: none; background: white; box-sizing: border-box;"
                         >
                             <option value="">-- Select Active Employee as BU Head --</option>
                         </select>
-                        <span style="font-size: 0.7rem; color: #94a3b8; margin-top: 2px; display: block;">Dynamic search dropdown displaying Employee ID and Full Name</span>
+                        <span style="font-size: 0.7rem; color: var(--k-muted); margin-top: 2px; display: block;">Dynamic search dropdown displaying Employee ID and Full Name</span>
                     </div>
 
                     <!-- Field 4: Active Status -->
                     <div style="margin-bottom: 1.25rem;">
-                        <label style="display: block; font-size: 0.75rem; font-weight: 800; color: #475569; text-transform: uppercase; margin-bottom: 4px;">
+                        <label style="display: block; font-size: 0.75rem; font-weight: 800; color: var(--k-text-2); text-transform: uppercase; margin-bottom: 4px;">
                             4. Active Status (Active: Yes / No) *
                         </label>
                         <select id="buModalActive" 
-                            style="width: 100%; padding: 10px 14px; border-radius: 10px; border: 1.5px solid #cbd5e1; font-size: 0.88rem; outline: none; background: white; box-sizing: border-box;"
+                            style="width: 100%; padding: 10px 14px; border-radius: 10px; border: 1.5px solid var(--k-border); font-size: 0.88rem; outline: none; background: white; box-sizing: border-box;"
                         >
                             <option value="true" selected>Yes - Active (Unit eligible in onboarding)</option>
                             <option value="false">No - Inactive (Blocked from new onboarding)</option>
@@ -984,18 +984,18 @@
                     </div>
 
                     <!-- PRD §10: Permitted Employee Types -->
-                    <div style="margin-bottom: 1.5rem; background: #f8fafc; padding: 12px 16px; border-radius: 14px; border: 1px solid #e2e8f0;">
-                        <label style="display: block; font-size: 0.75rem; font-weight: 800; color: #475569; text-transform: uppercase; margin-bottom: 8px;">
+                    <div style="margin-bottom: 1.5rem; background: var(--k-subtle); padding: 12px 16px; border-radius: 14px; border: 1px solid var(--k-border);">
+                        <label style="display: block; font-size: 0.75rem; font-weight: 800; color: var(--k-text-2); text-transform: uppercase; margin-bottom: 8px;">
                             Permitted Employee Types (PRD Section 10)
                         </label>
                         <div id="buModalTypesContainer" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
                     </div>
 
                     <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                        <button type="button" onclick="window.KylrxBuRules.closeBuModal()" class="btn btn-outline" style="padding: 10px 18px; border-radius: 10px; font-weight: 600; border: 1px solid #cbd5e1; background: #f8fafc; cursor: pointer;">
+                        <button type="button" onclick="window.KylrxBuRules.closeBuModal()" class="btn btn-outline" style="padding: 10px 18px; border-radius: 10px; font-weight: 600; border: 1px solid var(--k-border); background: var(--k-subtle); cursor: pointer;">
                             Cancel
                         </button>
-                        <button type="submit" id="btnBuModalSave" class="btn btn-primary" style="padding: 10px 22px; border-radius: 10px; font-weight: 700; background: #2563eb; color: white; border: none; cursor: pointer;">
+                        <button type="submit" id="btnBuModalSave" class="btn btn-primary" style="padding: 10px 22px; border-radius: 10px; font-weight: 700; background: var(--k-accent); color: white; border: none; cursor: pointer;">
                             Save Business Unit
                         </button>
                     </div>
@@ -1069,7 +1069,7 @@
         typesContainer.innerHTML = canonicalTypes.map(t => {
             const isChecked = allowedTypes.includes(t.code) || (t.code === 'CONTRACT' && allowedTypes.includes('CONTRACTOR'));
             return `
-                <label style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer; background: ${isChecked ? '#dbeafe' : 'white'}; color: ${isChecked ? '#1d4ed8' : '#64748b'}; border: 1.5px solid ${isChecked ? '#93c5fd' : '#cbd5e1'};">
+                <label style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer; background: ${isChecked ? 'var(--k-accent-soft)' : 'white'}; color: ${isChecked ? 'var(--k-accent-text)' : 'var(--k-muted)'}; border: 1.5px solid ${isChecked ? 'var(--k-accent-border)' : 'var(--k-border)'};">
                     <input type="checkbox" name="buModalTypeCheckbox" value="${t.code}" ${isChecked ? 'checked' : ''} 
                         onchange="this.parentElement.style.background = this.checked ? '#dbeafe' : 'white'; this.parentElement.style.color = this.checked ? '#1d4ed8' : '#64748b'; this.parentElement.style.borderColor = this.checked ? '#93c5fd' : '#cbd5e1';"
                     />

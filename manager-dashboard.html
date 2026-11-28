@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="kylrx-theme-init.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Kylrx AI Manager Command Center. Monitor department performance, coordinate active personnel, verify telemetry alerts, and authorize operations.">
@@ -193,7 +194,7 @@
         h1 { font-size: 2.25rem; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 6px; }
         .sub-header { color: var(--text-muted); font-size: 1rem; font-weight: 500; }
 
-        .ai-status { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; font-weight: 800; color: var(--success); background: #dcfce7; padding: 6px 12px; border-radius: 100px; }
+        .ai-status { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; font-weight: 800; color: var(--success); background: var(--k-success-soft); padding: 6px 12px; border-radius: 100px; }
         .ai-pulse { width: 8px; height: 8px; background: var(--success); border-radius: 50%; animation: pulse 2s infinite; }
         @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.5; } 100% { transform: scale(1); opacity: 1; } }
 
@@ -232,7 +233,7 @@
 
         .alert-box {
             background: #fff1f2;
-            border: 1px solid #fecaca;
+            border: 1px solid var(--k-danger-border);
             border-radius: 16px;
             padding: 1.25rem;
             display: flex;
@@ -240,12 +241,12 @@
             align-items: flex-start;
         }
         .alert-icon { color: var(--danger); }
-        .alert-title { font-size: 0.875rem; font-weight: 800; color: #991b1b; margin-bottom: 4px; }
-        .alert-msg { font-size: 0.75rem; color: #b91c1c; font-weight: 500; }
+        .alert-title { font-size: 0.875rem; font-weight: 800; color: var(--k-danger-text); margin-bottom: 4px; }
+        .alert-msg { font-size: 0.75rem; color: var(--k-danger-text); font-weight: 500; }
 
         .payroll-card {
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
+            background: var(--k-success-soft);
+            border: 1px solid var(--k-success-border);
             border-radius: 16px;
             padding: 1.5rem;
         }
@@ -270,6 +271,10 @@
         }
     </style>
     <link rel="stylesheet" href="sidebar-lock.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="kylrx-theme.css">
 </head>
 <body>
     
@@ -376,14 +381,14 @@
     <!-- Confirmation Modal -->
     <div id="confirmModal" class="custom-alert-overlay">
         <div class="custom-alert-card" style="max-width: 400px;">
-            <div style="width: 64px; height: 64px; background: #fee2e2; color: #ef4444; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+            <div style="width: 64px; height: 64px; background: var(--k-danger-soft); color: var(--k-danger-text); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
                 <i data-lucide="alert-triangle" size="32"></i>
             </div>
             <h2 style="font-weight: 800; margin-bottom: 12px;">Are you sure?</h2>
             <p style="font-size: 0.875rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 2rem;">This action will permanently delete the team and all its internal configurations. This cannot be undone.</p>
             <div style="display: flex; gap: 12px;">
                 <button class="alert-btn" style="background: var(--bg); color: var(--text-main); margin-top: 0; flex: 1;" onclick="document.getElementById('confirmModal').style.display='none'">Cancel</button>
-                <button id="confirmBtn" class="alert-btn" style="background: #ef4444; margin-top: 0; flex: 1;">Delete</button>
+                <button id="confirmBtn" class="alert-btn" style="background: var(--k-danger); margin-top: 0; flex: 1;">Delete</button>
             </div>
         </div>
     </div>
@@ -406,7 +411,7 @@
             <!-- Brand Header matching Admin Console -->
             <a href="manager-dashboard.html" class="logo" id="brandLogoLink">
                 <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
-                <span class="logo-text">Kylrx <span style="color: var(--primary, #2563eb);">AI</span></span>
+                <span class="logo-text">Kylrx <span style="color: var(--primary, var(--k-accent-text));">AI</span></span>
             </a>
 
             <!-- Top Department Card (Zero-Collision Flex Layout) -->
@@ -444,7 +449,7 @@
 
                 <div class="nav-label" style="display: flex; justify-content: space-between; align-items: center;">
                     <span>CUSTOM APPS</span>
-                    <button onclick="if(typeof openAppRegistryModal !== 'undefined') { openAppRegistryModal(); } else { window.location.href=new URLSearchParams(window.location.search).get('id') ? `manager-dashboard.html?id=${new URLSearchParams(window.location.search).get('id')}` : 'manager-dashboard.html'; }" style="background: none; border: none; color: var(--primary, #2563eb); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
+                    <button onclick="if(typeof openAppRegistryModal !== 'undefined') { openAppRegistryModal(); } else { window.location.href=new URLSearchParams(window.location.search).get('id') ? `manager-dashboard.html?id=${new URLSearchParams(window.location.search).get('id')}` : 'manager-dashboard.html'; }" style="background: none; border: none; color: var(--primary, var(--k-accent-text)); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
                         <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
                     </button>
                 </div>
@@ -470,9 +475,9 @@
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="#" class="nav-link" id="logoutBtn" onclick="logout()" style="color: var(--danger, #ef4444) !important;">
-                        <i data-lucide="log-out" style="color: var(--danger, #ef4444) !important;"></i>
-                        <span style="color: var(--danger, #ef4444) !important;">Logout</span>
+                    <a href="#" class="nav-link" id="logoutBtn" onclick="logout()" style="color: var(--danger, var(--k-danger-text)) !important;">
+                        <i data-lucide="log-out" style="color: var(--danger, var(--k-danger-text)) !important;"></i>
+                        <span style="color: var(--danger, var(--k-danger-text)) !important;">Logout</span>
                     </a>
                 </div>
                 <div class="profile-mini" style="margin-top: 6px;">
@@ -493,8 +498,8 @@
                 </div>
                 <div style="display: flex; align-items: center; gap: 1rem;">
                     <!-- Firebase Backend Status Pill -->
-                    <div id="backendStatusPill" style="display: flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; box-shadow: var(--shadow); transition: 0.3s;">
-                        <span id="backendStatusDot" style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+                    <div id="backendStatusPill" style="display: flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; background: var(--k-success-soft); color: var(--k-success-text); border: 1px solid var(--k-success-border); box-shadow: var(--shadow); transition: 0.3s;">
+                        <span id="backendStatusDot" style="width: 8px; height: 8px; border-radius: 50%; background: var(--k-success); display: inline-block;"></span>
                         <span id="backendStatusText">Firebase Backend Online</span>
                     </div>
 
@@ -502,14 +507,14 @@
                     <div id="tvcStatus" style="display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: white; border-radius: 100px; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); border: 1px solid var(--border);">
                         <span style="width: 8px; height: 8px; background: #cbd5e1; border-radius: 50%;" id="tvcDot"></span>
                         <span id="tvcStatusText">SECURE: IDLE</span>
-                        <span id="adminSessionTimer" style="margin-left: 8px; padding-left: 8px; border-left: 1px solid #cbd5e1; color: var(--primary); display: none;">00:00:00</span>
+                        <span id="adminSessionTimer" style="margin-left: 8px; padding-left: 8px; border-left: 1px solid var(--k-border); color: var(--primary); display: none;">00:00:00</span>
                     </div>
 
                     <div class="btn-group" style="display: flex; gap: 8px;">
                         <button class="punch-btn-mini" id="btnPunchIn" onclick="managerPunchIn()" style="background: var(--success); color: white; border: none; padding: 8px 16px; border-radius: 10px; font-size: 0.8rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px;">
                             <i data-lucide="play" size="14"></i> Punch In
                         </button>
-                        <button class="punch-btn-mini" id="btnBreak" onclick="managerBreak()" disabled style="opacity: 0.5; background: #f59e0b; color: white; border: none; padding: 8px 16px; border-radius: 10px; font-size: 0.8rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                        <button class="punch-btn-mini" id="btnBreak" onclick="managerBreak()" disabled style="opacity: 0.5; background: var(--k-warning); color: white; border: none; padding: 8px 16px; border-radius: 10px; font-size: 0.8rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px;">
                             <i data-lucide="coffee" size="14"></i> Break
                         </button>
                         <button class="punch-btn-mini" id="btnPunchOut" onclick="managerPunchOut()" style="display: none; background: var(--danger); color: white; border: none; padding: 8px 16px; border-radius: 10px; font-size: 0.8rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px;">
@@ -707,18 +712,18 @@
 
             <!-- EOD Review Widget Row -->
             <div class="widget-grid" style="grid-template-columns: 1fr; margin-top: 0;">
-                <div class="card" style="border-left: 4px solid #3b82f6;">
+                <div class="card" style="border-left: 4px solid var(--k-accent);">
                     <div class="card-header">
                         <div style="display:flex; align-items:center; gap:10px;">
                             <h2>EOD Approval Queue</h2>
-                            <span id="mgrEodBadge" style="background:#fee2e2; color:#ef4444; font-size: 0.7rem; font-weight:800; padding:2px 8px; border-radius:100px;">Loading...</span>
+                            <span id="mgrEodBadge" style="background:var(--k-danger-soft); color:var(--k-danger-text); font-size: 0.7rem; font-weight:800; padding:2px 8px; border-radius:100px;">Loading...</span>
                         </div>
-                        <button id="btnMgrAuditEod" style="background:var(--primary,#3b82f6); color:white; border:none; border-radius:8px; padding:6px 14px; font-size: 0.75rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px;">
+                        <button id="btnMgrAuditEod" style="background:var(--primary,var(--k-accent)); color:white; border:none; border-radius:8px; padding:6px 14px; font-size: 0.75rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px;">
                             <i data-lucide="clipboard-check" style="width:13px;height:13px;"></i> Review EODs
                         </button>
                     </div>
                     <div id="mgrEodList" style="padding: 0 0.5rem; display:flex; flex-direction:column; gap:8px; max-height:200px; overflow-y:auto;">
-                        <div style="text-align:center; color:#94a3b8; font-size: 0.8rem; padding: 1.5rem;">
+                        <div style="text-align:center; color:var(--k-muted); font-size: 0.8rem; padding: 1.5rem;">
                             <i data-lucide="loader" class="animate-spin" style="width:16px;height:16px;"></i> Syncing team EODs...
                         </div>
                     </div>
@@ -1210,7 +1215,7 @@
 
                 if (snapshot.empty) {
                     list.innerHTML = `
-                        <div style="display: flex; align-items: center; gap: 12px; padding: 1.25rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 16px; color: #166534; width: 100%;">
+                        <div style="display: flex; align-items: center; gap: 12px; padding: 1.25rem; background: var(--k-success-soft); border: 1px solid var(--k-success-border); border-radius: 16px; color: var(--k-success-text); width: 100%;">
                             <i data-lucide="shield-check" size="20"></i>
                             <div style="font-size: 0.875rem; font-weight: 700;">System Integrity Normal — No Active Threats Detected</div>
                         </div>
@@ -1488,23 +1493,23 @@
                 }
 
                 teamsList.innerHTML = teams.map(t => `
-                    <div style="background: white; border: 1.5px solid #e2e8f0; border-radius: 16px; margin-bottom: 10px; position: relative; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.04); transition: box-shadow 0.2s;">
-                        <div style="position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: #2563eb; border-radius: 4px 0 0 4px;"></div>
+                    <div style="background: white; border: 1.5px solid var(--k-border); border-radius: 16px; margin-bottom: 10px; position: relative; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.04); transition: box-shadow 0.2s;">
+                        <div style="position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--k-accent); border-radius: 4px 0 0 4px;"></div>
                         <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 12px 14px 20px;">
                             <div onclick="viewTeam('${t.id}')" style="flex: 1; cursor: pointer; min-width: 0;">
-                                <h4 style="font-weight: 800; font-size: 0.875rem; text-transform: capitalize; color: #0f172a; margin: 0 0 3px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${t.name}</h4>
-                                <p style="font-size: 0.7rem; color: #64748b; margin: 0;">${t.memberCount || 0} Operators &bull; ${t.leader ? 1 : (t.leaders?.length || 0)} Leader(s)</p>
+                                <h4 style="font-weight: 800; font-size: 0.875rem; text-transform: capitalize; color: var(--k-text); margin: 0 0 3px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${t.name}</h4>
+                                <p style="font-size: 0.7rem; color: var(--k-muted); margin: 0;">${t.memberCount || 0} Operators &bull; ${t.leader ? 1 : (t.leaders?.length || 0)} Leader(s)</p>
                             </div>
                             <div style="display: flex; align-items: center; gap: 5px; flex-shrink: 0; margin-left: 8px;">
-                                <button onclick="event.stopPropagation(); viewTeam('${t.id}')" title="View" style="display:inline-flex; align-items:center; gap:4px; background:#eff6ff; color:#2563eb; border:1.5px solid #bfdbfe; border-radius:8px; padding:5px 9px; font-size: 0.7rem; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap;" onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">
+                                <button onclick="event.stopPropagation(); viewTeam('${t.id}')" title="View" style="display:inline-flex; align-items:center; gap:4px; background:var(--k-accent-soft); color:var(--k-accent-text); border:1.5px solid var(--k-accent-border); border-radius:8px; padding:5px 9px; font-size: 0.7rem; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap;" onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/></svg>
                                     View
                                 </button>
-                                <button onclick="event.stopPropagation(); showEditTeamForm('${t.id}')" title="Edit" style="display:inline-flex; align-items:center; gap:4px; background:#fffbeb; color:#b45309; border:1.5px solid #fde68a; border-radius:8px; padding:5px 9px; font-size: 0.7rem; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap;" onmouseover="this.style.background='#fef3c7'" onmouseout="this.style.background='#fffbeb'">
+                                <button onclick="event.stopPropagation(); showEditTeamForm('${t.id}')" title="Edit" style="display:inline-flex; align-items:center; gap:4px; background:var(--k-warning-soft); color:var(--k-warning-text); border:1.5px solid var(--k-warning-border); border-radius:8px; padding:5px 9px; font-size: 0.7rem; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap;" onmouseover="this.style.background='#fef3c7'" onmouseout="this.style.background='#fffbeb'">
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
                                     Edit
                                 </button>
-                                <button onclick="event.stopPropagation(); deleteTeam('${t.id}')" title="Delete" style="display:inline-flex; align-items:center; gap:4px; background:#fff1f2; color:#dc2626; border:1.5px solid #fecaca; border-radius:8px; padding:5px 9px; font-size: 0.7rem; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap;" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#fff1f2'">
+                                <button onclick="event.stopPropagation(); deleteTeam('${t.id}')" title="Delete" style="display:inline-flex; align-items:center; gap:4px; background:#fff1f2; color:#dc2626; border:1.5px solid var(--k-danger-border); border-radius:8px; padding:5px 9px; font-size: 0.7rem; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap;" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#fff1f2'">
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
                                     Delete
                                 </button>
@@ -1813,8 +1818,8 @@
                             <textarea id="editTeamGoal" rows="3" style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; resize: none;">${t.goal || ''}</textarea>
                         </div>
                         <div style="display: flex; gap: 8px; margin-top: 4px;">
-                            <button onclick="saveTeamEdit('${id}')" style="flex: 1; background: #2563eb; color: white; border: none; border-radius: 12px; padding: 12px; font-weight: 800; cursor: pointer; font-size: 0.875rem;">Save Changes</button>
-                            <button onclick="viewTeam('${id}')" style="flex: 0.5; background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; font-weight: 700; cursor: pointer; font-size: 0.875rem;">Cancel</button>
+                            <button onclick="saveTeamEdit('${id}')" style="flex: 1; background: var(--k-accent); color: white; border: none; border-radius: 12px; padding: 12px; font-weight: 800; cursor: pointer; font-size: 0.875rem;">Save Changes</button>
+                            <button onclick="viewTeam('${id}')" style="flex: 0.5; background: var(--k-subtle); color: var(--k-muted); border: 1px solid var(--k-border); border-radius: 12px; padding: 12px; font-weight: 700; cursor: pointer; font-size: 0.875rem;">Cancel</button>
                         </div>
                     </div>
                 `;
@@ -1847,21 +1852,21 @@
                     badge.style.color = reviews.length > 0 ? '#ef4444' : '#10b981';
                 }
                 if (reviews.length === 0) {
-                    listEl.innerHTML = '<div style="text-align:center; color:#10b981; font-size: 0.8rem; padding: 1.5rem;">✅ All team EODs reviewed!</div>';
+                    listEl.innerHTML = '<div style="text-align:center; color:var(--k-success-text); font-size: 0.8rem; padding: 1.5rem;">✅ All team EODs reviewed!</div>';
                     return;
                 }
                 listEl.innerHTML = reviews.slice(0, 5).map(r => `
-                    <div style="display:flex; justify-content:space-between; align-items:center; font-size: 0.8rem; padding:8px 12px; background:#f8fafc; border-radius:10px; border:1px solid #e2e8f0;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-size: 0.8rem; padding:8px 12px; background:var(--k-subtle); border-radius:10px; border:1px solid var(--k-border);">
                         <div>
                             <span style="font-weight:700;">${r.employeeName || 'Team Member'}</span>
-                            <span style="color:#64748b; font-size: 0.75rem; margin-left:6px;">${(r.summary || 'No summary').substring(0, 40)}...</span>
+                            <span style="color:var(--k-muted); font-size: 0.75rem; margin-left:6px;">${(r.summary || 'No summary').substring(0, 40)}...</span>
                         </div>
-                        <span style="background:#fef3c7; color:#d97706; font-size: 0.7rem; font-weight:800; padding:2px 7px; border-radius:6px; white-space:nowrap;">Pending</span>
+                        <span style="background:var(--k-warning-soft); color:var(--k-warning-text); font-size: 0.7rem; font-weight:800; padding:2px 7px; border-radius:6px; white-space:nowrap;">Pending</span>
                     </div>
                 `).join('');
                 if (window.lucide) lucide.createIcons();
             } catch(err) {
-                if(listEl) listEl.innerHTML = '<div style="color:#ef4444; font-size: 0.8rem; text-align:center; padding: 1rem;">Unable to load EODs.</div>';
+                if(listEl) listEl.innerHTML = '<div style="color:var(--k-danger-text); font-size: 0.8rem; text-align:center; padding: 1rem;">Unable to load EODs.</div>';
             }
         }
 
@@ -1870,35 +1875,35 @@
             const listEl = document.getElementById('mgrEodAuditList');
             if (!modal) return;
             modal.style.display = 'flex';
-            listEl.innerHTML = '<div style="text-align:center; padding: 2rem; color:#64748b;"><i data-lucide="loader" class="animate-spin"></i> Loading team reviews...</div>';
+            listEl.innerHTML = '<div style="text-align:center; padding: 2rem; color:var(--k-muted);"><i data-lucide="loader" class="animate-spin"></i> Loading team reviews...</div>';
             if (window.lucide) lucide.createIcons();
 
             try {
                 const reviews = await getPendingReviews();
                 if (reviews.length === 0) {
-                    listEl.innerHTML = '<div style="text-align:center; padding: 2rem; color:#10b981; font-weight:700; font-size: 0.875rem;">✅ No pending reviews. Your team is all caught up!</div>';
+                    listEl.innerHTML = '<div style="text-align:center; padding: 2rem; color:var(--k-success-text); font-weight:700; font-size: 0.875rem;">✅ No pending reviews. Your team is all caught up!</div>';
                     return;
                 }
                 listEl.innerHTML = reviews.map(r => `
-                    <div id="mgr-eod-${r.id}" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:16px; padding: 1.25rem;">
+                    <div id="mgr-eod-${r.id}" style="background:var(--k-subtle); border:1px solid var(--k-border); border-radius:16px; padding: 1.25rem;">
                         <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 0.75rem;">
                             <div>
                                 <div style="font-weight:800; font-size: 0.875rem;">${r.employeeName || 'Team Member'}</div>
-                                <div style="font-size: 0.7rem; color:#64748b; margin-top:2px;">${r.submittedAt ? new Date(r.submittedAt.seconds * 1000).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'}) : 'Time unknown'}</div>
+                                <div style="font-size: 0.7rem; color:var(--k-muted); margin-top:2px;">${r.submittedAt ? new Date(r.submittedAt.seconds * 1000).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'}) : 'Time unknown'}</div>
                             </div>
-                            <span style="background:#fef3c7; color:#d97706; font-size: 0.7rem; font-weight:800; padding:4px 10px; border-radius:100px;">Pending</span>
+                            <span style="background:var(--k-warning-soft); color:var(--k-warning-text); font-size: 0.7rem; font-weight:800; padding:4px 10px; border-radius:100px;">Pending</span>
                         </div>
-                        <p style="font-size: 0.8rem; color:#475569; line-height:1.6; margin-bottom: 1rem; background:white; padding:10px 12px; border-radius:10px; border:1px solid #e2e8f0;">${r.summary || r.tasks || 'No summary provided.'}</p>
+                        <p style="font-size: 0.8rem; color:var(--k-text-2); line-height:1.6; margin-bottom: 1rem; background:white; padding:10px 12px; border-radius:10px; border:1px solid var(--k-border);">${r.summary || r.tasks || 'No summary provided.'}</p>
                         <div style="display:flex; gap:8px; align-items:center;">
-                            <input type="number" id="mgr-score-${r.id}" min="0" max="100" placeholder="0-100" style="width:80px; border:1px solid #e2e8f0; border-radius:8px; padding:7px 10px; font-size: 0.8rem; outline:none; text-align:center;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'">
-                            <input type="text" id="mgr-comment-${r.id}" placeholder="Add feedback..." style="flex:1; border:1px solid #e2e8f0; border-radius:8px; padding:7px 10px; font-size: 0.8rem; outline:none;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'">
-                            <button onclick="mgrSubmitScore('${r.id}')" style="background:#3b82f6; color:white; border:none; border-radius:8px; padding:7px 14px; font-size: 0.75rem; font-weight:700; cursor:pointer; white-space:nowrap; transition:0.2s;" onmouseover="this.style.filter='brightness(1.1)'" onmouseout="this.style.filter=''">✓ Approve</button>
+                            <input type="number" id="mgr-score-${r.id}" min="0" max="100" placeholder="0-100" style="width:80px; border:1px solid var(--k-border); border-radius:8px; padding:7px 10px; font-size: 0.8rem; outline:none; text-align:center;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'">
+                            <input type="text" id="mgr-comment-${r.id}" placeholder="Add feedback..." style="flex:1; border:1px solid var(--k-border); border-radius:8px; padding:7px 10px; font-size: 0.8rem; outline:none;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'">
+                            <button onclick="mgrSubmitScore('${r.id}')" style="background:var(--k-accent); color:white; border:none; border-radius:8px; padding:7px 14px; font-size: 0.75rem; font-weight:700; cursor:pointer; white-space:nowrap; transition:0.2s;" onmouseover="this.style.filter='brightness(1.1)'" onmouseout="this.style.filter=''">✓ Approve</button>
                         </div>
                     </div>
                 `).join('');
                 if (window.lucide) lucide.createIcons();
             } catch(err) {
-                listEl.innerHTML = `<div style="color:#ef4444; text-align:center; padding: 2rem;">Error: ${err.message}</div>`;
+                listEl.innerHTML = `<div style="color:var(--k-danger-text); text-align:center; padding: 2rem;">Error: ${err.message}</div>`;
             }
         }
 
@@ -1921,7 +1926,7 @@
                     item.style.transition = '0.4s';
                     item.style.opacity = '0.5';
                     setTimeout(() => {
-                        item.innerHTML = `<div style="text-align:center; color:#10b981; font-weight:700; padding: 1rem; font-size: 0.875rem;">✅ Scored ${score}/100 — Approved & Synced to Firebase</div>`;
+                        item.innerHTML = `<div style="text-align:center; color:var(--k-success-text); font-weight:700; padding: 1rem; font-size: 0.875rem;">✅ Scored ${score}/100 — Approved & Synced to Firebase</div>`;
                         item.style.opacity = '1';
                     }, 300);
                 }
@@ -1957,9 +1962,9 @@
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1.5rem;">
                 <div>
                     <h2 style="font-weight:800; font-size: 1.25rem; letter-spacing:-0.5px;">Team EOD Review</h2>
-                    <p style="font-size: 0.8rem; color:#64748b; margin-top:4px;">Score and approve your team's end-of-day submissions</p>
+                    <p style="font-size: 0.8rem; color:var(--k-muted); margin-top:4px;">Score and approve your team's end-of-day submissions</p>
                 </div>
-                <button onclick="document.getElementById('mgrEodAuditModal').style.display='none'" style="background:#f1f5f9; border:none; border-radius:12px; width:36px; height:36px; cursor:pointer; font-size: 1.125rem; color:#64748b;">✕</button>
+                <button onclick="document.getElementById('mgrEodAuditModal').style.display='none'" style="background:var(--k-subtle); border:none; border-radius:12px; width:36px; height:36px; cursor:pointer; font-size: 1.125rem; color:var(--k-muted);">✕</button>
             </div>
             <div id="mgrEodAuditList" style="display:flex; flex-direction:column; gap:1rem;"></div>
         </div>

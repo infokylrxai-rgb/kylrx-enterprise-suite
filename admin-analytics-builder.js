@@ -387,7 +387,7 @@ function renderPreviewResults(data) {
             liveBadge.style.background = '#ecfdf5';
             liveBadge.style.color = '#047857';
             liveBadge.style.borderColor = '#a7f3d0';
-            liveBadge.innerHTML = `<span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981; display: inline-block;"></span> Firebase Cloud Live (${data.collection || window.FIREBASE_PROJECT_ID || ''})`;
+            liveBadge.innerHTML = `<span style="width: 6px; height: 6px; border-radius: 50%; background: var(--k-success); display: inline-block;"></span> Firebase Cloud Live (${data.collection || window.FIREBASE_PROJECT_ID || ''})`;
         } else {
             liveBadge.style.background = '#f8fafc';
             liveBadge.style.color = '#64748b';
@@ -456,7 +456,7 @@ function renderChart(chartData, chartType) {
             scales: ['doughnut', 'pie'].includes(targetType) ? {} : {
                 y: {
                     beginAtZero: true,
-                    grid: { color: '#f1f5f9' },
+                    grid: { color: 'rgba(128, 128, 128, 0.18)' },
                     ticks: { font: { family: 'Outfit' } }
                 },
                 x: {
@@ -490,7 +490,7 @@ function renderTablePreview(chartData, summary, query) {
             <tr>
                 <td style="font-weight:700; color:var(--text-main);">${label}</td>
                 <td style="font-weight:800; color:var(--primary);">${val.toLocaleString()}</td>
-                <td><span style="background:#f1f5f9; padding:2px 6px; border-radius:4px; font-weight:600;">${pct}%</span></td>
+                <td><span style="background:var(--k-subtle); padding:2px 6px; border-radius:4px; font-weight:600;">${pct}%</span></td>
             </tr>
         `;
     }).join('');
@@ -505,7 +505,7 @@ function renderSavedDashboards() {
 
     container.innerHTML = savedDashboards.map(dash => {
         const widgetTags = (dash.widgets || []).map(w => 
-            `<span style="background:#f1f5f9; border:1px solid #e2e8f0; padding:2px 7px; border-radius:4px; font-size:0.72rem; font-weight:700;">${w.title}</span>`
+            `<span style="background:var(--k-subtle); border:1px solid var(--k-border); padding:2px 7px; border-radius:4px; font-size:0.72rem; font-weight:700;">${w.title}</span>`
         ).join(' ');
 
         return `
@@ -531,8 +531,8 @@ function renderSavedDashboards() {
                     </div>
                 </div>
 
-                <div style="border-top:1px solid #f1f5f9; padding-top:0.85rem; display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:0.72rem; color:#94a3b8;">Created: ${new Date(dash.createdAt).toLocaleDateString()}</span>
+                <div style="border-top:1px solid var(--k-border); padding-top:0.85rem; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:0.72rem; color:var(--k-muted);">Created: ${new Date(dash.createdAt).toLocaleDateString()}</span>
                     <button class="btn-hub btn-hub-accent" onclick="loadDashboardToStudio('${dash.id}')" style="padding:0.35rem 0.75rem; font-size:0.78rem;">
                         <i data-lucide="external-link" size="12"></i> Open in Studio
                     </button>

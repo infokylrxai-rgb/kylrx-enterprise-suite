@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="kylrx-theme-init.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Departmental Analytics | HRFlow</title>
@@ -91,8 +92,8 @@
         .stat-card h3 { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem; font-weight: 800; letter-spacing: 0.05em; }
         .stat-val { font-size: 1.5rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.25rem; }
         .stat-trend { font-size: 0.7rem; font-weight: 700; display: flex; align-items: center; gap: 4px; }
-        .trend-up { color: #10b981; }
-        .trend-down { color: #ef4444; }
+        .trend-up { color: var(--k-success-text); }
+        .trend-down { color: var(--k-danger-text); }
 
         .chart-grid {
             display: grid;
@@ -125,12 +126,16 @@
         }
         .action-icon:hover { color: var(--primary); border-color: var(--primary); transform: translateY(-2px); }
         .sidebar-footer { margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border); }
-        .profile-mini { margin-top: auto; background: var(--primary-light, #eff6ff); padding: 0.75rem 1rem; border-radius: 16px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--border, #e2e8f0); }
-        .avatar { width: 40px; height: 40px; border-radius: 10px; background: var(--primary, #3b82f6); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; flex-shrink: 0; }
+        .profile-mini { margin-top: auto; background: var(--primary-light, var(--k-accent-soft)); padding: 0.75rem 1rem; border-radius: 16px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--border, var(--k-border)); }
+        .avatar { width: 40px; height: 40px; border-radius: 10px; background: var(--primary, var(--k-accent)); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; flex-shrink: 0; }
         .profile-info { flex: 1; min-width: 0; }
-        .profile-name { font-size: 0.875rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main, #0f172a); }
-        .profile-role { font-size: 0.7rem; color: var(--text-muted, #64748b); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .profile-name { font-size: 0.875rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main, var(--k-text)); }
+        .profile-role { font-size: 0.7rem; color: var(--text-muted, var(--k-muted)); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="kylrx-theme.css">
 </head>
 <body class="admin-dashboard">
     
@@ -141,7 +146,7 @@
             <!-- Brand Header matching Admin Console -->
             <a href="manager-dashboard.html" class="logo" id="brandLogoLink">
                 <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
-                <span class="logo-text">Kylrx <span style="color: var(--primary, #2563eb);">AI</span></span>
+                <span class="logo-text">Kylrx <span style="color: var(--primary, var(--k-accent-text));">AI</span></span>
             </a>
 
             <!-- Top Department Card (Zero-Collision Flex Layout) -->
@@ -178,7 +183,7 @@
 
                 <div class="nav-label" style="display: flex; justify-content: space-between; align-items: center;">
                     <span>CUSTOM APPS</span>
-                    <button onclick="if(typeof openAppRegistryModal !== 'undefined') { openAppRegistryModal(); } else { window.location.href=new URLSearchParams(window.location.search).get('id') ? `manager-dashboard.html?id=${new URLSearchParams(window.location.search).get('id')}` : 'manager-dashboard.html'; }" style="background: none; border: none; color: var(--primary, #2563eb); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
+                    <button onclick="if(typeof openAppRegistryModal !== 'undefined') { openAppRegistryModal(); } else { window.location.href=new URLSearchParams(window.location.search).get('id') ? `manager-dashboard.html?id=${new URLSearchParams(window.location.search).get('id')}` : 'manager-dashboard.html'; }" style="background: none; border: none; color: var(--primary, var(--k-accent-text)); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
                         <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
                     </button>
                 </div>
@@ -204,9 +209,9 @@
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="#" class="nav-link" id="logoutBtn" onclick="logout()" style="color: var(--danger, #ef4444) !important;">
-                        <i data-lucide="log-out" style="color: var(--danger, #ef4444) !important;"></i>
-                        <span style="color: var(--danger, #ef4444) !important;">Logout</span>
+                    <a href="#" class="nav-link" id="logoutBtn" onclick="logout()" style="color: var(--danger, var(--k-danger-text)) !important;">
+                        <i data-lucide="log-out" style="color: var(--danger, var(--k-danger-text)) !important;"></i>
+                        <span style="color: var(--danger, var(--k-danger-text)) !important;">Logout</span>
                     </a>
                 </div>
                 <div class="profile-mini" style="margin-top: 6px;">
@@ -288,7 +293,7 @@
                         <div class="chart-title"><i data-lucide="zap" class="chart-icon"></i> Focus Predictions</div>
                     </div>
                     <canvas id="predChart"></canvas>
-                    <div class="slider-container" style="margin-top: 2rem; padding: 1.5rem; background: #f8fafc; border-radius: 16px; border: 1px dashed var(--border);">
+                    <div class="slider-container" style="margin-top: 2rem; padding: 1.5rem; background: var(--k-subtle); border-radius: 16px; border: 1px dashed var(--border);">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
                             <span style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Prediction Horizon</span>
                             <span id="sliderVal" style="font-size: 0.875rem; font-weight: 800; color: var(--primary);">3 Months</span>

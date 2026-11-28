@@ -33,8 +33,8 @@ class ManagerAttendanceService {
         const header = document.querySelector('header.header');
         if (!header) return;
         const bannerHtml = `
-        <div id="mandateAlert" style="display: none; background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 12px; padding: 10px 14px; margin-bottom: 20px; align-items: center; gap: 10px; font-size: 0.8rem; font-weight: 700; color: #b45309;">
-            <i data-lucide="alert-triangle" style="color: #d97706; width: 18px; height: 18px;"></i>
+        <div id="mandateAlert" style="display: none; background: var(--k-warning-soft); border: 1.5px solid var(--k-warning-border); border-radius: 12px; padding: 10px 14px; margin-bottom: 20px; align-items: center; gap: 10px; font-size: 0.8rem; font-weight: 700; color: var(--k-warning-text);">
+            <i data-lucide="alert-triangle" style="color: var(--k-warning-text); width: 18px; height: 18px;"></i>
             <span>Strict 8-Hour Mandate Active today due to short-hours (&lt;4h) yesterday!</span>
         </div>`;
         header.insertAdjacentHTML('afterend', bannerHtml);

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="kylrx-theme-init.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PMS Cycle Engine | Kylrx AI</title>
@@ -32,7 +33,7 @@
         }
         .metric-card:hover {
             transform: translateY(-2px);
-            border-color: #93c5fd;
+            border-color: var(--k-accent-border);
         }
         .metric-icon-box {
             width: 48px;
@@ -79,7 +80,7 @@
             border-radius: 12px;
             font-family: inherit;
             font-size: 0.875rem;
-            background: #f8fafc;
+            background: var(--k-subtle);
             outline: none;
             transition: 0.2s;
         }
@@ -98,12 +99,12 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        .badge-active { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
-        .badge-scheduled { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
-        .badge-completed { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
-        .badge-accepted { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
-        .badge-rejected { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
-        .badge-pending { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+        .badge-active { background: var(--k-success-soft); color: var(--k-success-text); border: 1px solid var(--k-success-border); }
+        .badge-scheduled { background: var(--k-accent-soft); color: var(--k-accent-text); border: 1px solid var(--k-accent-border); }
+        .badge-completed { background: var(--k-subtle); color: var(--k-text-2); border: 1px solid var(--k-border); }
+        .badge-accepted { background: var(--k-success-soft); color: var(--k-success-text); border: 1px solid var(--k-success-border); }
+        .badge-rejected { background: var(--k-danger-soft); color: var(--k-danger-text); border: 1px solid var(--k-danger-border); }
+        .badge-pending { background: var(--k-warning-soft); color: var(--k-warning-text); border: 1px solid var(--k-warning-border); }
 
         .btn-rollout {
             background: linear-gradient(135deg, #2563eb, #1d4ed8);
@@ -126,8 +127,8 @@
         }
 
         .btn-secondary {
-            background: #f1f5f9;
-            color: #334155;
+            background: var(--k-subtle);
+            color: var(--k-text-2);
             border: 1px solid var(--border);
             padding: 12px 20px;
             border-radius: 12px;
@@ -140,7 +141,7 @@
             transition: 0.2s;
         }
         .btn-secondary:hover {
-            background: #e2e8f0;
+            background: var(--k-border);
         }
 
         /* Top Unified Tab Navigation */
@@ -171,12 +172,12 @@
         }
         .pms-tab-btn:hover {
             color: var(--primary);
-            border-color: #bfdbfe;
+            border-color: var(--k-accent-border);
         }
         .pms-tab-btn.active {
             background: linear-gradient(135deg, #2563eb, #1d4ed8);
             color: white;
-            border-color: #2563eb;
+            border-color: var(--k-accent);
             box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
         }
 
@@ -194,17 +195,17 @@
 
         /* Upload Dropzone Styles */
         .upload-dropzone {
-            border: 2px dashed #93c5fd;
+            border: 2px dashed var(--k-accent-border);
             border-radius: 14px;
             padding: 1.25rem 1rem;
             text-align: center;
-            background: #f8fafc;
+            background: var(--k-subtle);
             cursor: pointer;
             transition: 0.2s;
         }
         .upload-dropzone:hover, .upload-dropzone.dragover {
             border-color: var(--primary);
-            background: #eff6ff;
+            background: var(--k-accent-soft);
             transform: scale(0.99);
         }
 
@@ -212,9 +213,9 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background: #eff6ff;
-            border: 1px solid #bfdbfe;
-            color: #1d4ed8;
+            background: var(--k-accent-soft);
+            border: 1px solid var(--k-accent-border);
+            color: var(--k-accent-text);
             padding: 4px 10px;
             border-radius: 8px;
             font-size: 0.75rem;
@@ -224,7 +225,7 @@
             margin: 2px;
         }
         .file-chip:hover {
-            background: #dbeafe;
+            background: var(--k-accent-soft);
             border-color: #60a5fa;
             transform: translateY(-1px);
         }
@@ -234,8 +235,8 @@
             justify-content: space-between;
             align-items: center;
             padding: 8px 12px;
-            background: #f1f5f9;
-            border: 1px solid #e2e8f0;
+            background: var(--k-subtle);
+            border: 1px solid var(--k-border);
             border-radius: 10px;
             font-size: 0.8rem;
         }
@@ -278,7 +279,7 @@
             align-items: center;
             gap: 12px;
             z-index: 6000;
-            border: 1.5px solid #bbf7d0;
+            border: 1.5px solid var(--k-success-border);
             animation: slideIn 0.3s ease;
         }
         .toast-notification.active { display: flex; }
@@ -289,24 +290,28 @@
         }
     </style>
     <script src="kylrx-greeting.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="kylrx-theme.css">
 </head>
 <body class="admin-dashboard">
 
     <!-- Toast Notification -->
     <div class="toast-notification" id="pmsToast">
-        <i data-lucide="check-circle" style="color: #10b981; width: 22px; height: 22px;"></i>
-        <div style="font-weight: 700; color: #0f172a; font-size: 0.875rem;" id="pmsToastMsg">Action completed successfully!</div>
+        <i data-lucide="check-circle" style="color: var(--k-success-text); width: 22px; height: 22px;"></i>
+        <div style="font-weight: 700; color: var(--k-text); font-size: 0.875rem;" id="pmsToastMsg">Action completed successfully!</div>
     </div>
 
     <!-- Centered Message Modal (Dialog in Screen Center) -->
     <div class="modal-overlay" id="centerMessageModal" style="z-index: 9999;">
         <div class="modal-container" style="max-width: 440px; text-align: center; padding: 2rem 2rem; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
-            <div id="centerMessageIconContainer" style="width: 60px; height: 60px; border-radius: 20px; margin: 0 auto 1.25rem; display: flex; align-items: center; justify-content: center; background: #eff6ff; color: #2563eb;">
+            <div id="centerMessageIconContainer" style="width: 60px; height: 60px; border-radius: 20px; margin: 0 auto 1.25rem; display: flex; align-items: center; justify-content: center; background: var(--k-accent-soft); color: var(--k-accent-text);">
                 <i id="centerMessageIcon" data-lucide="info" style="width: 28px; height: 28px;"></i>
             </div>
-            <h3 id="centerMessageTitle" style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0 0 0.5rem;">Notification</h3>
-            <p id="centerMessageText" style="font-size: 0.875rem; color: #475569; margin: 0 0 1.5rem; line-height: 1.5; word-break: break-word;"></p>
-            <button type="button" class="btn-primary" onclick="closeCenterMessage()" style="width: 100%; justify-content: center; padding: 0.75rem 1.5rem; border-radius: 14px; font-weight: 700; font-size: 1rem; cursor: pointer; border: none; background: #2563eb; color: white;">
+            <h3 id="centerMessageTitle" style="font-size: 1.25rem; font-weight: 800; color: var(--k-text); margin: 0 0 0.5rem;">Notification</h3>
+            <p id="centerMessageText" style="font-size: 0.875rem; color: var(--k-text-2); margin: 0 0 1.5rem; line-height: 1.5; word-break: break-word;"></p>
+            <button type="button" class="btn-primary" onclick="closeCenterMessage()" style="width: 100%; justify-content: center; padding: 0.75rem 1.5rem; border-radius: 14px; font-weight: 700; font-size: 1rem; cursor: pointer; border: none; background: var(--k-accent); color: white;">
                 OK
             </button>
         </div>
@@ -316,25 +321,25 @@
     <div class="modal-overlay" id="centerPromptModal" style="z-index: 10000;">
         <div class="modal-container" style="max-width: 500px; padding: 2rem 2rem; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
             <div style="display: flex; align-items: flex-start; gap: 14px; margin-bottom: 1.25rem;">
-                <div id="centerPromptIconContainer" style="width: 48px; height: 48px; border-radius: 16px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: #fee2e2; color: #dc2626;">
+                <div id="centerPromptIconContainer" style="width: 48px; height: 48px; border-radius: 16px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: var(--k-danger-soft); color: var(--k-danger-text);">
                     <i id="centerPromptIcon" data-lucide="alert-circle" style="width: 26px; height: 26px;"></i>
                 </div>
                 <div>
-                    <h3 id="centerPromptTitle" style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0 0 0.25rem;">Reject Deliverable</h3>
-                    <p id="centerPromptMessage" style="font-size: 0.875rem; color: #64748b; margin: 0; line-height: 1.45;">Enter specific reason / remediation feedback for deliverable rejection:</p>
+                    <h3 id="centerPromptTitle" style="font-size: 1.25rem; font-weight: 800; color: var(--k-text); margin: 0 0 0.25rem;">Reject Deliverable</h3>
+                    <p id="centerPromptMessage" style="font-size: 0.875rem; color: var(--k-muted); margin: 0; line-height: 1.45;">Enter specific reason / remediation feedback for deliverable rejection:</p>
                 </div>
             </div>
 
             <div style="margin-bottom: 1.5rem;">
-                <label style="display: block; font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">Remediation Feedback / Reason *</label>
-                <textarea id="centerPromptInput" rows="3" style="width: 100%; box-sizing: border-box; padding: 0.75rem 1rem; border-radius: 14px; border: 1.5px solid #cbd5e1; font-size: 0.875rem; font-family: inherit; resize: vertical; outline: none; transition: border-color 0.2s, box-shadow 0.2s; color: #0f172a; line-height: 1.45; background: #f8fafc;" placeholder="Enter specific reason / remediation feedback..."></textarea>
+                <label style="display: block; font-size: 0.75rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">Remediation Feedback / Reason *</label>
+                <textarea id="centerPromptInput" rows="3" style="width: 100%; box-sizing: border-box; padding: 0.75rem 1rem; border-radius: 14px; border: 1.5px solid var(--k-border); font-size: 0.875rem; font-family: inherit; resize: vertical; outline: none; transition: border-color 0.2s, box-shadow 0.2s; color: var(--k-text); line-height: 1.45; background: var(--k-subtle);" placeholder="Enter specific reason / remediation feedback..."></textarea>
             </div>
 
             <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                <button type="button" id="centerPromptCancelBtn" class="btn-secondary" style="padding: 0.75rem 1.5rem; border-radius: 12px; font-weight: 700; font-size: 0.875rem; cursor: pointer; border: 1px solid #e2e8f0; background: #f1f5f9; color: #475569;">
+                <button type="button" id="centerPromptCancelBtn" class="btn-secondary" style="padding: 0.75rem 1.5rem; border-radius: 12px; font-weight: 700; font-size: 0.875rem; cursor: pointer; border: 1px solid var(--k-border); background: var(--k-subtle); color: var(--k-text-2);">
                     Cancel
                 </button>
-                <button type="button" id="centerPromptOkBtn" style="padding: 0.75rem 1.5rem; border-radius: 12px; font-weight: 700; font-size: 0.875rem; cursor: pointer; border: none; background: #dc2626; color: white; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);">
+                <button type="button" id="centerPromptOkBtn" style="padding: 0.75rem 1.5rem; border-radius: 12px; font-weight: 700; font-size: 0.875rem; cursor: pointer; border: none; background: var(--k-danger); color: white; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);">
                     <i data-lucide="x-circle" style="width: 16px; height: 16px;"></i>
                     <span id="centerPromptOkText">Reject Deliverable</span>
                 </button>
@@ -347,28 +352,28 @@
         <div class="modal-container">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <div style="width: 44px; height: 44px; border-radius: 14px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                    <div style="width: 44px; height: 44px; border-radius: 14px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="file-text" style="width: 22px; height: 22px;"></i>
                     </div>
                     <div>
-                        <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: #0f172a;">Attachment Inspector</h2>
+                        <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: var(--k-text);">Attachment Inspector</h2>
                         <p style="margin: 2px 0 0; font-size: 0.8rem; color: var(--text-muted);" id="attModalSubtext">PMS Document & Deliverable Evidence</p>
                     </div>
                 </div>
-                <button onclick="closeAttachmentModal()" style="border: none; background: #f1f5f9; width: 34px; height: 34px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-                    <i data-lucide="x" style="width: 18px; height: 18px; color: #64748b;"></i>
+                <button onclick="closeAttachmentModal()" style="border: none; background: var(--k-subtle); width: 34px; height: 34px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="x" style="width: 18px; height: 18px; color: var(--k-muted);"></i>
                 </button>
             </div>
 
-            <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 16px; padding: 1.25rem; margin-bottom: 1.5rem;">
+            <div style="background: var(--k-subtle); border: 1px solid var(--border); border-radius: 16px; padding: 1.25rem; margin-bottom: 1.5rem;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <span style="font-weight: 800; color: #0f172a; font-size: 1rem; word-break: break-all;" id="attModalFileName">document.pdf</span>
+                    <span style="font-weight: 800; color: var(--k-text); font-size: 1rem; word-break: break-all;" id="attModalFileName">document.pdf</span>
                     <span class="cycle-badge badge-scheduled" id="attModalFileSize">0 KB</span>
                 </div>
                 <div style="font-size: 0.75rem; color: var(--text-muted);" id="attModalDate">Uploaded: Recent</div>
             </div>
 
-            <div id="attModalPreviewContainer" style="margin-bottom: 1.5rem; text-align: center; max-height: 380px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #f1f5f9; border-radius: 14px; padding: 1rem; border: 1px solid #e2e8f0;">
+            <div id="attModalPreviewContainer" style="margin-bottom: 1.5rem; text-align: center; max-height: 380px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: var(--k-subtle); border-radius: 14px; padding: 1rem; border: 1px solid var(--k-border);">
                 <!-- Dynamic Image or Document Preview -->
             </div>
 
@@ -387,16 +392,16 @@
         <div class="modal-container">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <div style="width: 44px; height: 44px; border-radius: 14px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                    <div style="width: 44px; height: 44px; border-radius: 14px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="upload-cloud" style="width: 22px; height: 22px;"></i>
                     </div>
                     <div>
-                        <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: #0f172a;">Upload PMS Document</h2>
+                        <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: var(--k-text);">Upload PMS Document</h2>
                         <p style="margin: 2px 0 0; font-size: 0.8rem; color: var(--text-muted);">Add policy guidelines, appraisal templates, or evaluation frameworks</p>
                     </div>
                 </div>
-                <button onclick="closeUploadDocModal()" style="border: none; background: #f1f5f9; width: 34px; height: 34px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-                    <i data-lucide="x" style="width: 18px; height: 18px; color: #64748b;"></i>
+                <button onclick="closeUploadDocModal()" style="border: none; background: var(--k-subtle); width: 34px; height: 34px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="x" style="width: 18px; height: 18px; color: var(--k-muted);"></i>
                 </button>
             </div>
 
@@ -426,8 +431,8 @@
                     <label>Select File (PDF, DOCX, XLSX, Images, ZIP) *</label>
                     <div class="upload-dropzone" id="directDocDropzone" onclick="document.getElementById('directDocFileInput').click()">
                         <i data-lucide="file-up" style="width: 28px; height: 28px; color: var(--primary); margin: 0 auto 6px; display: block;"></i>
-                        <div style="font-weight: 700; font-size: 0.875rem; color: #1e3a8a;" id="directDocSelectText">Click to select or drag and drop file</div>
-                        <div style="font-size: 0.7rem; color: #64748b; margin-top: 3px;">Max file size: 15MB</div>
+                        <div style="font-weight: 700; font-size: 0.875rem; color: var(--k-accent-text);" id="directDocSelectText">Click to select or drag and drop file</div>
+                        <div style="font-size: 0.7rem; color: var(--k-muted); margin-top: 3px;">Max file size: 15MB</div>
                         <input type="file" id="directDocFileInput" style="display: none;" onchange="handleDirectFileSelect(event)">
                     </div>
                     <div id="directDocFileList" style="margin-top: 8px;"></div>
@@ -449,22 +454,22 @@
         <div class="modal-container">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <div style="width: 44px; height: 44px; border-radius: 14px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                    <div style="width: 44px; height: 44px; border-radius: 14px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="send" style="width: 22px; height: 22px;"></i>
                     </div>
                     <div>
-                        <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: #0f172a;">PMS Cycle Rollout Status</h2>
+                        <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: var(--k-text);">PMS Cycle Rollout Status</h2>
                         <p style="margin: 2px 0 0; font-size: 0.8rem; color: var(--text-muted);">Real-time dispatch to enrolled employees</p>
                     </div>
                 </div>
-                <button onclick="closeRolloutModal()" style="border: none; background: #f1f5f9; width: 34px; height: 34px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-                    <i data-lucide="x" style="width: 18px; height: 18px; color: #64748b;"></i>
+                <button onclick="closeRolloutModal()" style="border: none; background: var(--k-subtle); width: 34px; height: 34px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="x" style="width: 18px; height: 18px; color: var(--k-muted);"></i>
                 </button>
             </div>
 
-            <div id="rolloutStatusBody" style="padding: 1.5rem; background: #f8fafc; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 1.5rem; font-size: 0.875rem;">
+            <div id="rolloutStatusBody" style="padding: 1.5rem; background: var(--k-subtle); border-radius: 16px; border: 1px solid var(--border); margin-bottom: 1.5rem; font-size: 0.875rem;">
                 <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                    <i data-lucide="loader" class="spin" style="width: 20px; height: 20px; color: #2563eb;"></i>
+                    <i data-lucide="loader" class="spin" style="width: 20px; height: 20px; color: var(--k-accent-text);"></i>
                     <span style="font-weight: 600;">Dispatching in-app notifications and email alerts...</span>
                 </div>
             </div>
@@ -484,12 +489,12 @@
                         <i data-lucide="git-pull-request" style="width: 22px; height: 22px;"></i>
                     </div>
                     <div>
-                        <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: #0f172a;">Delegate Review Evaluation</h2>
+                        <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: var(--k-text);">Delegate Review Evaluation</h2>
                         <p style="margin: 2px 0 0; font-size: 0.8rem; color: var(--text-muted);">Reassign evaluation authority with immutable audit trace</p>
                     </div>
                 </div>
-                <button onclick="closeDelegationModal()" style="border: none; background: #f1f5f9; width: 34px; height: 34px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-                    <i data-lucide="x" style="width: 18px; height: 18px; color: #64748b;"></i>
+                <button onclick="closeDelegationModal()" style="border: none; background: var(--k-subtle); width: 34px; height: 34px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="x" style="width: 18px; height: 18px; color: var(--k-muted);"></i>
                 </button>
             </div>
 
@@ -498,7 +503,7 @@
                 <input type="hidden" id="delegateEmpId">
                 <div class="input-group" style="margin-bottom: 1.25rem;">
                     <label>Employee Being Evaluated</label>
-                    <input type="text" id="delegateEmpName" class="input-control" readonly style="background: #f1f5f9; font-weight: 700;">
+                    <input type="text" id="delegateEmpName" class="input-control" readonly style="background: var(--k-subtle); font-weight: 700;">
                 </div>
 
                 <div class="input-group" style="margin-bottom: 1.25rem;">
@@ -601,8 +606,8 @@
                 </div>
 
                 <div style="display: flex; align-items: center; gap: 1rem;">
-                    <div style="display: flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 20px; background: linear-gradient(135deg, #eff6ff, #dbeafe); border: 1.5px solid #93c5fd; color: #1d4ed8; font-weight: 800; font-size: 0.7rem; letter-spacing: 0.5px;">
-                        <i data-lucide="shield-check" style="width: 14px; height: 14px; color: #2563eb;"></i>
+                    <div style="display: flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 20px; background: linear-gradient(135deg, #eff6ff, #dbeafe); border: 1.5px solid var(--k-accent-border); color: var(--k-accent-text); font-weight: 800; font-size: 0.7rem; letter-spacing: 0.5px;">
+                        <i data-lucide="shield-check" style="width: 14px; height: 14px; color: var(--k-accent-text);"></i>
                         <span>SUPER ADMIN PMS ENGINE (PRD §8)</span>
                     </div>
                 </div>
@@ -645,21 +650,21 @@
                 <!-- Top Metric Cards -->
                 <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
                     <div class="metric-card">
-                        <div class="metric-icon-box" style="background: #eff6ff; color: #2563eb;">
+                        <div class="metric-icon-box" style="background: var(--k-accent-soft); color: var(--k-accent-text);">
                             <i data-lucide="repeat"></i>
                         </div>
                         <div>
-                            <div style="font-size: 1.875rem; font-weight: 800; color: #0f172a;" id="statTotalCycles">0</div>
+                            <div style="font-size: 1.875rem; font-weight: 800; color: var(--k-text);" id="statTotalCycles">0</div>
                             <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Total Cycles</div>
                         </div>
                     </div>
 
                     <div class="metric-card">
-                        <div class="metric-icon-box" style="background: #ecfdf5; color: #059669;">
+                        <div class="metric-icon-box" style="background: var(--k-success-soft); color: var(--k-success-text);">
                             <i data-lucide="play-circle"></i>
                         </div>
                         <div>
-                            <div style="font-size: 1.875rem; font-weight: 800; color: #059669;" id="statActiveCycle">None</div>
+                            <div style="font-size: 1.875rem; font-weight: 800; color: var(--k-success-text);" id="statActiveCycle">None</div>
                             <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Active Cycle</div>
                         </div>
                     </div>
@@ -669,17 +674,17 @@
                             <i data-lucide="users"></i>
                         </div>
                         <div>
-                            <div style="font-size: 1.875rem; font-weight: 800; color: #0f172a;" id="statEnrolledWorkforce">0</div>
+                            <div style="font-size: 1.875rem; font-weight: 800; color: var(--k-text);" id="statEnrolledWorkforce">0</div>
                             <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Enrolled Personnel</div>
                         </div>
                     </div>
 
                     <div class="metric-card">
-                        <div class="metric-icon-box" style="background: #fef3c7; color: #d97706;">
+                        <div class="metric-icon-box" style="background: var(--k-warning-soft); color: var(--k-warning-text);">
                             <i data-lucide="percent"></i>
                         </div>
                         <div>
-                            <div style="font-size: 1.875rem; font-weight: 800; color: #d97706;" id="statAvgCompletion">0%</div>
+                            <div style="font-size: 1.875rem; font-weight: 800; color: var(--k-warning-text);" id="statAvgCompletion">0%</div>
                             <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Completion Rate</div>
                         </div>
                     </div>
@@ -692,7 +697,7 @@
                         <div class="section-card">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                                 <div>
-                                    <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: #0f172a;">Review Cycles Directory</h2>
+                                    <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: var(--k-text);">Review Cycles Directory</h2>
                                     <p style="font-size: 0.875rem; color: var(--text-muted); margin: 2px 0 0;">Manage scheduled cadences, documents, and trigger full workforce rollouts</p>
                                 </div>
                                 <button class="btn-secondary" onclick="loadCyclesList()">
@@ -729,10 +734,10 @@
                     <div>
                         <div class="section-card" style="border-top: 4px solid var(--primary);">
                             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem;">
-                                <div style="width: 36px; height: 36px; border-radius: 10px; background: #eff6ff; color: var(--primary); display: flex; align-items: center; justify-content: center;">
+                                <div style="width: 36px; height: 36px; border-radius: 10px; background: var(--k-accent-soft); color: var(--primary); display: flex; align-items: center; justify-content: center;">
                                     <i data-lucide="calendar-plus" style="width: 20px; height: 20px;"></i>
                                 </div>
-                                <h3 style="font-size: 1.125rem; font-weight: 800; margin: 0; color: #0f172a;">Create & Schedule Cycle</h3>
+                                <h3 style="font-size: 1.125rem; font-weight: 800; margin: 0; color: var(--k-text);">Create & Schedule Cycle</h3>
                             </div>
 
                             <form id="cycleCreateForm" onsubmit="handleCreateCycle(event)">
@@ -763,7 +768,7 @@
                                 </div>
 
 
-                                <div style="padding: 12px; background: #eff6ff; border-radius: 12px; border: 1px solid #bfdbfe; margin-bottom: 1.5rem; font-size: 0.8rem; color: #1e40af; line-height: 1.4;">
+                                <div style="padding: 12px; background: var(--k-accent-soft); border-radius: 12px; border: 1px solid var(--k-accent-border); margin-bottom: 1.5rem; font-size: 0.8rem; color: var(--k-accent-text); line-height: 1.4;">
                                     <div style="font-weight: 800; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
                                         <i data-lucide="bell" style="width: 14px; height: 14px;"></i> Automated Rollout Dispatch:
                                     </div>
@@ -787,7 +792,7 @@
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                                     <div style="display: flex; align-items: center; gap: 6px;">
                                         <i data-lucide="paperclip" style="width: 14px; height: 14px; color: var(--primary);"></i>
-                                        <span style="font-size: 0.75rem; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px;">Attached Cycle Documents</span>
+                                        <span style="font-size: 0.75rem; font-weight: 800; color: var(--k-text); text-transform: uppercase; letter-spacing: 0.5px;">Attached Cycle Documents</span>
                                     </div>
                                     <span class="cycle-badge badge-scheduled" id="cycleFilesCountBadge">0 Files</span>
                                 </div>
@@ -810,7 +815,7 @@
                         <div class="section-card">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                                 <div>
-                                    <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: #0f172a;">Workforce Deliverables & Approvals</h2>
+                                    <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: var(--k-text);">Workforce Deliverables & Approvals</h2>
                                     <p style="font-size: 0.875rem; color: var(--text-muted); margin: 2px 0 0;">Inspect deliverables, download attached evidence, and execute Binary Accept / Reject evaluations</p>
                                 </div>
                                 <div style="display: flex; gap: 10px;">
@@ -849,10 +854,10 @@
                     <div>
                         <div class="section-card" style="border-top: 4px solid #10b981;">
                             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem;">
-                                <div style="width: 36px; height: 36px; border-radius: 10px; background: #ecfdf5; color: #059669; display: flex; align-items: center; justify-content: center;">
+                                <div style="width: 36px; height: 36px; border-radius: 10px; background: var(--k-success-soft); color: var(--k-success-text); display: flex; align-items: center; justify-content: center;">
                                     <i data-lucide="plus-circle" style="width: 20px; height: 20px;"></i>
                                 </div>
-                                <h3 style="font-size: 1.125rem; font-weight: 800; margin: 0; color: #0f172a;">Assign Team Goal</h3>
+                                <h3 style="font-size: 1.125rem; font-weight: 800; margin: 0; color: var(--k-text);">Assign Team Goal</h3>
                             </div>
 
                             <form id="assignDeliverableForm" onsubmit="handleAssignDeliverable(event)">
@@ -891,8 +896,8 @@
                                 <div class="input-group" style="margin-bottom: 1.5rem;">
                                     <label>Goal Reference Documents / Specifications</label>
                                     <div class="upload-dropzone" id="assignGoalDropzone" onclick="document.getElementById('assignGoalFileInput').click()">
-                                        <i data-lucide="paperclip" style="width: 22px; height: 22px; color: #059669; margin: 0 auto 4px; display: block;"></i>
-                                        <div style="font-weight: 700; font-size: 0.8rem; color: #065f46;">Attach Goal Criteria / PRDs (PDF, Docs)</div>
+                                        <i data-lucide="paperclip" style="width: 22px; height: 22px; color: var(--k-success-text); margin: 0 auto 4px; display: block;"></i>
+                                        <div style="font-weight: 700; font-size: 0.8rem; color: var(--k-success-text);">Attach Goal Criteria / PRDs (PDF, Docs)</div>
                                         <input type="file" id="assignGoalFileInput" multiple style="display: none;" onchange="handleAssignGoalFileSelect(event)">
                                     </div>
                                     <div id="assignGoalFileList" style="display: flex; flex-direction: column; gap: 6px; margin-top: 6px;"></div>
@@ -916,11 +921,11 @@
                 <div class="section-card" style="background: linear-gradient(135deg, #1e293b, #0f172a); color: white; border: none; margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
                         <div>
-                            <span style="font-size: 0.7rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Live Progress Formula: (completedTasks / totalTasks) * 100</span>
+                            <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase; letter-spacing: 0.5px;">Live Progress Formula: (completedTasks / totalTasks) * 100</span>
                             <h2 style="font-size: 1.5rem; font-weight: 800; margin: 4px 0 0; color: white;">Workforce Real-Time Progress Tracker</h2>
                         </div>
                         <div style="min-width: 280px;">
-                            <label style="font-size: 0.7rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px; display: block;">Select Personnel to Inspect:</label>
+                            <label style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase; margin-bottom: 6px; display: block;">Select Personnel to Inspect:</label>
                             <select id="empProgressSelect" class="input-control" style="background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); color: white;" onchange="loadEmployeeTaskProgress(this.value)">
                             </select>
                         </div>
@@ -949,7 +954,7 @@
                         <div class="section-card">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                                 <div>
-                                    <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: #0f172a;">Task Work Log & Deliverables</h2>
+                                    <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: var(--k-text);">Task Work Log & Deliverables</h2>
                                     <p style="font-size: 0.875rem; color: var(--text-muted); margin: 2px 0 0;">Inspect self-assigned goals, verify deliverable files, and toggle status</p>
                                 </div>
                             </div>
@@ -985,7 +990,7 @@
                                 <div style="width: 36px; height: 36px; border-radius: 10px; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center;">
                                     <i data-lucide="file-plus-2" style="width: 20px; height: 20px;"></i>
                                 </div>
-                                <h3 style="font-size: 1.125rem; font-weight: 800; margin: 0; color: #0f172a;">Record Task Work Log</h3>
+                                <h3 style="font-size: 1.125rem; font-weight: 800; margin: 0; color: var(--k-text);">Record Task Work Log</h3>
                             </div>
 
                             <form id="empLogTaskForm" onsubmit="handleEmpLogTask(event)">
@@ -1037,7 +1042,7 @@
                 <div class="section-card">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                         <div>
-                            <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: #0f172a;">Traceable Manager Review Delegation Audit Stream</h2>
+                            <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: var(--k-text);">Traceable Manager Review Delegation Audit Stream</h2>
                             <p style="font-size: 0.875rem; color: var(--text-muted); margin: 2px 0 0;">Immutable, tamper-evident audit records of all evaluation reassignment actions (PRD §8)</p>
                         </div>
                         <span class="cycle-badge badge-scheduled" id="auditCountBadge">0 Reassignments</span>
@@ -1058,21 +1063,21 @@
                 <!-- Repository Overview Metrics -->
                 <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
                     <div class="metric-card">
-                        <div class="metric-icon-box" style="background: #eff6ff; color: #2563eb;">
+                        <div class="metric-icon-box" style="background: var(--k-accent-soft); color: var(--k-accent-text);">
                             <i data-lucide="files"></i>
                         </div>
                         <div>
-                            <div style="font-size: 1.875rem; font-weight: 800; color: #0f172a;" id="repoStatTotalFiles">0</div>
+                            <div style="font-size: 1.875rem; font-weight: 800; color: var(--k-text);" id="repoStatTotalFiles">0</div>
                             <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Total Uploaded Files</div>
                         </div>
                     </div>
 
                     <div class="metric-card">
-                        <div class="metric-icon-box" style="background: #ecfdf5; color: #059669;">
+                        <div class="metric-icon-box" style="background: var(--k-success-soft); color: var(--k-success-text);">
                             <i data-lucide="file-text"></i>
                         </div>
                         <div>
-                            <div style="font-size: 1.875rem; font-weight: 800; color: #059669;" id="repoStatCycleFiles">0</div>
+                            <div style="font-size: 1.875rem; font-weight: 800; color: var(--k-success-text);" id="repoStatCycleFiles">0</div>
                             <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Cycle Guidelines</div>
                         </div>
                     </div>
@@ -1082,17 +1087,17 @@
                             <i data-lucide="check-square"></i>
                         </div>
                         <div>
-                            <div style="font-size: 1.875rem; font-weight: 800; color: #0f172a;" id="repoStatTaskFiles">0</div>
+                            <div style="font-size: 1.875rem; font-weight: 800; color: var(--k-text);" id="repoStatTaskFiles">0</div>
                             <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Work Deliverables</div>
                         </div>
                     </div>
 
                     <div class="metric-card">
-                        <div class="metric-icon-box" style="background: #fef3c7; color: #d97706;">
+                        <div class="metric-icon-box" style="background: var(--k-warning-soft); color: var(--k-warning-text);">
                             <i data-lucide="hard-drive"></i>
                         </div>
                         <div>
-                            <div style="font-size: 1.875rem; font-weight: 800; color: #d97706;" id="repoStatStorage">0 KB</div>
+                            <div style="font-size: 1.875rem; font-weight: 800; color: var(--k-warning-text);" id="repoStatStorage">0 KB</div>
                             <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Total Stored Size</div>
                         </div>
                     </div>
@@ -1102,7 +1107,7 @@
                 <div class="section-card">
                     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
                         <div>
-                            <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: #0f172a;">Uploaded PMS Files & Evidence Directory</h2>
+                            <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: var(--k-text);">Uploaded PMS Files & Evidence Directory</h2>
                             <p style="font-size: 0.875rem; color: var(--text-muted); margin: 2px 0 0;">Unified access to all PMS cycle guidelines, manager PRD deliverables, employee work proofs, and policy documents.</p>
                         </div>
                         <div style="display: flex; gap: 10px; align-items: center;">
@@ -1119,7 +1124,7 @@
                     <div style="display: flex; gap: 12px; margin-bottom: 1.5rem; flex-wrap: wrap;">
                         <div style="flex: 1; min-width: 240px; position: relative;">
                             <input type="text" id="fileSearchInput" class="input-control" placeholder="Search by file name or origin context..." oninput="filterUploadedFiles()" style="width: 100%; padding-left: 36px;">
-                            <i data-lucide="search" style="position: absolute; left: 12px; top: 12px; width: 16px; height: 16px; color: #94a3b8;"></i>
+                            <i data-lucide="search" style="position: absolute; left: 12px; top: 12px; width: 16px; height: 16px; color: var(--k-muted);"></i>
                         </div>
                         <div style="min-width: 200px;">
                             <select id="fileCategoryFilter" class="input-control" onchange="filterUploadedFiles()" style="width: 100%;">
@@ -1290,10 +1295,10 @@
                 <div class="staged-file-item">
                     <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80%;">
                         <i data-lucide="paperclip" style="width: 14px; height: 14px; color: var(--primary); flex-shrink: 0;"></i>
-                        <span style="font-weight: 700; color: #1e293b;">${f.name}</span>
-                        <span style="font-size: 0.7rem; color: #64748b;">(${f.sizeFormatted})</span>
+                        <span style="font-weight: 700; color: var(--k-text);">${f.name}</span>
+                        <span style="font-size: 0.7rem; color: var(--k-muted);">(${f.sizeFormatted})</span>
                     </div>
-                    <button type="button" onclick="removeStagedFile('${type}', ${idx})" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 2px;" title="Remove File">
+                    <button type="button" onclick="removeStagedFile('${type}', ${idx})" style="background: none; border: none; color: var(--k-danger-text); cursor: pointer; padding: 2px;" title="Remove File">
                         <i data-lucide="x" style="width: 14px; height: 14px;"></i>
                     </button>
                 </div>
@@ -1356,9 +1361,9 @@
                     previewEl.innerHTML = `<img src="${target.dataUrl}" alt="${target.name}" style="max-height: 320px; max-width: 100%; object-fit: contain; border-radius: 8px;">`;
                 } else {
                     previewEl.innerHTML = `
-                        <div style="padding: 2rem; text-align: center; color: #475569;">
+                        <div style="padding: 2rem; text-align: center; color: var(--k-text-2);">
                             <i data-lucide="file-check-2" style="width: 48px; height: 48px; color: var(--primary); margin: 0 auto 10px;"></i>
-                            <div style="font-weight: 700; font-size: 1rem; color: #0f172a;">${target.name}</div>
+                            <div style="font-weight: 700; font-size: 1rem; color: var(--k-text);">${target.name}</div>
                             <p style="margin: 4px 0 0; font-size: 0.8rem; color: var(--text-muted);">Standard Document (${target.type || 'Binary'})</p>
                         </div>
                     `;
@@ -1446,11 +1451,11 @@
             try {
                 const res = await rolloutPMSCycle(cycleId);
                 document.getElementById('rolloutStatusBody').innerHTML = `
-                    <div style="color: #15803d; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                        <i data-lucide="check-circle" style="color: #10b981; width: 22px; height: 22px;"></i>
+                    <div style="color: var(--k-success-text); font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="check-circle" style="color: var(--k-success-text); width: 22px; height: 22px;"></i>
                         <span>Rollout Complete!</span>
                     </div>
-                    <ul style="margin: 0; padding-left: 20px; line-height: 1.8; color: #334155;">
+                    <ul style="margin: 0; padding-left: 20px; line-height: 1.8; color: var(--k-text-2);">
                         <li><strong>${res.enrolledCount}</strong> Personnel Enrolled</li>
                         <li><strong>${res.notificationsDispatched}</strong> In-App Notifications Dispatched</li>
                         <li><strong>${res.emailsSent}</strong> Automated Email Alerts Triggered (/api/email/send)</li>
@@ -1461,7 +1466,7 @@
                 loadCyclesList();
             } catch (err) {
                 document.getElementById('rolloutStatusBody').innerHTML = `
-                    <div style="color: #dc2626; font-weight: 700;">Rollout Error: ${err.message}</div>
+                    <div style="color: var(--k-danger-text); font-weight: 700;">Rollout Error: ${err.message}</div>
                 `;
                 showCenterMessage('Rollout Notice', err.message, 'error');
             }
@@ -1559,13 +1564,13 @@
                 return `
                     <tr style="border-bottom: 1px solid var(--border);">
                         <td style="padding: 14px;">
-                            <div style="font-weight: 800; color: #0f172a;">${c.cycleName}</div>
+                            <div style="font-weight: 800; color: var(--k-text);">${c.cycleName}</div>
                             <div style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">${c.cycleId || c.id}</div>
                         </td>
                         <td style="padding: 14px;">
-                            <span style="font-weight: 700; color: #334155;">${c.cycleType || 'Custom'}</span>
+                            <span style="font-weight: 700; color: var(--k-text-2);">${c.cycleType || 'Custom'}</span>
                         </td>
-                        <td style="padding: 14px; font-size: 0.8rem; color: #475569;">
+                        <td style="padding: 14px; font-size: 0.8rem; color: var(--k-text-2);">
                             <div>${c.startDate || 'Immediate'}</div>
                             <div style="color: var(--text-muted);">to ${c.endDate || 'TBD'}</div>
                         </td>
@@ -1581,7 +1586,7 @@
                                     <i data-lucide="send" style="width: 14px; height: 14px;"></i> Rollout
                                 </button>
                             ` : isAct ? `
-                                <button class="btn-secondary" style="padding: 6px 12px; font-size: 0.8rem; color: #dc2626;" onclick="closeCycle('${c.cycleId || c.id}')">
+                                <button class="btn-secondary" style="padding: 6px 12px; font-size: 0.8rem; color: var(--k-danger-text);" onclick="closeCycle('${c.cycleId || c.id}')">
                                     <i data-lucide="check-circle" style="width: 14px; height: 14px;"></i> Complete
                                 </button>
                             ` : `
@@ -1673,11 +1678,11 @@
                     return `
                         <tr style="border-bottom: 1px solid var(--border);">
                             <td style="padding: 14px;">
-                                <div style="font-weight: 800; color: #0f172a;">${t.title}</div>
+                                <div style="font-weight: 800; color: var(--k-text);">${t.title}</div>
                                 <div style="font-size: 0.75rem; color: var(--text-muted);">${t.description ? t.description.substring(0, 40) + '...' : 'No description'}</div>
                             </td>
                             <td style="padding: 14px;">
-                                <div style="font-weight: 700; color: #334155;">${emp.name}</div>
+                                <div style="font-weight: 700; color: var(--k-text-2);">${emp.name}</div>
                                 <div style="font-size: 0.7rem; color: var(--text-muted); font-family: monospace;">${t.employeeId}</div>
                             </td>
                             <td style="padding: 14px;">
@@ -1688,17 +1693,17 @@
                             </td>
                             <td style="padding: 14px;">
                                 ${revBadge}
-                                ${t.feedback ? `<div style="font-size: 0.7rem; color: #b91c1c; margin-top: 2px;">Note: ${t.feedback}</div>` : ''}
+                                ${t.feedback ? `<div style="font-size: 0.7rem; color: var(--k-danger-text); margin-top: 2px;">Note: ${t.feedback}</div>` : ''}
                             </td>
                             <td style="padding: 14px; text-align: right;">
                                 <div style="display: flex; gap: 6px; justify-content: flex-end;">
-                                    <button onclick="handleBinaryReview('${t.taskId || t.id}', 'accepted')" style="background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 4px;" title="Binary Accept Deliverable">
+                                    <button onclick="handleBinaryReview('${t.taskId || t.id}', 'accepted')" style="background: var(--k-success); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 4px;" title="Binary Accept Deliverable">
                                         <i data-lucide="check" style="width: 14px; height: 14px;"></i> Accept
                                     </button>
-                                    <button onclick="handleBinaryReview('${t.taskId || t.id}', 'rejected')" style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 4px;" title="Binary Reject Deliverable">
+                                    <button onclick="handleBinaryReview('${t.taskId || t.id}', 'rejected')" style="background: var(--k-danger); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 4px;" title="Binary Reject Deliverable">
                                         <i data-lucide="x" style="width: 14px; height: 14px;"></i> Reject
                                     </button>
-                                    <button onclick="openDelegationModal('${t.employeeId}', '${emp.name}', '${t.cycleId || ''}')" style="background: #f1f5f9; color: #475569; border: 1px solid var(--border); padding: 6px 10px; border-radius: 8px; font-weight: 700; font-size: 0.75rem; cursor: pointer;" title="Delegate Evaluation Responsibility">
+                                    <button onclick="openDelegationModal('${t.employeeId}', '${emp.name}', '${t.cycleId || ''}')" style="background: var(--k-subtle); color: var(--k-text-2); border: 1px solid var(--border); padding: 6px 10px; border-radius: 8px; font-weight: 700; font-size: 0.75rem; cursor: pointer;" title="Delegate Evaluation Responsibility">
                                         <i data-lucide="git-pull-request" style="width: 14px; height: 14px;"></i> Delegate
                                     </button>
                                 </div>
@@ -1819,13 +1824,13 @@
                     return `
                         <tr style="border-bottom: 1px solid var(--border);">
                             <td style="padding: 14px;">
-                                <div style="font-weight: 800; color: #0f172a; ${isDone ? 'text-decoration: line-through; opacity: 0.7;' : ''}">${t.title}</div>
+                                <div style="font-weight: 800; color: var(--k-text); ${isDone ? 'text-decoration: line-through; opacity: 0.7;' : ''}">${t.title}</div>
                                 <div style="font-size: 0.75rem; color: var(--text-muted);">${t.description || 'No description'}</div>
                             </td>
                             <td style="padding: 14px;">
-                                <span style="font-size: 0.75rem; font-weight: 700; color: #475569;">${t.assignedBy === empId ? 'Self-Assigned' : 'Manager-Assigned'}</span>
+                                <span style="font-size: 0.75rem; font-weight: 700; color: var(--k-text-2);">${t.assignedBy === empId ? 'Self-Assigned' : 'Manager-Assigned'}</span>
                             </td>
-                            <td style="padding: 14px; font-size: 0.8rem; color: #475569;">
+                            <td style="padding: 14px; font-size: 0.8rem; color: var(--k-text-2);">
                                 ${t.dueDate || 'End of Cycle'}
                             </td>
                             <td style="padding: 14px;">
@@ -1835,7 +1840,7 @@
                                 <span class="cycle-badge ${t.reviewStatus === 'accepted' ? 'badge-accepted' : t.reviewStatus === 'rejected' ? 'badge-rejected' : 'badge-pending'}">${t.reviewStatus || 'pending'}</span>
                             </td>
                             <td style="padding: 14px; text-align: right;">
-                                <button onclick="toggleTaskCompletionState('${t.taskId || t.id}', ${!isDone})" style="border: none; background: ${isDone ? '#dcfce7' : '#f1f5f9'}; color: ${isDone ? '#15803d' : '#334155'}; padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 0.75rem; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                                <button onclick="toggleTaskCompletionState('${t.taskId || t.id}', ${!isDone})" style="border: none; background: ${isDone ? 'var(--k-success-soft)' : 'var(--k-subtle)'}; color: ${isDone ? 'var(--k-success-text)' : 'var(--k-text-2)'}; padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 0.75rem; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
                                     <i data-lucide="${isDone ? 'check-circle' : 'circle'}" style="width: 14px; height: 14px;"></i>
                                     <span>${isDone ? 'Completed' : 'Mark Done'}</span>
                                 </button>
@@ -1928,15 +1933,15 @@
             }
 
             listEl.innerHTML = allAudits.map(a => `
-                <div style="padding: 14px 18px; background: #f8fafc; border-radius: 14px; border: 1px solid var(--border); font-size: 0.875rem;">
+                <div style="padding: 14px 18px; background: var(--k-subtle); border-radius: 14px; border: 1px solid var(--border); font-size: 0.875rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                        <span style="font-weight: 800; color: #0f172a;">Personnel: ${a.employeeName || a.employeeId}</span>
+                        <span style="font-weight: 800; color: var(--k-text);">Personnel: ${a.employeeName || a.employeeId}</span>
                         <span style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">${a.delegatedAt ? new Date(a.delegatedAt).toLocaleString() : 'Recent'}</span>
                     </div>
-                    <div style="color: #334155; margin-bottom: 4px;">
+                    <div style="color: var(--k-text-2); margin-bottom: 4px;">
                         Delegated from <strong>${a.delegatedByName || a.originalManagerId}</strong> &rarr; to <strong>${a.delegatedToName || a.delegatedToId}</strong>
                     </div>
-                    <div style="font-size: 0.8rem; color: #64748b; font-style: italic;">
+                    <div style="font-size: 0.8rem; color: var(--k-muted); font-style: italic;">
                         Reason: "${a.reason || 'Peer evaluation reassignment'}"
                     </div>
                 </div>
@@ -2195,7 +2200,7 @@
         window.openRolloutModal = function() {
             document.getElementById('rolloutStatusBody').innerHTML = `
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <i data-lucide="loader" class="spin" style="width: 20px; height: 20px; color: #2563eb;"></i>
+                    <i data-lucide="loader" class="spin" style="width: 20px; height: 20px; color: var(--k-accent-text);"></i>
                     <span style="font-weight: 600;">Dispatching notifications & triggering email alerts...</span>
                 </div>
             `;
@@ -2244,7 +2249,7 @@
                 filterUploadedFiles();
             } catch (err) {
                 console.error('Error loading uploaded files repository:', err);
-                if (tbody) tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2rem; color: #dc2626;">Error loading files: ${err.message}</td></tr>`;
+                if (tbody) tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--k-danger-text);">Error loading files: ${err.message}</td></tr>`;
             }
         };
 
@@ -2279,8 +2284,8 @@
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="7" style="text-align: center; padding: 2rem 1rem; color: var(--text-muted);">
-                            <i data-lucide="folder-open" style="width: 36px; height: 36px; margin: 0 auto 10px; color: #94a3b8; display: block;"></i>
-                            <div style="font-weight: 700; color: #334155; font-size: 1rem;">No Uploaded Files Found</div>
+                            <i data-lucide="folder-open" style="width: 36px; height: 36px; margin: 0 auto 10px; color: var(--k-muted); display: block;"></i>
+                            <div style="font-weight: 700; color: var(--k-text-2); font-size: 1rem;">No Uploaded Files Found</div>
                             <p style="margin: 4px 0 12px; font-size: 0.8rem;">Upload files using the "Upload PMS Document" button or attach files while creating review cycles.</p>
                             <button class="btn-rollout" onclick="openUploadDocModal()" style="font-size: 0.8rem; margin: 0 auto;">
                                 <i data-lucide="upload" style="width: 14px; height: 14px;"></i> Upload First Document
@@ -2308,7 +2313,7 @@
                         ? `<span class="cycle-badge badge-scheduled" style="font-size: 0.7rem;">Manager PRD</span>`
                         : f.source === 'task'
                             ? `<span class="cycle-badge badge-completed" style="font-size: 0.7rem; background: #e0f2fe; color: #0284c7;">Work Evidence</span>`
-                            : `<span class="cycle-badge badge-scheduled" style="font-size: 0.7rem; background: #fef3c7; color: #b45309;">PMS Document</span>`;
+                            : `<span class="cycle-badge badge-scheduled" style="font-size: 0.7rem; background: var(--k-warning-soft); color: var(--k-warning-text);">PMS Document</span>`;
 
                 const dateStr = f.uploadedAt ? new Date(f.uploadedAt).toLocaleDateString() : 'Recent';
 
@@ -2320,7 +2325,7 @@
                                     <i data-lucide="${iconName}" style="width: 18px; height: 18px;"></i>
                                 </div>
                                 <div style="max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                    <div style="font-weight: 700; color: #0f172a; font-size: 0.875rem;" title="${f.name}">${f.name}</div>
+                                    <div style="font-weight: 700; color: var(--k-text); font-size: 0.875rem;" title="${f.name}">${f.name}</div>
                                     <div style="font-size: 0.7rem; color: var(--text-muted);">${f.type || 'Standard Document'}</div>
                                 </div>
                             </div>
@@ -2329,15 +2334,15 @@
                             ${categoryBadge}
                         </td>
                         <td style="padding: 12px 14px;">
-                            <div style="font-weight: 600; color: #334155; font-size: 0.8rem; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${f.sourceTitle}">
+                            <div style="font-weight: 600; color: var(--k-text-2); font-size: 0.8rem; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${f.sourceTitle}">
                                 ${f.sourceTitle || '—'}
                             </div>
                             <div style="font-size: 0.7rem; color: var(--text-muted); font-family: monospace;">${f.sourceId || ''}</div>
                         </td>
-                        <td style="padding: 12px 14px; font-size: 0.8rem; color: #475569;">
+                        <td style="padding: 12px 14px; font-size: 0.8rem; color: var(--k-text-2);">
                             ${f.uploadedBy || 'Unknown'}
                         </td>
-                        <td style="padding: 12px 14px; font-weight: 700; color: #0f172a; font-size: 0.8rem;">
+                        <td style="padding: 12px 14px; font-weight: 700; color: var(--k-text); font-size: 0.8rem;">
                             ${f.sizeFormatted || '—'}
                         </td>
                         <td style="padding: 12px 14px; font-size: 0.8rem; color: var(--text-muted);">
@@ -2352,7 +2357,7 @@
                                     <i data-lucide="download" style="width: 13px; height: 13px;"></i>
                                 </a>
                                 ${f.isStandaloneDoc ? `
-                                    <button type="button" class="btn-secondary" style="padding: 5px 10px; font-size: 0.75rem; color: #ef4444;" onclick="handleDeleteDoc('${f.id}')" title="Delete Document">
+                                    <button type="button" class="btn-secondary" style="padding: 5px 10px; font-size: 0.75rem; color: var(--k-danger-text);" onclick="handleDeleteDoc('${f.id}')" title="Delete Document">
                                         <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
                                     </button>
                                 ` : ''}
@@ -2386,10 +2391,10 @@
             }
 
             listEl.innerHTML = allCycleAtts.slice(0, 6).map(att => `
-                <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 6px 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; background: var(--k-subtle); border: 1px solid var(--border); border-radius: 10px; padding: 6px 10px;">
                     <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; max-width: 70%;">
                         <i data-lucide="file-text" style="width: 13px; height: 13px; color: var(--primary); flex-shrink: 0;"></i>
-                        <span style="font-size: 0.8rem; font-weight: 700; color: #0f172a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${att.name}">${att.name}</span>
+                        <span style="font-size: 0.8rem; font-weight: 700; color: var(--k-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${att.name}">${att.name}</span>
                     </div>
                     <div style="display: flex; align-items: center; gap: 4px;">
                         <button type="button" class="btn-secondary" style="padding: 2px 6px; font-size: 0.7rem;" onclick="previewOrDownloadFile('${att.cycleId}', ${att.idx}, 'cycle')" title="Preview">
@@ -2439,11 +2444,11 @@
             const list = document.getElementById('directDocFileList');
             if (list) {
                 list.innerHTML = `
-                    <div class="staged-file-item" style="background: #eff6ff; border-color: #bfdbfe;">
+                    <div class="staged-file-item" style="background: var(--k-accent-soft); border-color: var(--k-accent-border);">
                         <div style="display: flex; align-items: center; gap: 8px;">
-                            <i data-lucide="check" style="width: 14px; height: 14px; color: #10b981;"></i>
-                            <span style="font-weight: 700; color: #1e3a8a;">${fileObj.name}</span>
-                            <span style="font-size: 0.7rem; color: #64748b;">(${fileObj.sizeFormatted})</span>
+                            <i data-lucide="check" style="width: 14px; height: 14px; color: var(--k-success-text);"></i>
+                            <span style="font-weight: 700; color: var(--k-accent-text);">${fileObj.name}</span>
+                            <span style="font-size: 0.7rem; color: var(--k-muted);">(${fileObj.sizeFormatted})</span>
                         </div>
                     </div>
                 `;

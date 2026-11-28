@@ -212,11 +212,11 @@ function renderCriticalAlerts(alerts = []) {
     if (displayAlerts.length === 0) {
         container.innerHTML = `
             <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:1.2rem 0.5rem; text-align:center;">
-                <div style="width:34px; height:34px; border-radius:50%; background:#ecfdf5; display:flex; align-items:center; justify-content:center; margin-bottom:5px;">
-                    <i data-lucide="shield-check" style="color:#059669; width:18px; height:18px;"></i>
+                <div style="width:34px; height:34px; border-radius:50%; background:var(--k-success-soft); display:flex; align-items:center; justify-content:center; margin-bottom:5px;">
+                    <i data-lucide="shield-check" style="color:var(--k-success-text); width:18px; height:18px;"></i>
                 </div>
-                <div style="font-weight:800; font-size:0.8rem; color:#065f46;">0 Critical Alerts Active</div>
-                <div style="font-size:0.7rem; color:#64748b; margin-top:2px;">All attendance, payroll, and SLA gates operating within safe thresholds.</div>
+                <div style="font-weight:800; font-size:0.8rem; color:var(--k-success-text);">0 Critical Alerts Active</div>
+                <div style="font-size:0.7rem; color:var(--k-muted); margin-top:2px;">All attendance, payroll, and SLA gates operating within safe thresholds.</div>
             </div>
         `;
         if (window.lucide) window.lucide.createIcons();
@@ -227,9 +227,9 @@ function renderCriticalAlerts(alerts = []) {
         <div class="ticker-item">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <span style="font-weight:800; color:var(--danger); font-size:0.8rem;">${escapeCell(alt.title)}</span>
-                <span style="font-size:0.7rem; color:#94a3b8;">${escapeCell(alt.timestamp)}</span>
+                <span style="font-size:0.7rem; color:var(--k-muted);">${escapeCell(alt.timestamp)}</span>
             </div>
-            <div style="font-size:0.76rem; color:#475569; margin-top:2px;">
+            <div style="font-size:0.76rem; color:var(--k-text-2); margin-top:2px;">
                 <strong>${escapeCell(alt.employee)}</strong>: ${escapeCell(alt.message)}
             </div>
         </div>
@@ -249,11 +249,11 @@ function renderPendingApprovals(approvals = []) {
     if (displayApprovals.length === 0) {
         container.innerHTML = `
             <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:1.2rem 0.5rem; text-align:center;">
-                <div style="width:34px; height:34px; border-radius:50%; background:#dcfce7; display:flex; align-items:center; justify-content:center; margin-bottom:5px;">
-                    <i data-lucide="check-check" style="color:#16a34a; width:18px; height:18px;"></i>
+                <div style="width:34px; height:34px; border-radius:50%; background:var(--k-success-soft); display:flex; align-items:center; justify-content:center; margin-bottom:5px;">
+                    <i data-lucide="check-check" style="color:var(--k-success-text); width:18px; height:18px;"></i>
                 </div>
-                <div style="font-weight:800; font-size:0.8rem; color:#166534;">0 Approvals Pending</div>
-                <div style="font-size:0.7rem; color:#64748b; margin-top:2px;">All sign-offs completed across departments. Clean operational slate!</div>
+                <div style="font-weight:800; font-size:0.8rem; color:var(--k-success-text);">0 Approvals Pending</div>
+                <div style="font-size:0.7rem; color:var(--k-muted); margin-top:2px;">All sign-offs completed across departments. Clean operational slate!</div>
             </div>
         `;
         if (window.lucide) window.lucide.createIcons();
@@ -264,9 +264,9 @@ function renderPendingApprovals(approvals = []) {
         <div class="ticker-item">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <span style="font-weight:800; font-size:0.78rem;">${escapeCell(app.type)}</span>
-                <span style="background:#fee2e2; color:#b91c1c; font-size:0.68rem; font-weight:800; padding:1px 5px; border-radius:4px;">${escapeCell(app.slaHoursRemaining)}h SLA</span>
+                <span style="background:var(--k-danger-soft); color:var(--k-danger-text); font-size:0.68rem; font-weight:800; padding:1px 5px; border-radius:4px;">${escapeCell(app.slaHoursRemaining)}h SLA</span>
             </div>
-            <div style="font-size:0.75rem; color:#64748b; margin:2px 0;">${escapeCell(app.requester)} (${escapeCell(app.department)})</div>
+            <div style="font-size:0.75rem; color:var(--k-muted); margin:2px 0;">${escapeCell(app.requester)} (${escapeCell(app.department)})</div>
             <div style="display:flex; gap:6px; margin-top:4px;">
                 <button class="btn-hub btn-hub-primary" style="padding:2px 8px; font-size:0.7rem;" onclick="handleApprovalAction('${String(app.id).replace(/[^\w-]/g, '')}', 'approved')">Approve</button>
                 <button class="btn-hub" style="padding:2px 8px; font-size:0.7rem;" onclick="handleApprovalAction('${String(app.id).replace(/[^\w-]/g, '')}', 'rejected')">Reject</button>
@@ -308,11 +308,11 @@ function renderPendingActions(actions = []) {
     if (displayActions.length === 0) {
         container.innerHTML = `
             <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:1.2rem 0.5rem; text-align:center;">
-                <div style="width:34px; height:34px; border-radius:50%; background:#fef3c7; display:flex; align-items:center; justify-content:center; margin-bottom:5px;">
-                    <i data-lucide="sparkles" style="color:#d97706; width:18px; height:18px;"></i>
+                <div style="width:34px; height:34px; border-radius:50%; background:var(--k-warning-soft); display:flex; align-items:center; justify-content:center; margin-bottom:5px;">
+                    <i data-lucide="sparkles" style="color:var(--k-warning-text); width:18px; height:18px;"></i>
                 </div>
-                <div style="font-weight:800; font-size:0.8rem; color:#92400e;">0 Action Items Remaining</div>
-                <div style="font-size:0.7rem; color:#64748b; margin-top:2px;">All statutory challans and assignment matrices up to date.</div>
+                <div style="font-weight:800; font-size:0.8rem; color:var(--k-warning-text);">0 Action Items Remaining</div>
+                <div style="font-size:0.7rem; color:var(--k-muted); margin-top:2px;">All statutory challans and assignment matrices up to date.</div>
             </div>
         `;
         if (window.lucide) window.lucide.createIcons();
@@ -322,10 +322,10 @@ function renderPendingActions(actions = []) {
     container.innerHTML = displayActions.map(act => `
         <div class="ticker-item">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span style="font-weight:800; font-size:0.78rem; color:#b45309;">${escapeCell(act.category)}</span>
-                <span style="font-size:0.68rem; color:#94a3b8;">${escapeCell(act.dueIn)}</span>
+                <span style="font-weight:800; font-size:0.78rem; color:var(--k-warning-text);">${escapeCell(act.category)}</span>
+                <span style="font-size:0.68rem; color:var(--k-muted);">${escapeCell(act.dueIn)}</span>
             </div>
-            <div style="font-size:0.75rem; color:#334155; margin-top:2px;">
+            <div style="font-size:0.75rem; color:var(--k-text-2); margin-top:2px;">
                 <a href="${escapeCell(act.actionUrl)}" style="text-decoration:none; color:inherit; font-weight:600;">${escapeCell(act.title)} ➔</a>
             </div>
         </div>
@@ -377,8 +377,8 @@ function renderWorkforceWidget(wf) {
                     <div style="width:36px; height:36px; border-radius:50%; background:rgba(99, 102, 241, 0.12); display:flex; align-items:center; justify-content:center; margin-bottom:8px;">
                         <i data-lucide="users" style="color:var(--primary); width:18px; height:18px;"></i>
                     </div>
-                    <div style="font-weight:800; font-size:0.85rem; color:#1e293b; margin-bottom:2px;">0 Active Personnel</div>
-                    <div style="font-size:0.72rem; color:#64748b; max-width:240px; line-height:1.35;">
+                    <div style="font-weight:800; font-size:0.85rem; color:var(--k-text); margin-bottom:2px;">0 Active Personnel</div>
+                    <div style="font-size:0.72rem; color:var(--k-muted); max-width:240px; line-height:1.35;">
                         Firebase Firestore employees collection is 0. All 4 business units are cleared.
                     </div>
                 `;
@@ -439,10 +439,10 @@ function renderAttendanceWidget(att) {
                 zeroBox.style.cssText = 'display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; min-height:165px; text-align:center; padding:1rem;';
                 zeroBox.innerHTML = `
                     <div style="width:36px; height:36px; border-radius:50%; background:rgba(16, 185, 129, 0.12); display:flex; align-items:center; justify-content:center; margin-bottom:8px;">
-                        <i data-lucide="check-circle" style="color:#10b981; width:18px; height:18px;"></i>
+                        <i data-lucide="check-circle" style="color:var(--k-success-text); width:18px; height:18px;"></i>
                     </div>
-                    <div style="font-weight:800; font-size:0.85rem; color:#1e293b; margin-bottom:2px;">0 Absentee & Late Marks</div>
-                    <div style="font-size:0.72rem; color:#64748b; max-width:260px; line-height:1.35;">
+                    <div style="font-weight:800; font-size:0.85rem; color:var(--k-text); margin-bottom:2px;">0 Absentee & Late Marks</div>
+                    <div style="font-size:0.72rem; color:var(--k-muted); max-width:260px; line-height:1.35;">
                         Firebase Firestore attendance records are 0. All department shifts operating with 0 infractions.
                     </div>
                 `;
@@ -504,8 +504,8 @@ function renderPayrollWidget(pay) {
                     <div style="width:36px; height:36px; border-radius:50%; background:rgba(3, 105, 161, 0.12); display:flex; align-items:center; justify-content:center; margin-bottom:8px;">
                         <i data-lucide="credit-card" style="color:#0284c7; width:18px; height:18px;"></i>
                     </div>
-                    <div style="font-weight:800; font-size:0.85rem; color:#1e293b; margin-bottom:2px;">₹0.0 Lakhs Gross Payroll</div>
-                    <div style="font-size:0.72rem; color:#64748b; max-width:260px; line-height:1.35;">
+                    <div style="font-weight:800; font-size:0.85rem; color:var(--k-text); margin-bottom:2px;">₹0.0 Lakhs Gross Payroll</div>
+                    <div style="font-size:0.72rem; color:var(--k-muted); max-width:260px; line-height:1.35;">
                         Firebase Firestore payroll runs are 0. Pre-disbursement exceptions cleared (0 holds).
                     </div>
                 `;
@@ -564,8 +564,8 @@ function renderPMSWidget(pms) {
                     <div style="width:36px; height:36px; border-radius:50%; background:rgba(124, 58, 237, 0.12); display:flex; align-items:center; justify-content:center; margin-bottom:8px;">
                         <i data-lucide="award" style="color:#7c3aed; width:18px; height:18px;"></i>
                     </div>
-                    <div style="font-weight:800; font-size:0.85rem; color:#1e293b; margin-bottom:2px;">0 Appraisals Pending</div>
-                    <div style="font-size:0.72rem; color:#64748b; max-width:260px; line-height:1.35;">
+                    <div style="font-weight:800; font-size:0.85rem; color:var(--k-text); margin-bottom:2px;">0 Appraisals Pending</div>
+                    <div style="font-size:0.72rem; color:var(--k-muted); max-width:260px; line-height:1.35;">
                         Firebase Firestore performance reviews are 0. Goal tracking & ratings bell curve cleared.
                     </div>
                 `;
@@ -621,10 +621,10 @@ function renderExitWidget(exit) {
                 zeroBox.style.cssText = 'display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; min-height:165px; text-align:center; padding:1rem;';
                 zeroBox.innerHTML = `
                     <div style="width:36px; height:36px; border-radius:50%; background:rgba(239, 68, 68, 0.12); display:flex; align-items:center; justify-content:center; margin-bottom:8px;">
-                        <i data-lucide="log-out" style="color:#ef4444; width:18px; height:18px;"></i>
+                        <i data-lucide="log-out" style="color:var(--k-danger-text); width:18px; height:18px;"></i>
                     </div>
-                    <div style="font-weight:800; font-size:0.85rem; color:#1e293b; margin-bottom:2px;">0 Departures Active</div>
-                    <div style="font-size:0.72rem; color:#64748b; max-width:260px; line-height:1.35;">
+                    <div style="font-weight:800; font-size:0.85rem; color:var(--k-text); margin-bottom:2px;">0 Departures Active</div>
+                    <div style="font-size:0.72rem; color:var(--k-muted); max-width:260px; line-height:1.35;">
                         Firebase Firestore exit records are 0. Clearances and F&F disbursements fully completed.
                     </div>
                 `;
@@ -676,10 +676,10 @@ function renderPolicyWidget(pol) {
                 zeroBox.style.cssText = 'display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; min-height:165px; text-align:center; padding:1rem;';
                 zeroBox.innerHTML = `
                     <div style="width:36px; height:36px; border-radius:50%; background:rgba(16, 185, 129, 0.12); display:flex; align-items:center; justify-content:center; margin-bottom:8px;">
-                        <i data-lucide="shield-check" style="color:#10b981; width:18px; height:18px;"></i>
+                        <i data-lucide="shield-check" style="color:var(--k-success-text); width:18px; height:18px;"></i>
                     </div>
-                    <div style="font-weight:800; font-size:0.85rem; color:#1e293b; margin-bottom:2px;">0 Signatures Pending</div>
-                    <div style="font-size:0.72rem; color:#64748b; max-width:260px; line-height:1.35;">
+                    <div style="font-weight:800; font-size:0.85rem; color:var(--k-text); margin-bottom:2px;">0 Signatures Pending</div>
+                    <div style="font-size:0.72rem; color:var(--k-muted); max-width:260px; line-height:1.35;">
                         Firebase Firestore policy acknowledgments are 0. All compliance obligations fulfilled (0 overdue).
                     </div>
                 `;
@@ -715,11 +715,11 @@ function renderOrgStructureTree(tree) {
     if (isZero) {
         container.innerHTML = `
             <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:2rem 1rem; text-align:center; width:100%;">
-                <div style="width:40px; height:40px; border-radius:50%; background:#f1f5f9; display:flex; align-items:center; justify-content:center; margin-bottom:8px;">
-                    <i data-lucide="network" style="color:#64748b; width:20px; height:20px;"></i>
+                <div style="width:40px; height:40px; border-radius:50%; background:var(--k-subtle); display:flex; align-items:center; justify-content:center; margin-bottom:8px;">
+                    <i data-lucide="network" style="color:var(--k-muted); width:20px; height:20px;"></i>
                 </div>
-                <div style="font-weight:800; font-size:0.88rem; color:#1e293b; margin-bottom:3px;">0 Personnel in Organization Tree</div>
-                <div style="font-size:0.72rem; color:#64748b; max-width:320px; line-height:1.4;">
+                <div style="font-weight:800; font-size:0.88rem; color:var(--k-text); margin-bottom:3px;">0 Personnel in Organization Tree</div>
+                <div style="font-size:0.72rem; color:var(--k-muted); max-width:320px; line-height:1.4;">
                     Enterprise Builder is connected to backend Firebase. 0 active employees found in Firestore. Department hierarchy is cleared.
                 </div>
             </div>
@@ -730,11 +730,11 @@ function renderOrgStructureTree(tree) {
 
     const childrenHtml = (tree.children || []).map(c => `
         <div class="sub-tree-branch">
-            <div class="tree-node" style="border-color:#3b82f6;" onclick="showToast('${c.name} (${c.role}) - ${c.totalTeamSize} Team Members')">
-                <div class="node-avatar" style="background:#dbeafe; color:#1d4ed8;">${c.avatar}</div>
+            <div class="tree-node" style="border-color:var(--k-accent);" onclick="showToast('${c.name} (${c.role}) - ${c.totalTeamSize} Team Members')">
+                <div class="node-avatar" style="background:var(--k-accent-soft); color:var(--k-accent-text);">${c.avatar}</div>
                 <div>
                     <div style="font-weight:800; font-size:0.82rem;">${c.name}</div>
-                    <div style="font-size:0.72rem; color:#64748b;">${c.role} (${c.totalTeamSize})</div>
+                    <div style="font-size:0.72rem; color:var(--k-muted);">${c.role} (${c.totalTeamSize})</div>
                 </div>
             </div>
 
@@ -743,7 +743,7 @@ function renderOrgStructureTree(tree) {
                     ${c.children.map(sub => `
                         <div class="tree-node" style="border-color:#10b981; padding:5px 8px; font-size:0.75rem;" onclick="showToast('${sub.name}: ${sub.totalTeamSize} engineers')">
                             <span style="font-weight:700;">${sub.name}</span>
-                            <span style="color:#64748b; font-size:0.68rem;">(${sub.department})</span>
+                            <span style="color:var(--k-muted); font-size:0.68rem;">(${sub.department})</span>
                         </div>
                     `).join('')}
                 </div>
@@ -756,7 +756,7 @@ function renderOrgStructureTree(tree) {
             <div class="node-avatar">${tree.avatar}</div>
             <div>
                 <div style="font-weight:800; font-size:0.9rem;">${tree.name}</div>
-                <div style="font-size:0.72rem; color:#64748b;">${tree.role} • ${tree.totalTeamSize} Total Personnel</div>
+                <div style="font-size:0.72rem; color:var(--k-muted);">${tree.role} • ${tree.totalTeamSize} Total Personnel</div>
             </div>
         </div>
         <div class="tree-children-container">
@@ -783,7 +783,7 @@ function renderRecentAutomationStream(logs = []) {
                     <i data-lucide="zap-off" style="color:#38bdf8; width:20px; height:20px;"></i>
                 </div>
                 <div style="font-weight:700; color:#f8fafc; font-size:0.85rem; margin-bottom:4px;">0 Active Pipeline Events</div>
-                <div style="font-size:0.72rem; color:#94a3b8; max-width:280px; line-height:1.4;">
+                <div style="font-size:0.72rem; color:var(--k-muted); max-width:280px; line-height:1.4;">
                     Common Automation Engine Stage 1–8 is currently at rest. All automated runs and approval triggers have executed cleanly.
                 </div>
             </div>
@@ -800,7 +800,7 @@ function renderRecentAutomationStream(logs = []) {
 
         return `
             <div style="margin-bottom:6px; line-height:1.35; display:flex; gap:6px; align-items:flex-start;">
-                <span style="color:#64748b; flex-shrink:0;">[${time}]</span>
+                <span style="color:var(--k-muted); flex-shrink:0;">[${time}]</span>
                 <span style="color:${color}; font-weight:700;">${escapeCell(l.stage)}:</span>
                 <span style="color:#cbd5e1;">${escapeCell(l.event)} (${escapeCell(l.status)})</span>
             </div>
@@ -884,7 +884,7 @@ function renderChart(canvasId, type, chartData) {
                 }
             },
             scales: ['doughnut', 'pie'].includes(type) ? {} : {
-                y: { beginAtZero: true, grid: { color: '#f8fafc' }, ticks: { font: { family: 'Outfit', size: 9 } } },
+                y: { beginAtZero: true, grid: { color: 'rgba(128, 128, 128, 0.18)' }, ticks: { font: { family: 'Outfit', size: 9 } } },
                 x: { grid: { display: false }, ticks: { font: { family: 'Outfit', size: 9, weight: '600' } } }
             }
         }
@@ -907,9 +907,9 @@ function applyPermissionMasking(allowedWidgets = []) {
             const overlay = document.createElement('div');
             overlay.className = 'permission-locked-overlay';
             overlay.innerHTML = `
-                <i data-lucide="lock" size="24" style="color:#94a3b8;"></i>
-                <div style="font-weight:800; font-size:0.82rem; color:#475569;">Restricted Access</div>
-                <div style="font-size:0.72rem; color:#94a3b8;">Requires HR Admin or Super Admin privileges</div>
+                <i data-lucide="lock" size="24" style="color:var(--k-muted);"></i>
+                <div style="font-weight:800; font-size:0.82rem; color:var(--k-text-2);">Restricted Access</div>
+                <div style="font-size:0.72rem; color:var(--k-muted);">Requires HR Admin or Super Admin privileges</div>
             `;
             el.appendChild(overlay);
         }

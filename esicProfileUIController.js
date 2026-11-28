@@ -72,7 +72,7 @@
         const lastVerifiedTime = verification.lastVerified ? new Date(verification.lastVerified).toLocaleString() : 'Not Yet Verified';
 
         return `
-        <div id="esicStatutoryMasterCard" class="modal-section-card" style="margin-bottom: 1.25rem; border: 1.5px solid #0284c7; border-radius: 16px; background: #ffffff; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.08); overflow: hidden;">
+        <div id="esicStatutoryMasterCard" class="modal-section-card" style="margin-bottom: 1.25rem; border: 1.5px solid #0284c7; border-radius: 16px; background: var(--k-surface); box-shadow: 0 4px 12px rgba(2, 132, 199, 0.08); overflow: hidden;">
             <!-- Header Section -->
             <div style="background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%); padding: 1.1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; color: white;">
                 <div style="display: flex; align-items: center; gap: 12px;">
@@ -89,7 +89,7 @@
                         <i data-lucide="${ipBadge.icon || 'check-circle'}" style="width: 12px; height: 12px;"></i>
                         <span id="esicIpStatusHeaderText">Status: ${ipBadge.label}</span>
                     </span>
-                    <button type="button" id="btnVerifyDecentroEsic" class="btn" style="background: #ffffff; color: #0369a1; font-size: 0.76rem; font-weight: 800; padding: 6px 14px; border-radius: 8px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.2s ease;">
+                    <button type="button" id="btnVerifyDecentroEsic" class="btn" style="background: var(--k-surface); color: #0369a1; font-size: 0.76rem; font-weight: 800; padding: 6px 14px; border-radius: 8px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.2s ease;">
                         <i data-lucide="refresh-cw" id="esicVerifyIcon" style="width: 13px; height: 13px;"></i>
                         <span id="esicVerifyBtnText">Verify via Decentro/ESIC</span>
                     </button>
@@ -100,14 +100,14 @@
             <div style="padding: 1.25rem;">
                 <!-- Live Status Pills Matrix (PRD Section 13) -->
                 <div style="margin-bottom: 1.25rem;">
-                    <div style="font-size: 0.72rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                    <div style="font-size: 0.72rem; font-weight: 800; color: var(--k-text-2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
                         <i data-lucide="activity" style="width: 14px; height: 14px; color: #0284c7;"></i>
                         Live Statutory Status &amp; Dependent Pills
                     </div>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 10px;">
                         <!-- Insured Person Status Pill -->
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
-                            <span style="font-size: 0.68rem; color: #64748b; font-weight: 700;">IP Status</span>
+                        <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
+                            <span style="font-size: 0.68rem; color: var(--k-muted); font-weight: 700;">IP Status</span>
                             <span id="pillIpStatus" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.72rem; font-weight: 800; color: ${ipBadge.color}; background: ${ipBadge.bg}; border: 1px solid ${ipBadge.border}; padding: 2px 8px; border-radius: 6px; width: fit-content;">
                                 <i data-lucide="${ipBadge.icon || 'check-circle'}" style="width: 11px; height: 11px;"></i>
                                 <span id="textIpStatus">${ipBadge.label}</span>
@@ -115,8 +115,8 @@
                         </div>
 
                         <!-- Aadhaar Seeding Pill -->
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
-                            <span style="font-size: 0.68rem; color: #64748b; font-weight: 700;">Aadhaar Seeding</span>
+                        <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
+                            <span style="font-size: 0.68rem; color: var(--k-muted); font-weight: 700;">Aadhaar Seeding</span>
                             <span id="pillAadhaarSeeding" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.72rem; font-weight: 800; color: ${aadhaarBadge.color}; background: ${aadhaarBadge.bg}; border: 1px solid ${aadhaarBadge.border}; padding: 2px 8px; border-radius: 6px; width: fit-content;">
                                 <i data-lucide="${aadhaarBadge.icon || 'shield-check'}" style="width: 11px; height: 11px;"></i>
                                 <span id="textAadhaarSeeding">${aadhaarBadge.label}</span>
@@ -124,8 +124,8 @@
                         </div>
 
                         <!-- Family/Dependent Details Pill -->
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
-                            <span style="font-size: 0.68rem; color: #64748b; font-weight: 700;">Family/Dependents</span>
+                        <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
+                            <span style="font-size: 0.68rem; color: var(--k-muted); font-weight: 700;">Family/Dependents</span>
                             <span id="pillFamilyDetails" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.72rem; font-weight: 800; color: ${familyBadge.color}; background: ${familyBadge.bg}; border: 1px solid ${familyBadge.border}; padding: 2px 8px; border-radius: 6px; width: fit-content;">
                                 <i data-lucide="${familyBadge.icon || 'users'}" style="width: 11px; height: 11px;"></i>
                                 <span id="textFamilyDetails">${familyBadge.label}</span>
@@ -133,8 +133,8 @@
                         </div>
 
                         <!-- Verification Status Pill -->
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
-                            <span style="font-size: 0.68rem; color: #64748b; font-weight: 700;">Decentro IP Auth</span>
+                        <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
+                            <span style="font-size: 0.68rem; color: var(--k-muted); font-weight: 700;">Decentro IP Auth</span>
                             <span id="pillIpVerification" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.72rem; font-weight: 800; color: ${verifyBadge.color}; background: ${verifyBadge.bg}; border: 1px solid ${verifyBadge.border}; padding: 2px 8px; border-radius: 6px; width: fit-content;">
                                 <i data-lucide="${verifyBadge.icon || 'check-circle'}" style="width: 11px; height: 11px;"></i>
                                 <span id="textIpVerification">${verifyBadge.label}</span>
@@ -144,85 +144,85 @@
                 </div>
 
                 <!-- Detailed Attributes Grid (All 18 Attributes Visualized) -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; background: #f8fafc; padding: 14px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 1.25rem;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; background: var(--k-subtle); padding: 14px; border-radius: 12px; border: 1px solid var(--k-border); margin-bottom: 1.25rem;">
                     <div>
-                        <div style="font-size: 0.7rem; color: #64748b; font-weight: 700; text-transform: uppercase;">Insured Person (IP) Number</div>
+                        <div style="font-size: 0.7rem; color: var(--k-muted); font-weight: 700; text-transform: uppercase;">Insured Person (IP) Number</div>
                         <div id="esicDisplayIpNumber" style="font-size: 0.95rem; font-weight: 800; color: #0369a1; font-family: monospace; margin-top: 2px;">
                             ${escapeHtml(ipNumber)}
                         </div>
                     </div>
 
                     <div>
-                        <div style="font-size: 0.7rem; color: #64748b; font-weight: 700; text-transform: uppercase;">ESIC Employer Code (17 Digits)</div>
-                        <div style="font-size: 0.88rem; font-weight: 700; color: #1e293b; font-family: monospace; margin-top: 2px;">
+                        <div style="font-size: 0.7rem; color: var(--k-muted); font-weight: 700; text-transform: uppercase;">ESIC Employer Code (17 Digits)</div>
+                        <div style="font-size: 0.88rem; font-weight: 700; color: var(--k-text); font-family: monospace; margin-top: 2px;">
                             ${escapeHtml(employerCode)}
                         </div>
                     </div>
 
                     <div>
-                        <div style="font-size: 0.7rem; color: #64748b; font-weight: 700; text-transform: uppercase;">Medical Dispensary / Clinic</div>
-                        <div id="esicDisplayDispensary" style="font-size: 0.86rem; font-weight: 700; color: #0f172a; margin-top: 2px;">
+                        <div style="font-size: 0.7rem; color: var(--k-muted); font-weight: 700; text-transform: uppercase;">Medical Dispensary / Clinic</div>
+                        <div id="esicDisplayDispensary" style="font-size: 0.86rem; font-weight: 700; color: var(--k-text); margin-top: 2px;">
                             ${escapeHtml(dispensary)}
                         </div>
                     </div>
 
                     <div>
-                        <div style="font-size: 0.7rem; color: #64748b; font-weight: 700; text-transform: uppercase;">Contribution State Jurisdiction</div>
-                        <div id="esicDisplayState" style="font-size: 0.86rem; font-weight: 700; color: #0f172a; margin-top: 2px;">
+                        <div style="font-size: 0.7rem; color: var(--k-muted); font-weight: 700; text-transform: uppercase;">Contribution State Jurisdiction</div>
+                        <div id="esicDisplayState" style="font-size: 0.86rem; font-weight: 700; color: var(--k-text); margin-top: 2px;">
                             ${escapeHtml(state)}
                         </div>
                     </div>
 
                     <div>
-                        <div style="font-size: 0.7rem; color: #64748b; font-weight: 700; text-transform: uppercase;">Date of ESIC Joining / Exit</div>
-                        <div style="font-size: 0.84rem; font-weight: 600; color: #334155; margin-top: 2px;">
-                            ${escapeHtml(esicDoj)} &nbsp;→&nbsp; <span style="color: ${esicDoe === 'Active / Covered' ? '#059669' : '#dc2626'}">${escapeHtml(esicDoe)}</span>
+                        <div style="font-size: 0.7rem; color: var(--k-muted); font-weight: 700; text-transform: uppercase;">Date of ESIC Joining / Exit</div>
+                        <div style="font-size: 0.84rem; font-weight: 600; color: var(--k-text-2); margin-top: 2px;">
+                            ${escapeHtml(esicDoj)} &nbsp;→&nbsp; <span style="color: ${esicDoe === 'Active / Covered' ? 'var(--k-success-text)' : 'var(--k-danger-text)'}">${escapeHtml(esicDoe)}</span>
                         </div>
                     </div>
 
                     <div>
-                        <div style="font-size: 0.7rem; color: #64748b; font-weight: 700; text-transform: uppercase;">Official Source &amp; Reference</div>
-                        <div style="font-size: 0.84rem; font-weight: 600; color: #334155; margin-top: 2px;">
+                        <div style="font-size: 0.7rem; color: var(--k-muted); font-weight: 700; text-transform: uppercase;">Official Source &amp; Reference</div>
+                        <div style="font-size: 0.84rem; font-weight: 600; color: var(--k-text-2); margin-top: 2px;">
                             <span id="esicDisplaySource">${escapeHtml(source)}</span> &bull; <span id="esicDisplayRef" style="font-family: monospace; font-size: 0.76rem;">${escapeHtml(refNo)}</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Statutory Wage Ceiling & Contribution Math Box (PRD §§ 4 & 11) -->
-                <div style="background: #f0fdf4; border: 1px dashed #86efac; border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;">
+                <div style="background: var(--k-success-soft); border: 1px dashed var(--k-success-border); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 0.74rem; font-weight: 800; color: #166534; display: flex; align-items: center; gap: 6px;">
-                            <i data-lucide="calculator" style="width: 14px; height: 14px; color: #16a34a;"></i>
+                        <span style="font-size: 0.74rem; font-weight: 800; color: var(--k-success-text); display: flex; align-items: center; gap: 6px;">
+                            <i data-lucide="calculator" style="width: 14px; height: 14px; color: var(--k-success-text);"></i>
                             Statutory Ceiling &amp; Prorated Contribution Ledger (PRD Section 4)
                         </span>
-                        <span style="font-size: 0.7rem; font-weight: 700; color: #15803d; background: #dcfce7; padding: 2px 8px; border-radius: 6px;">
+                        <span style="font-size: 0.7rem; font-weight: 700; color: var(--k-success-text); background: var(--k-success-soft); padding: 2px 8px; border-radius: 6px;">
                             Ceiling: ₹21,000 / mo (₹25k PWD)
                         </span>
                     </div>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; font-size: 0.74rem; color: #14532d; margin-top: 4px;">
                         <div>
                             <strong>Employee Share (0.75%):</strong><br>
-                            <span style="color: #166534; font-size: 0.72rem;">Deducted from gross earnings</span>
+                            <span style="color: var(--k-success-text); font-size: 0.72rem;">Deducted from gross earnings</span>
                         </div>
                         <div>
                             <strong>Employer Share (3.25%):</strong><br>
-                            <span style="color: #166534; font-size: 0.72rem;">Company statutory credit</span>
+                            <span style="color: var(--k-success-text); font-size: 0.72rem;">Company statutory credit</span>
                         </div>
                         <div>
                             <strong>Total ESIC Remittance (4.00%):</strong><br>
-                            <span style="color: #166534; font-size: 0.72rem;">Challan bank clearance</span>
+                            <span style="color: var(--k-success-text); font-size: 0.72rem;">Challan bank clearance</span>
                         </div>
                         <div>
                             <strong>Contribution Cycle:</strong><br>
-                            <span style="color: #166534; font-size: 0.72rem;">Apr–Sep &amp; Oct–Mar Rule</span>
+                            <span style="color: var(--k-success-text); font-size: 0.72rem;">Apr–Sep &amp; Oct–Mar Rule</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Last Verified Footer Timestamp -->
-                <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem; color: #94a3b8;">
+                <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem; color: var(--k-muted);">
                     <span>Verification Handshake ID: <span id="esicDisplayHandshakeId" style="font-family: monospace;">${escapeHtml(refNo)}</span></span>
-                    <span>Last Verified: <strong id="esicDisplayLastVerified" style="color: #64748b;">${escapeHtml(lastVerifiedTime)}</strong></span>
+                    <span>Last Verified: <strong id="esicDisplayLastVerified" style="color: var(--k-muted);">${escapeHtml(lastVerifiedTime)}</strong></span>
                 </div>
             </div>
         </div>
@@ -387,7 +387,7 @@
         if (!container) return;
 
         const orgId = options.orgId || (typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null);
-        if (!orgId) { container.innerHTML = '<div style="padding: 1rem; color: #ef4444;">No organization found for the signed-in user. Sign in again.</div>'; return; }
+        if (!orgId) { container.innerHTML = '<div style="padding: 1rem; color: var(--k-danger-text);">No organization found for the signed-in user. Sign in again.</div>'; return; }
         let esicDetails = null;
 
         if (window.KylrxEsicDetailsService && typeof window.KylrxEsicDetailsService.getEmployeeEsicDetails === 'function') {
@@ -395,7 +395,7 @@
         }
 
         if (!esicDetails) {
-            container.innerHTML = '<div style="padding: 1rem; color: #64748b;">No details added yet</div>';
+            container.innerHTML = '<div style="padding: 1rem; color: var(--k-muted);">No details added yet</div>';
             return;
         }
 

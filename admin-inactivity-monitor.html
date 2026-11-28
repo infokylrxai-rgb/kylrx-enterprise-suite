@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="kylrx-theme-init.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inactivity Automation | Kylrx AI</title>
@@ -36,7 +37,7 @@
         .tvc-trend { font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 4px; }
         
         .automation-log-panel {
-            background: #ffffff;
+            background: var(--k-surface);
             border-radius: 24px;
             color: var(--text-muted);
             padding: 1.5rem;
@@ -51,7 +52,7 @@
 
         .log-entry { margin-bottom: 8px; border-bottom: 1px solid var(--bg); padding-bottom: 4px; }
         .log-timestamp { color: var(--primary); font-weight: 700; margin-right: 8px; }
-        .log-action { color: #1e293b; font-weight: 800; text-transform: uppercase; }
+        .log-action { color: var(--k-text); font-weight: 800; text-transform: uppercase; }
         .log-entity { color: var(--primary); font-weight: 700; }
 
         /* Toasts */
@@ -63,8 +64,8 @@
             border: 1px solid var(--border); animation: toastIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         .toast-notification.active { display: flex; }
-        .toast-notification i { color: #10b981; width: 24px; height: 24px; }
-        .toast-notification span { font-weight: 700; color: #1e293b; font-size: 1rem; }
+        .toast-notification i { color: var(--k-success-text); width: 24px; height: 24px; }
+        .toast-notification span { font-weight: 700; color: var(--k-text); font-size: 1rem; }
         @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -40%) scale(0.9); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
 
         /* Heartbeat */
@@ -95,8 +96,8 @@
         .profile-avatar { width: 48px; height: 48px; border-radius: 14px; background: var(--bg-soft); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--primary); }
         
         .timer-badge {
-            background: #fef2f2;
-            color: #ef4444;
+            background: var(--k-danger-soft);
+            color: var(--k-danger-text);
             padding: 4px 10px;
             border-radius: 100px;
             font-size: 0.7rem;
@@ -116,7 +117,7 @@
         .trash-section {
             margin-top: 2rem;
             padding: 2rem;
-            background: #f8fafc;
+            background: var(--k-subtle);
             border-radius: 24px;
             border: 2px dashed var(--border);
         }
@@ -145,6 +146,10 @@
             transition: .4s;
         }
     </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="kylrx-theme.css">
 </head>
 <body class="admin-dashboard">
     <!-- Toasts -->
@@ -153,9 +158,9 @@
         <span>Action completed successfully!</span>
     </div>
 
-    <div class="toast-notification" id="errorToast" style="border-color: #fecaca;">
-        <i data-lucide="alert-circle" style="color: #ef4444;"></i>
-        <span style="color: #b91c1c;">Operation failed.</span>
+    <div class="toast-notification" id="errorToast" style="border-color: var(--k-danger-border);">
+        <i data-lucide="alert-circle" style="color: var(--k-danger-text);"></i>
+        <span style="color: var(--k-danger-text);">Operation failed.</span>
     </div>
 
     <div class="dashboard-container">
@@ -308,7 +313,7 @@
                 <h2 style="font-size: 1.25rem; font-weight: 800;">Critical Inactivity Alerts</h2>
                 <div style="display: flex; gap: 0.5rem;">
                     <button class="btn btn-outline" id="filterAll" style="padding: 6px 12px; font-size: 0.75rem;">All Profiles</button>
-                    <button class="btn btn-outline" id="filterSuspended" style="padding: 6px 12px; font-size: 0.75rem; background: #fef2f2; color: #ef4444;">Suspended Only</button>
+                    <button class="btn btn-outline" id="filterSuspended" style="padding: 6px 12px; font-size: 0.75rem; background: var(--k-danger-soft); color: var(--k-danger-text);">Suspended Only</button>
                 </div>
             </div>
 
@@ -341,7 +346,7 @@
                     <div style="background: var(--primary-glow); color: var(--primary); padding: 8px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="settings" style="width: 20px; height: 20px;"></i>
                     </div>
-                    <h3 style="font-weight:800; font-size: 1.25rem; margin: 0; color: #1e293b;">Automation Rules</h3>
+                    <h3 style="font-weight:800; font-size: 1.25rem; margin: 0; color: var(--k-text);">Automation Rules</h3>
                 </div>
                 <button id="btnCloseRulesModal" style="background:none; border:none; cursor:pointer; color:var(--text-muted); padding: 4px; display: flex; align-items: center;"><i data-lucide="x"></i></button>
             </div>
@@ -372,7 +377,7 @@
 
                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin-top: 8px;">
                     <div>
-                        <span style="font-size: 0.8rem; font-weight: 700; display: block; color: #1e293b;">Email Reminders</span>
+                        <span style="font-size: 0.8rem; font-weight: 700; display: block; color: var(--k-text);">Email Reminders</span>
                         <span style="font-size: 0.7rem; color: var(--text-muted);">Send automated email reminders before link expiry.</span>
                     </div>
                     <label class="switch" style="position: relative; display: inline-block; width: 44px; height: 22px;">
@@ -383,7 +388,7 @@
 
                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 4px 0;">
                     <div>
-                        <span style="font-size: 0.8rem; font-weight: 700; display: block; color: #1e293b;">Manager Escalations</span>
+                        <span style="font-size: 0.8rem; font-weight: 700; display: block; color: var(--k-text);">Manager Escalations</span>
                         <span style="font-size: 0.7rem; color: var(--text-muted);">Route warning logs to target manager dashboard.</span>
                     </div>
                     <label class="switch" style="position: relative; display: inline-block; width: 44px; height: 22px;">
@@ -432,27 +437,27 @@
                 justify-content: center;
             }
             #customAppsModal .modal {
-                background: #ffffff !important;
-                color: #0f172a !important;
+                background: var(--k-surface) !important;
+                color: var(--k-text) !important;
                 padding: 2rem;
                 border-radius: 24px;
                 width: 90%;
                 max-width: 500px;
                 box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-                border: 1px solid #e2e8f0;
+                border: 1px solid var(--k-border);
                 position: relative;
                 text-align: left;
             }
             #customAppsModal .modal h2 {
                 font-weight: 800;
                 font-size: 1.25rem;
-                color: #0f172a !important;
+                color: var(--k-text) !important;
                 margin-bottom: 4px;
                 margin-top: 0;
             }
             #customAppsModal .modal p {
                 font-size: 0.75rem;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 margin: 0;
             }
             #customAppsModal .modal .form-group {
@@ -464,7 +469,7 @@
             #customAppsModal .modal label {
                 font-size: 0.7rem;
                 font-weight: 800;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 text-transform: uppercase;
                 display: block;
                 margin-bottom: 4px;
@@ -473,9 +478,9 @@
                 width: 100%;
                 padding: 12px 16px;
                 border-radius: 12px;
-                border: 1px solid #cbd5e1 !important;
-                background: #ffffff !important;
-                color: #0f172a !important;
+                border: 1px solid var(--k-border) !important;
+                background: var(--k-surface) !important;
+                color: var(--k-text) !important;
                 outline: none;
                 margin-top: 4px;
                 font-family: inherit;
@@ -483,15 +488,15 @@
                 transition: border-color 0.2s, box-shadow 0.2s;
             }
             #customAppsModal .modal input:focus {
-                border-color: #3b82f6 !important;
+                border-color: var(--k-accent) !important;
                 box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
             }
             #customAppsModal .modal input::placeholder {
-                color: #94a3b8 !important;
+                color: var(--k-muted) !important;
                 opacity: 0.8;
             }
             #customAppsModal .modal button.map-btn {
-                background: #3b82f6;
+                background: var(--k-accent);
                 color: white !important;
                 border: none;
                 border-radius: 12px;
@@ -505,13 +510,13 @@
                 margin-top: 0.5rem;
             }
             #customAppsModal .modal button.map-btn:hover {
-                background: #2563eb;
+                background: var(--k-accent);
                 transform: translateY(-1px);
             }
             #customAppsModal .modal h3 {
                 font-size: 0.7rem;
                 font-weight: 800;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 text-transform: uppercase;
                 margin-bottom: 10px;
                 margin-top: 0;
@@ -523,8 +528,8 @@
                 width: 36px;
                 height: 36px;
                 border-radius: 10px;
-                background: #f8fafc;
-                color: #64748b !important;
+                background: var(--k-subtle);
+                color: var(--k-muted) !important;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -533,8 +538,8 @@
                 border: none;
             }
             #customAppsModal .close-modal:hover {
-                color: #ef4444 !important;
-                background: #fee2e2;
+                color: var(--k-danger-text) !important;
+                background: var(--k-danger-soft);
             }
         </style>
         <div class="modal">
@@ -558,7 +563,7 @@
                 <button class="map-btn" onclick="addCustomApp()">Map Tool Link</button>
             </div>
 
-            <div style="border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
+            <div style="border-top: 1px solid var(--k-border); padding-top: 1.25rem;">
                 <h3>Mapped Connections</h3>
                 <div id="registryAppsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;">
                     <!-- Mapped apps inside the registry panel -->

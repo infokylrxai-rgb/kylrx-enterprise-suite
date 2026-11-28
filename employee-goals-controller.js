@@ -541,13 +541,13 @@
             const now = new Date();
             const diffDays = Math.ceil((target - now) / (1000 * 60 * 60 * 24));
             if (goal.status === 'completed') {
-                dateBadge = `<span style="font-size: 0.72rem; font-weight: 700; color: #059669; background: #ecfdf5; padding: 3px 8px; border-radius: 8px;">Completed</span>`;
+                dateBadge = `<span style="font-size: 0.72rem; font-weight: 700; color: var(--k-success-text); background: var(--k-success-soft); padding: 3px 8px; border-radius: 8px;">Completed</span>`;
             } else if (diffDays < 0) {
                 dateBadge = `<span style="font-size: 0.72rem; font-weight: 700; color: #e11d48; background: #ffe4e6; padding: 3px 8px; border-radius: 8px;">${Math.abs(diffDays)}d Overdue</span>`;
             } else if (diffDays === 0) {
-                dateBadge = `<span style="font-size: 0.72rem; font-weight: 700; color: #d97706; background: #fef3c7; padding: 3px 8px; border-radius: 8px;">Due Today</span>`;
+                dateBadge = `<span style="font-size: 0.72rem; font-weight: 700; color: var(--k-warning-text); background: var(--k-warning-soft); padding: 3px 8px; border-radius: 8px;">Due Today</span>`;
             } else {
-                dateBadge = `<span style="font-size: 0.72rem; font-weight: 700; color: #64748b; background: #f1f5f9; padding: 3px 8px; border-radius: 8px;">${diffDays}d Remaining</span>`;
+                dateBadge = `<span style="font-size: 0.72rem; font-weight: 700; color: var(--k-muted); background: var(--k-subtle); padding: 3px 8px; border-radius: 8px;">${diffDays}d Remaining</span>`;
             }
         }
 
@@ -603,9 +603,9 @@
                     </div>
 
                     <!-- Schedule & Owner Info (PRD §1.1 Schedule & Owner) -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.74rem; color: var(--text-muted, #9d6e87); background: #fbfbfc; padding: 6px 10px; border-radius: 10px; border: 1px solid #f1f5f9;">
-                        <span><strong style="color: #475569;">Owner:</strong> ${escapeHtml(goal.owner?.name || 'Marry Doe')}</span>
-                        <span><strong style="color: #475569;">Target:</strong> ${goal.schedule?.targetCompletionDate || 'Not set'}</span>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.74rem; color: var(--text-muted, #9d6e87); background: #fbfbfc; padding: 6px 10px; border-radius: 10px; border: 1px solid var(--k-border);">
+                        <span><strong style="color: var(--k-text-2);">Owner:</strong> ${escapeHtml(goal.owner?.name || 'Marry Doe')}</span>
+                        <span><strong style="color: var(--k-text-2);">Target:</strong> ${goal.schedule?.targetCompletionDate || 'Not set'}</span>
                     </div>
 
                     ${milestonesHtml}
@@ -623,27 +623,27 @@
                     </button>
 
                     ${goal.status === 'paused' ? `
-                        <button onclick="window.resumeEmployeeGoal('${goal.id}')" title="Resume Goal" style="background: #ecfdf5; border: 1px solid #a7f3d0; color: #059669; padding: 8px 10px; border-radius: 10px; font-weight: 700; font-size: 0.78rem; cursor: pointer;">
+                        <button onclick="window.resumeEmployeeGoal('${goal.id}')" title="Resume Goal" style="background: var(--k-success-soft); border: 1px solid var(--k-success-border); color: var(--k-success-text); padding: 8px 10px; border-radius: 10px; font-weight: 700; font-size: 0.78rem; cursor: pointer;">
                             <i data-lucide="play" style="width: 14px; height: 14px;"></i>
                         </button>
                     ` : (goal.status === 'active' || goal.status === 'in_progress') ? `
-                        <button onclick="window.pauseEmployeeGoal('${goal.id}')" title="Pause Goal" style="background: #fffbeb; border: 1px solid #fde68a; color: #d97706; padding: 8px 10px; border-radius: 10px; font-weight: 700; font-size: 0.78rem; cursor: pointer;">
+                        <button onclick="window.pauseEmployeeGoal('${goal.id}')" title="Pause Goal" style="background: var(--k-warning-soft); border: 1px solid var(--k-warning-border); color: var(--k-warning-text); padding: 8px 10px; border-radius: 10px; font-weight: 700; font-size: 0.78rem; cursor: pointer;">
                             <i data-lucide="pause" style="width: 14px; height: 14px;"></i>
                         </button>
                     ` : ''}
 
                     ${goal.status !== 'completed' ? `
-                        <button onclick="window.completeEmployeeGoal('${goal.id}')" title="Mark Completed" style="background: #ecfdf5; border: 1px solid #a7f3d0; color: #059669; padding: 8px 10px; border-radius: 10px; font-weight: 700; font-size: 0.78rem; cursor: pointer;">
+                        <button onclick="window.completeEmployeeGoal('${goal.id}')" title="Mark Completed" style="background: var(--k-success-soft); border: 1px solid var(--k-success-border); color: var(--k-success-text); padding: 8px 10px; border-radius: 10px; font-weight: 700; font-size: 0.78rem; cursor: pointer;">
                             <i data-lucide="check-circle" style="width: 14px; height: 14px;"></i>
                         </button>
                     ` : ''}
 
                     <button onclick="window.openEmployeeGoalHistoryModal('${goal.id}')" title="Audit History" style="background: white; border: 1.5px solid var(--border, #fce7f3); color: var(--text-main); padding: 8px 10px; border-radius: 10px; font-weight: 700; font-size: 0.78rem; cursor: pointer;">
-                        <i data-lucide="history" style="width: 14px; height: 14px; color: #64748b;"></i>
+                        <i data-lucide="history" style="width: 14px; height: 14px; color: var(--k-muted);"></i>
                     </button>
 
                     ${goal.status !== 'archived' ? `
-                        <button onclick="window.archiveEmployeeGoal('${goal.id}')" title="Archive Goal" style="background: white; border: 1px solid #e2e8f0; color: #94a3b8; padding: 8px 10px; border-radius: 10px; font-weight: 700; font-size: 0.78rem; cursor: pointer;">
+                        <button onclick="window.archiveEmployeeGoal('${goal.id}')" title="Archive Goal" style="background: white; border: 1px solid var(--k-border); color: var(--k-muted); padding: 8px 10px; border-radius: 10px; font-weight: 700; font-size: 0.78rem; cursor: pointer;">
                             <i data-lucide="archive" style="width: 14px; height: 14px;"></i>
                         </button>
                     ` : ''}
@@ -802,7 +802,7 @@
             <div class="milestone-row" style="display: flex; gap: 8px; align-items: center; margin-bottom: 6px;">
                 <span style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); width: 20px;">#${idx + 1}</span>
                 <input type="text" class="milestone-input" value="${escapeHtml(m.title || '')}" placeholder="Milestone outcome or deliverable..." style="flex: 1; padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.82rem; outline: none; background: #fffbfe;">
-                <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 4px;">
+                <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: var(--k-danger-text); cursor: pointer; padding: 4px;">
                     <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
                 </button>
             </div>
@@ -820,7 +820,7 @@
         row.innerHTML = `
             <span style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); width: 20px;">#${count}</span>
             <input type="text" class="milestone-input" placeholder="Milestone outcome or deliverable..." style="flex: 1; padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.82rem; outline: none; background: #fffbfe;">
-            <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 4px;">
+            <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: var(--k-danger-text); cursor: pointer; padding: 4px;">
                 <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
             </button>
         `;
@@ -1153,7 +1153,7 @@
                                 </div>
                             ` : ''}
 
-                            <div style="font-size: 0.7rem; color: #94a3b8; margin-top: 6px; display: flex; align-items: center; gap: 6px;">
+                            <div style="font-size: 0.7rem; color: var(--k-muted); margin-top: 6px; display: flex; align-items: center; gap: 6px;">
                                 <i data-lucide="user" style="width: 12px; height: 12px;"></i>
                                 <span>Logged by: <strong>${escapeHtml(item.actor?.name || 'Employee')}</strong> (${escapeHtml(item.actor?.role || 'Staff')})</span>
                             </div>

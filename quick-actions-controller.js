@@ -523,37 +523,37 @@ class QuickActionsControllerClass {
         if (contentEl) {
             contentEl.innerHTML = `
                 <div class="qa-preview-sheet">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #e2e8f0; padding-bottom: 1.5rem; margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--k-border); padding-bottom: 1.5rem; margin-bottom: 1.5rem;">
                         <div>
-                            <span style="font-size: 0.7rem; font-weight: 800; color: #2563eb; text-transform: uppercase; letter-spacing: 1px;">Kylrx.ai Enterprise Vault</span>
-                            <h2 style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin: 4px 0;">${doc.title}</h2>
-                            <p style="font-size: 0.8rem; color: #64748b; margin: 0;">Identifier: ${doc.id} • Category: ${doc.category.toUpperCase()}</p>
+                            <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-accent-text); text-transform: uppercase; letter-spacing: 1px;">Kylrx.ai Enterprise Vault</span>
+                            <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--k-text); margin: 4px 0;">${doc.title}</h2>
+                            <p style="font-size: 0.8rem; color: var(--k-muted); margin: 0;">Identifier: ${doc.id} • Category: ${doc.category.toUpperCase()}</p>
                         </div>
                         <div style="text-align: right;">
-                            <span style="background: #ecfdf5; color: #059669; font-size: 0.72rem; font-weight: 800; padding: 4px 10px; border-radius: 20px; border: 1px solid #a7f3d0;">
+                            <span style="background: var(--k-success-soft); color: var(--k-success-text); font-size: 0.72rem; font-weight: 800; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--k-success-border);">
                                 ${doc.status}
                             </span>
-                            <div style="font-size: 0.72rem; color: #64748b; margin-top: 6px;">Effective: ${doc.date}</div>
+                            <div style="font-size: 0.72rem; color: var(--k-muted); margin-top: 6px;">Effective: ${doc.date}</div>
                         </div>
                     </div>
 
                     <div style="margin-bottom: 1.5rem;">
-                        <h4 style="font-size: 0.85rem; font-weight: 800; color: #334155; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Executive Summary & Scope</h4>
-                        <p style="font-size: 0.9rem; line-height: 1.6; color: #475569; margin: 0;">${doc.summary}</p>
+                        <h4 style="font-size: 0.85rem; font-weight: 800; color: var(--k-text-2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Executive Summary & Scope</h4>
+                        <p style="font-size: 0.9rem; line-height: 1.6; color: var(--k-text-2); margin: 0;">${doc.summary}</p>
                     </div>
 
-                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.25rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                    <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 10px; padding: 1.25rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
                         <div>
-                            <div style="font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Issuing Authority</div>
-                            <div style="font-size: 0.85rem; font-weight: 700; color: #0f172a;">${doc.issuer}</div>
+                            <div style="font-size: 0.7rem; font-weight: 700; color: var(--k-muted); text-transform: uppercase;">Issuing Authority</div>
+                            <div style="font-size: 0.85rem; font-weight: 700; color: var(--k-text);">${doc.issuer}</div>
                         </div>
                         <div>
-                            <div style="font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Cryptographic Hash</div>
-                            <div style="font-size: 0.8rem; font-family: monospace; color: #2563eb;">SHA256: 7f83b165...94c3</div>
+                            <div style="font-size: 0.7rem; font-weight: 700; color: var(--k-muted); text-transform: uppercase;">Cryptographic Hash</div>
+                            <div style="font-size: 0.8rem; font-family: monospace; color: var(--k-accent-text);">SHA256: 7f83b165...94c3</div>
                         </div>
                     </div>
 
-                    <div style="font-size: 0.75rem; color: #94a3b8; text-align: center; border-top: 1px dashed #cbd5e1; padding-top: 1rem;">
+                    <div style="font-size: 0.75rem; color: var(--k-muted); text-align: center; border-top: 1px dashed var(--k-border); padding-top: 1rem;">
                         Official document certified by Kylrx Enterprise Suite. This electronic document is legally binding under Section 15 compliance regulations.
                     </div>
                 </div>
@@ -1031,7 +1031,7 @@ Status:             AUTHENTICATED & DIGITALLY SEALED
                 statusBadge.style.background = "rgba(245, 158, 11, 0.15)";
                 statusBadge.style.color = "#f59e0b";
                 statusBadge.style.borderColor = "rgba(245, 158, 11, 0.3)";
-                statusBadge.innerHTML = `<span class="qa-live-dot" style="background:#f59e0b; box-shadow:0 0 8px #f59e0b;"></span> On Break • Paused`;
+                statusBadge.innerHTML = `<span class="qa-live-dot" style="background:var(--k-warning); box-shadow:0 0 8px #f59e0b;"></span> On Break • Paused`;
             } else if (this.attendanceState.isPunchedIn) {
                 statusBadge.className = "qa-punch-status-pill";
                 statusBadge.style.background = "";
@@ -1112,9 +1112,9 @@ Status:             AUTHENTICATED & DIGITALLY SEALED
         if (logsContainer) {
             logsContainer.innerHTML = this.attendanceState.logs.map(log => `
                 <tr>
-                    <td style="font-weight: 700; color: #0f172a;">${log.date}</td>
-                    <td><span style="color: #059669; font-weight: 700;">${log.in}</span></td>
-                    <td><span style="color: #475569; font-weight: 600;">${log.out}</span></td>
+                    <td style="font-weight: 700; color: var(--k-text);">${log.date}</td>
+                    <td><span style="color: var(--k-success-text); font-weight: 700;">${log.in}</span></td>
+                    <td><span style="color: var(--k-text-2); font-weight: 600;">${log.out}</span></td>
                     <td style="font-weight: 600;">${log.hours}</td>
                     <td>
                         <span class="qa-pill-status ${log.type === 'warning' ? 'warning' : 'success'}">
@@ -1276,27 +1276,27 @@ Status:             AUTHENTICATED & DIGITALLY SEALED
                 </div>
                 <div style="flex: 1;">
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                        <h3 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: #0f172a;">${this.escapeHtml ? this.escapeHtml(empName || "") : (empName || "")}</h3>
-                        <span style="background: #ecfdf5; color: #059669; font-size: 0.72rem; font-weight: 800; padding: 3px 8px; border-radius: 20px; border: 1px solid #a7f3d0;">Active &amp; Confirmed</span>
+                        <h3 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: var(--k-text);">${this.escapeHtml ? this.escapeHtml(empName || "") : (empName || "")}</h3>
+                        <span style="background: var(--k-success-soft); color: var(--k-success-text); font-size: 0.72rem; font-weight: 800; padding: 3px 8px; border-radius: 20px; border: 1px solid var(--k-success-border);">Active &amp; Confirmed</span>
                     </div>
-                    <p style="margin: 0; font-size: 0.85rem; color: #64748b; font-weight: 600;">Super Administrator / Head of Enterprise Technology • ID: ${empId}</p>
+                    <p style="margin: 0; font-size: 0.85rem; color: var(--k-muted); font-weight: 600;">Super Administrator / Head of Enterprise Technology • ID: ${empId}</p>
                 </div>
             </div>
 
             <div class="qa-stat-grid">
                 <div class="qa-stat-card">
                     <span class="qa-stat-label">Department</span>
-                    <span style="font-size: 1.05rem; font-weight: 800; color: #0f172a;">Executive IT</span>
+                    <span style="font-size: 1.05rem; font-weight: 800; color: var(--k-text);">Executive IT</span>
                     <span class="qa-stat-sub">HQ Bangalore (BLR-01)</span>
                 </div>
                 <div class="qa-stat-card">
                     <span class="qa-stat-label">Employment Type</span>
-                    <span style="font-size: 1.05rem; font-weight: 800; color: #0f172a;">Permanent Full-Time</span>
+                    <span style="font-size: 1.05rem; font-weight: 800; color: var(--k-text);">Permanent Full-Time</span>
                     <span class="qa-stat-sub">Joined 15 Aug 2024</span>
                 </div>
                 <div class="qa-stat-card">
                     <span class="qa-stat-label">Compensation Tier</span>
-                    <span style="font-size: 1.05rem; font-weight: 800; color: #2563eb;">Executive L6</span>
+                    <span style="font-size: 1.05rem; font-weight: 800; color: var(--k-accent-text);">Executive L6</span>
                     <span class="qa-stat-sub">Annual Grade A+</span>
                 </div>
             </div>
@@ -1320,19 +1320,19 @@ Status:             AUTHENTICATED & DIGITALLY SEALED
                         <tr>
                             <td style="font-weight: 700;">L1 Manager</td>
                             <td>Chief Technology Officer (CTO)</td>
-                            <td style="font-weight: 700; color: #2563eb;">Dr. Arvind Subramanian</td>
+                            <td style="font-weight: 700; color: var(--k-accent-text);">Dr. Arvind Subramanian</td>
                             <td><span class="qa-pill-status success">Active Approver</span></td>
                         </tr>
                         <tr>
                             <td style="font-weight: 700;">L2 Manager</td>
                             <td>Chief Executive Officer (CEO)</td>
-                            <td style="font-weight: 700; color: #2563eb;">Executive Board Council</td>
+                            <td style="font-weight: 700; color: var(--k-accent-text);">Executive Board Council</td>
                             <td><span class="qa-pill-status success">Escalation Approver</span></td>
                         </tr>
                         <tr>
                             <td style="font-weight: 700;">HRBP Lead</td>
                             <td>Principal HR Business Partner</td>
-                            <td style="font-weight: 700; color: #2563eb;">Deepika R (People Ops)</td>
+                            <td style="font-weight: 700; color: var(--k-accent-text);">Deepika R (People Ops)</td>
                             <td><span class="qa-pill-status info">Compliance Lead</span></td>
                         </tr>
                     </tbody>
@@ -1356,22 +1356,22 @@ Status:             AUTHENTICATED & DIGITALLY SEALED
                     <tbody>
                         <tr>
                             <td style="font-weight: 700;">EPFO UAN</td>
-                            <td style="font-family: monospace; font-weight: 700; color: #0f172a;">100904829104</td>
+                            <td style="font-family: monospace; font-weight: 700; color: var(--k-text);">100904829104</td>
                             <td><span class="qa-pill-status success">EPFO Portal Synced</span></td>
                         </tr>
                         <tr>
                             <td style="font-weight: 700;">ESIC IP Number</td>
-                            <td style="font-family: monospace; font-weight: 700; color: #0f172a;">1102948291</td>
+                            <td style="font-family: monospace; font-weight: 700; color: var(--k-text);">1102948291</td>
                             <td><span class="qa-pill-status success">ESIC Covered</span></td>
                         </tr>
                         <tr>
                             <td style="font-weight: 700;">PAN Identifier</td>
-                            <td style="font-family: monospace; font-weight: 700; color: #0f172a;">ABCDE1234F</td>
+                            <td style="font-family: monospace; font-weight: 700; color: var(--k-text);">ABCDE1234F</td>
                             <td><span class="qa-pill-status success">Income Tax Verified</span></td>
                         </tr>
                         <tr>
                             <td style="font-weight: 700;">Aadhaar Verification</td>
-                            <td style="font-family: monospace; font-weight: 700; color: #0f172a;">•••• •••• 9842</td>
+                            <td style="font-family: monospace; font-weight: 700; color: var(--k-text);">•••• •••• 9842</td>
                             <td><span class="qa-pill-status success">UIDAI e-KYC Linked</span></td>
                         </tr>
                     </tbody>
@@ -1420,10 +1420,10 @@ Status:             AUTHENTICATED & DIGITALLY SEALED
         if (appsContainer) {
             appsContainer.innerHTML = this.leaveState.applications.map(app => `
                 <tr>
-                    <td style="font-weight: 700; color: #0f172a;">${app.type}</td>
-                    <td style="font-weight: 600; color: #475569;">${app.dates}</td>
+                    <td style="font-weight: 700; color: var(--k-text);">${app.type}</td>
+                    <td style="font-weight: 600; color: var(--k-text-2);">${app.dates}</td>
                     <td style="font-weight: 700;">${app.days}</td>
-                    <td style="color: #64748b; font-size: 0.78rem;">${app.reason}</td>
+                    <td style="color: var(--k-muted); font-size: 0.78rem;">${app.reason}</td>
                     <td>
                         <span class="qa-pill-status ${app.statusClass || 'info'}">
                             ${app.status}
@@ -1519,11 +1519,11 @@ Status:             AUTHENTICATED & DIGITALLY SEALED
                         <input type="checkbox" ${task.done ? 'checked' : ''} onchange="window.QuickActionsController.toggleTaskDone(${idx})" 
                             style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--qa-primary);">
                         <div>
-                            <div style="font-weight: 700; font-size: 0.88rem; color: #0f172a; text-decoration: ${task.done ? 'line-through' : 'none'}; opacity: ${task.done ? '0.7' : '1'};">
+                            <div style="font-weight: 700; font-size: 0.88rem; color: var(--k-text); text-decoration: ${task.done ? 'line-through' : 'none'}; opacity: ${task.done ? '0.7' : '1'};">
                                 ${task.title}
                             </div>
-                            <div style="font-size: 0.72rem; color: #64748b; margin-top: 2px;">
-                                <span style="color: #2563eb; font-weight: 700;">${task.project}</span> • <span>${task.hours}</span>
+                            <div style="font-size: 0.72rem; color: var(--k-muted); margin-top: 2px;">
+                                <span style="color: var(--k-accent-text); font-weight: 700;">${task.project}</span> • <span>${task.hours}</span>
                             </div>
                         </div>
                     </div>
@@ -1693,7 +1693,7 @@ Status:             AUTHENTICATED & DIGITALLY SEALED
             </div>
 
             <!-- Drawer Footer: In-place vault expansion, NO external page navigation -->
-            <div style="padding: 1rem 1.75rem; border-top: 1px solid var(--qa-border); background: #ffffff; display: flex; justify-content: space-between; align-items: center;">
+            <div style="padding: 1rem 1.75rem; border-top: 1px solid var(--qa-border); background: var(--k-surface); display: flex; justify-content: space-between; align-items: center;">
                 <span style="font-size: 0.72rem; color: var(--qa-text-muted); font-weight: 600;">PRD §15 Verified Vault</span>
                 <button onclick="window.QuickActionsController.showAllDocumentsInVault()" 
                     style="background: none; border: none; color: var(--qa-primary); font-size: 0.78rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
@@ -1756,8 +1756,8 @@ Status:             AUTHENTICATED & DIGITALLY SEALED
                             <span id="qaPunchStatusBadge" class="qa-punch-status-pill">
                                 <span class="qa-live-dot"></span> Punched In • 09:14 AM
                             </span>
-                            <span style="font-size: 0.7rem; color: #94a3b8; display: flex; align-items: center; gap: 4px;">
-                                <i data-lucide="shield-check" style="width: 12px; height: 12px; color: #10b981;"></i>
+                            <span style="font-size: 0.7rem; color: var(--k-muted); display: flex; align-items: center; gap: 4px;">
+                                <i data-lucide="shield-check" style="width: 12px; height: 12px; color: var(--k-success-text);"></i>
                                 Biometric &amp; Geo-Fence Verified
                             </span>
                         </div>
@@ -1767,7 +1767,7 @@ Status:             AUTHENTICATED & DIGITALLY SEALED
                     <div style="background: white; border: 1px solid var(--qa-border); border-radius: 16px; padding: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
                         <div>
                             <div style="font-size: 0.72rem; font-weight: 800; color: var(--qa-text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Shift Controls</div>
-                            <div style="font-size: 0.88rem; font-weight: 700; color: #0f172a; margin-top: 2px;">Standard Hours: 09:00 AM – 06:00 PM</div>
+                            <div style="font-size: 0.88rem; font-weight: 700; color: var(--k-text); margin-top: 2px;">Standard Hours: 09:00 AM – 06:00 PM</div>
                         </div>
                         <div class="qa-punch-actions">
                             <button id="qaBtnBreakToggle" class="qa-btn-punch break" onclick="window.QuickActionsController.toggleBreak()">
@@ -1785,7 +1785,7 @@ Status:             AUTHENTICATED & DIGITALLY SEALED
                     <div class="qa-stat-grid">
                         <div class="qa-stat-card highlight">
                             <span class="qa-stat-label">Hours Logged</span>
-                            <span id="qaHoursLoggedVal" class="qa-stat-value" style="color: #2563eb;">6h 18m</span>
+                            <span id="qaHoursLoggedVal" class="qa-stat-value" style="color: var(--k-accent-text);">6h 18m</span>
                             <span id="qaHoursLoggedSub" class="qa-stat-sub">74% of expected 8h 30m</span>
                         </div>
                         <div class="qa-stat-card">
@@ -1795,7 +1795,7 @@ Status:             AUTHENTICATED & DIGITALLY SEALED
                         </div>
                         <div class="qa-stat-card">
                             <span class="qa-stat-label">Monthly Punctuality</span>
-                            <span class="qa-stat-value" style="color: #10b981;">98.4%</span>
+                            <span class="qa-stat-value" style="color: var(--k-success-text);">98.4%</span>
                             <span class="qa-stat-sub">21 on-time punches</span>
                         </div>
                     </div>
@@ -1857,25 +1857,25 @@ Status:             AUTHENTICATED & DIGITALLY SEALED
                     <div class="qa-stat-grid">
                         <div class="qa-stat-card">
                             <span class="qa-stat-label">Casual Leave (CL)</span>
-                            <span class="qa-stat-value"><span id="qaBalCL">8</span><span style="font-size: 0.85rem; color: #94a3b8; font-weight: 500;"> / 12</span></span>
+                            <span class="qa-stat-value"><span id="qaBalCL">8</span><span style="font-size: 0.85rem; color: var(--k-muted); font-weight: 500;"> / 12</span></span>
                             <span class="qa-stat-sub">Available balance</span>
                         </div>
                         <div class="qa-stat-card">
                             <span class="qa-stat-label">Sick Leave (SL)</span>
-                            <span class="qa-stat-value"><span id="qaBalSL">10</span><span style="font-size: 0.85rem; color: #94a3b8; font-weight: 500;"> / 10</span></span>
+                            <span class="qa-stat-value"><span id="qaBalSL">10</span><span style="font-size: 0.85rem; color: var(--k-muted); font-weight: 500;"> / 10</span></span>
                             <span class="qa-stat-sub">Fully available</span>
                         </div>
                         <div class="qa-stat-card highlight">
                             <span class="qa-stat-label">Privilege Leave (PL)</span>
-                            <span class="qa-stat-value" style="color: #2563eb;"><span id="qaBalPL">14</span><span style="font-size: 0.85rem; color: #94a3b8; font-weight: 500;"> / 18</span></span>
+                            <span class="qa-stat-value" style="color: var(--k-accent-text);"><span id="qaBalPL">14</span><span style="font-size: 0.85rem; color: var(--k-muted); font-weight: 500;"> / 18</span></span>
                             <span class="qa-stat-sub">Accrued balance</span>
                         </div>
                     </div>
 
                     <!-- Leave Application Form -->
                     <div class="qa-form-card">
-                        <div style="font-size: 0.85rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px;">
-                            <i data-lucide="calendar" style="width: 16px; height: 16px; color: #f59e0b;"></i>
+                        <div style="font-size: 0.85rem; font-weight: 800; color: var(--k-text); display: flex; align-items: center; gap: 8px;">
+                            <i data-lucide="calendar" style="width: 16px; height: 16px; color: var(--k-warning-text);"></i>
                             <span>New Leave Request</span>
                         </div>
 
@@ -1917,7 +1917,7 @@ Status:             AUTHENTICATED & DIGITALLY SEALED
                         </div>
 
                         <div class="qa-hint-box">
-                            <i data-lucide="info" style="width: 14px; height: 14px; color: #2563eb; flex-shrink: 0;"></i>
+                            <i data-lucide="info" style="width: 14px; height: 14px; color: var(--k-accent-text); flex-shrink: 0;"></i>
                             <span>Auto-routes directly to your reporting manager (L1) and People Operations. No paper form needed.</span>
                         </div>
                     </div>
@@ -1981,19 +1981,19 @@ Status:             AUTHENTICATED & DIGITALLY SEALED
                         </div>
                         <div class="qa-stat-card highlight">
                             <span class="qa-stat-label">Completed</span>
-                            <span id="qaTaskCompletedCount" class="qa-stat-value" style="color: #10b981;">3</span>
+                            <span id="qaTaskCompletedCount" class="qa-stat-value" style="color: var(--k-success-text);">3</span>
                             <span class="qa-stat-sub">Verified done</span>
                         </div>
                         <div class="qa-stat-card">
                             <span class="qa-stat-label">In Progress</span>
-                            <span id="qaTaskProgressCount" class="qa-stat-value" style="color: #f59e0b;">1</span>
+                            <span id="qaTaskProgressCount" class="qa-stat-value" style="color: var(--k-warning-text);">1</span>
                             <span class="qa-stat-sub">Currently active</span>
                         </div>
                     </div>
 
                     <!-- Task Submission Form -->
                     <div class="qa-form-card">
-                        <div style="font-size: 0.85rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+                        <div style="font-size: 0.85rem; font-weight: 800; color: var(--k-text); display: flex; align-items: center; gap: 8px;">
                             <i data-lucide="edit-3" style="width: 16px; height: 16px; color: #6366f1;"></i>
                             <span>Submit Status Report</span>
                         </div>
@@ -2040,7 +2040,7 @@ Status:             AUTHENTICATED & DIGITALLY SEALED
                     <div>
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                             <span style="font-size: 0.8rem; font-weight: 800; color: var(--qa-text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Today's Standup Tasks</span>
-                            <span style="font-size: 0.72rem; color: #64748b;">Click checkbox to complete</span>
+                            <span style="font-size: 0.72rem; color: var(--k-muted);">Click checkbox to complete</span>
                         </div>
                         <div id="qaTaskListContainer" style="display: flex; flex-direction: column; gap: 8px;">
                             <!-- Rendered dynamically -->
@@ -2109,10 +2109,10 @@ Status:             AUTHENTICATED & DIGITALLY SEALED
                     <div style="background: linear-gradient(135deg, #090d16 0%, #0f172a 100%); color: white; padding: 1.25rem 1.5rem; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
                         <div>
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <span style="width: 10px; height: 10px; background: #10b981; border-radius: 50%; box-shadow: 0 0 10px #10b981; display: inline-block;"></span>
+                                <span style="width: 10px; height: 10px; background: var(--k-success); border-radius: 50%; box-shadow: 0 0 10px #10b981; display: inline-block;"></span>
                                 <span style="font-size: 0.95rem; font-weight: 800; letter-spacing: 0.5px;">Kylrx AI TVC Node // ONLINE</span>
                             </div>
-                            <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 4px;">Node Cluster: TVC-PROD-01 • Latency: 12ms • Protocol: WSS/AES-256 Telemetry</div>
+                            <div style="font-size: 0.75rem; color: var(--k-muted); margin-top: 4px;">Node Cluster: TVC-PROD-01 • Latency: 12ms • Protocol: WSS/AES-256 Telemetry</div>
                         </div>
                         <div style="display: flex; gap: 8px; align-items: center;">
                             <span class="qa-punch-status-pill" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border-color: rgba(16, 185, 129, 0.4);">
@@ -2125,17 +2125,17 @@ Status:             AUTHENTICATED & DIGITALLY SEALED
                     <div class="qa-stat-grid">
                         <div class="qa-stat-card highlight">
                             <span class="qa-stat-label">Active TVC Sessions</span>
-                            <span class="qa-stat-value" style="color: #2563eb;">14 / 16</span>
+                            <span class="qa-stat-value" style="color: var(--k-accent-text);">14 / 16</span>
                             <span class="qa-stat-sub">87.5% workforce online</span>
                         </div>
                         <div class="qa-stat-card">
                             <span class="qa-stat-label">Productivity Index</span>
-                            <span class="qa-stat-value" style="color: #10b981;">96.8%</span>
+                            <span class="qa-stat-value" style="color: var(--k-success-text);">96.8%</span>
                             <span class="qa-stat-sub">Tab violations: 0 today</span>
                         </div>
                         <div class="qa-stat-card">
                             <span class="qa-stat-label">Inactivity Radar</span>
-                            <span class="qa-stat-value" style="color: #059669;">Nominal</span>
+                            <span class="qa-stat-value" style="color: var(--k-success-text);">Nominal</span>
                             <span class="qa-stat-sub">Telemetry synchronized</span>
                         </div>
                     </div>
@@ -2161,29 +2161,29 @@ Status:             AUTHENTICATED & DIGITALLY SEALED
                                     <td style="font-weight: 700;">Sarah Jenkins (CEO)</td>
                                     <td>Executive Operations</td>
                                     <td><span class="qa-pill-status success">Active Shift</span></td>
-                                    <td><strong style="color: #10b981;">99%</strong></td>
-                                    <td><span style="color: #10b981; font-size: 0.75rem;">Verified • Geo-OK</span></td>
+                                    <td><strong style="color: var(--k-success-text);">99%</strong></td>
+                                    <td><span style="color: var(--k-success-text); font-size: 0.75rem;">Verified • Geo-OK</span></td>
                                 </tr>
                                 <tr>
                                     <td style="font-weight: 700;">Vikram Malhotra</td>
                                     <td>Engineering &amp; Platform</td>
                                     <td><span class="qa-pill-status success">Active Shift</span></td>
-                                    <td><strong style="color: #10b981;">98%</strong></td>
-                                    <td><span style="color: #10b981; font-size: 0.75rem;">Verified • Geo-OK</span></td>
+                                    <td><strong style="color: var(--k-success-text);">98%</strong></td>
+                                    <td><span style="color: var(--k-success-text); font-size: 0.75rem;">Verified • Geo-OK</span></td>
                                 </tr>
                                 <tr>
                                     <td style="font-weight: 700;">Ananya Sharma</td>
                                     <td>People Operations</td>
                                     <td><span class="qa-pill-status success">Active Shift</span></td>
-                                    <td><strong style="color: #10b981;">97%</strong></td>
-                                    <td><span style="color: #10b981; font-size: 0.75rem;">Verified • Geo-OK</span></td>
+                                    <td><strong style="color: var(--k-success-text);">97%</strong></td>
+                                    <td><span style="color: var(--k-success-text); font-size: 0.75rem;">Verified • Geo-OK</span></td>
                                 </tr>
                                 <tr>
                                     <td style="font-weight: 700;">Rohit Verma</td>
                                     <td>Statutory &amp; Tax</td>
                                     <td><span class="qa-pill-status warning">On Break</span></td>
-                                    <td><strong style="color: #f59e0b;">91%</strong></td>
-                                    <td><span style="color: #10b981; font-size: 0.75rem;">Verified • Geo-OK</span></td>
+                                    <td><strong style="color: var(--k-warning-text);">91%</strong></td>
+                                    <td><span style="color: var(--k-success-text); font-size: 0.75rem;">Verified • Geo-OK</span></td>
                                 </tr>
                             </tbody>
                         </table>

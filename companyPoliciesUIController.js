@@ -77,16 +77,16 @@
                 <!-- Header Actions Bar -->
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
                     <div>
-                        <h2 style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin: 0; display: flex; align-items: center; gap: 10px;">
+                        <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--k-text); margin: 0; display: flex; align-items: center; gap: 10px;">
                             <span>⚖️ Company Policies & Digital Compliance</span>
                             <span style="font-size: 0.72rem; font-weight: 700; background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 6px;">PRD §1, §10, §13, §17 & §18</span>
                         </h2>
-                        <p style="font-size: 0.82rem; color: #64748b; margin: 4px 0 0 0;">
-                            Cloud Firestore: <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #2563eb; font-weight: 700;">organizations/{orgId}/policies/{policyCode}</code>
+                        <p style="font-size: 0.82rem; color: var(--k-muted); margin: 4px 0 0 0;">
+                            Cloud Firestore: <code style="background: var(--k-subtle); padding: 2px 6px; border-radius: 4px; color: var(--k-accent-text); font-weight: 700;">organizations/{orgId}/policies/{policyCode}</code>
                         </p>
                     </div>
                     <div style="display: flex; gap: 10px;">
-                        <button type="button" class="btn" onclick="window.KylrxCompanyPoliciesUIController.openPolicyEditorModal()" style="background: #2563eb; color: white; padding: 9px 16px; border-radius: 12px; font-weight: 700; font-size: 0.82rem; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 6px -1px rgba(37,99,235,0.25);">
+                        <button type="button" class="btn" onclick="window.KylrxCompanyPoliciesUIController.openPolicyEditorModal()" style="background: var(--k-accent); color: white; padding: 9px 16px; border-radius: 12px; font-weight: 700; font-size: 0.82rem; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 6px -1px rgba(37,99,235,0.25);">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                             Add New Policy
                         </button>
@@ -95,62 +95,62 @@
 
                 <!-- Compliance Tracker Pulse Cards -->
                 <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
-                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 6px;">
-                        <span style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Overall Compliance</span>
+                    <div style="background: white; border: 1px solid var(--k-border); border-radius: 16px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 6px;">
+                        <span style="font-size: 0.72rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Overall Compliance</span>
                         <div style="display: flex; align-items: baseline; gap: 8px;">
-                            <span style="font-size: 1.75rem; font-weight: 900; color: ${pulse.compliancePercentage >= 80 ? '#166534' : pulse.compliancePercentage >= 50 ? '#b45309' : '#dc2626'};">${pulse.compliancePercentage}%</span>
-                            <span style="font-size: 0.75rem; color: #64748b;">signed off</span>
+                            <span style="font-size: 1.75rem; font-weight: 900; color: ${pulse.compliancePercentage >= 80 ? 'var(--k-success-text)' : pulse.compliancePercentage >= 50 ? 'var(--k-warning-text)' : 'var(--k-danger-text)'};">${pulse.compliancePercentage}%</span>
+                            <span style="font-size: 0.75rem; color: var(--k-muted);">signed off</span>
                         </div>
-                        <div style="background: #f1f5f9; height: 6px; border-radius: 10px; overflow: hidden; margin-top: 4px;">
-                            <div style="background: ${pulse.compliancePercentage >= 80 ? '#10b981' : '#f59e0b'}; height: 100%; width: ${pulse.compliancePercentage}%;"></div>
+                        <div style="background: var(--k-subtle); height: 6px; border-radius: 10px; overflow: hidden; margin-top: 4px;">
+                            <div style="background: ${pulse.compliancePercentage >= 80 ? 'var(--k-success)' : 'var(--k-warning)'}; height: 100%; width: ${pulse.compliancePercentage}%;"></div>
                         </div>
                     </div>
 
-                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 6px;">
-                        <span style="font-size: 0.72rem; font-weight: 800; color: #15803d; text-transform: uppercase;">Compliant Sign-offs</span>
+                    <div style="background: white; border: 1px solid var(--k-border); border-radius: 16px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 6px;">
+                        <span style="font-size: 0.72rem; font-weight: 800; color: var(--k-success-text); text-transform: uppercase;">Compliant Sign-offs</span>
                         <div style="display: flex; align-items: baseline; gap: 8px;">
-                            <span style="font-size: 1.75rem; font-weight: 900; color: #15803d;">${pulse.totalCompliant}</span>
-                            <span style="font-size: 0.75rem; color: #64748b;">/ ${pulse.totalRequiredAssignments} assignments</span>
+                            <span style="font-size: 1.75rem; font-weight: 900; color: var(--k-success-text);">${pulse.totalCompliant}</span>
+                            <span style="font-size: 0.75rem; color: var(--k-muted);">/ ${pulse.totalRequiredAssignments} assignments</span>
                         </div>
-                        <span style="font-size: 0.72rem; color: #166534;">Verified digital audit trail</span>
+                        <span style="font-size: 0.72rem; color: var(--k-success-text);">Verified digital audit trail</span>
                     </div>
 
-                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 6px;">
-                        <span style="font-size: 0.72rem; font-weight: 800; color: #b45309; text-transform: uppercase;">Pending Signatures</span>
+                    <div style="background: white; border: 1px solid var(--k-border); border-radius: 16px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 6px;">
+                        <span style="font-size: 0.72rem; font-weight: 800; color: var(--k-warning-text); text-transform: uppercase;">Pending Signatures</span>
                         <div style="display: flex; align-items: baseline; gap: 8px;">
-                            <span style="font-size: 1.75rem; font-weight: 900; color: #b45309;">${pulse.totalPending}</span>
-                            <span style="font-size: 0.75rem; color: #64748b;">within SLA window</span>
+                            <span style="font-size: 1.75rem; font-weight: 900; color: var(--k-warning-text);">${pulse.totalPending}</span>
+                            <span style="font-size: 0.75rem; color: var(--k-muted);">within SLA window</span>
                         </div>
-                        <span style="font-size: 0.72rem; color: #d97706;">Turnaround SLA active</span>
+                        <span style="font-size: 0.72rem; color: var(--k-warning-text);">Turnaround SLA active</span>
                     </div>
 
-                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 6px;">
-                        <span style="font-size: 0.72rem; font-weight: 800; color: #dc2626; text-transform: uppercase;">Overdue Violations</span>
+                    <div style="background: white; border: 1px solid var(--k-border); border-radius: 16px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 6px;">
+                        <span style="font-size: 0.72rem; font-weight: 800; color: var(--k-danger-text); text-transform: uppercase;">Overdue Violations</span>
                         <div style="display: flex; align-items: baseline; gap: 8px;">
-                            <span style="font-size: 1.75rem; font-weight: 900; color: #dc2626;">${pulse.totalOverdue}</span>
-                            <span style="font-size: 0.75rem; color: #64748b;">past due date</span>
+                            <span style="font-size: 1.75rem; font-weight: 900; color: var(--k-danger-text);">${pulse.totalOverdue}</span>
+                            <span style="font-size: 0.75rem; color: var(--k-muted);">past due date</span>
                         </div>
-                        <span style="font-size: 0.72rem; color: #dc2626;">Escalated to HR Monitor</span>
+                        <span style="font-size: 0.72rem; color: var(--k-danger-text);">Escalated to HR Monitor</span>
                     </div>
                 </div>
 
                 <!-- Filters & Search Toolbar -->
-                <div style="display: flex; justify-content: space-between; align-items: center; background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 0.75rem 1.25rem; gap: 1rem; flex-wrap: wrap;">
+                <div style="display: flex; justify-content: space-between; align-items: center; background: white; border: 1px solid var(--k-border); border-radius: 14px; padding: 0.75rem 1.25rem; gap: 1rem; flex-wrap: wrap;">
                     <div style="display: flex; gap: 6px; align-items: center;">
-                        <button class="pol-filter-btn ${currentFilter === 'ALL' ? 'active' : ''}" onclick="window.KylrxCompanyPoliciesUIController.setFilter('ALL')" style="padding: 6px 12px; border-radius: 8px; border: 1px solid ${currentFilter === 'ALL' ? '#2563eb' : '#e2e8f0'}; background: ${currentFilter === 'ALL' ? '#eff6ff' : 'white'}; color: ${currentFilter === 'ALL' ? '#1d4ed8' : '#64748b'}; font-weight: 700; font-size: 0.78rem; cursor: pointer;">All Types</button>
-                        <button class="pol-filter-btn ${currentFilter === 'Statutory' ? 'active' : ''}" onclick="window.KylrxCompanyPoliciesUIController.setFilter('Statutory')" style="padding: 6px 12px; border-radius: 8px; border: 1px solid ${currentFilter === 'Statutory' ? '#2563eb' : '#e2e8f0'}; background: ${currentFilter === 'Statutory' ? '#eff6ff' : 'white'}; color: ${currentFilter === 'Statutory' ? '#1d4ed8' : '#64748b'}; font-weight: 700; font-size: 0.78rem; cursor: pointer;">Statutory</button>
-                        <button class="pol-filter-btn ${currentFilter === 'Code_of_Conduct' ? 'active' : ''}" onclick="window.KylrxCompanyPoliciesUIController.setFilter('Code_of_Conduct')" style="padding: 6px 12px; border-radius: 8px; border: 1px solid ${currentFilter === 'Code_of_Conduct' ? '#2563eb' : '#e2e8f0'}; background: ${currentFilter === 'Code_of_Conduct' ? '#eff6ff' : 'white'}; color: ${currentFilter === 'Code_of_Conduct' ? '#1d4ed8' : '#64748b'}; font-weight: 700; font-size: 0.78rem; cursor: pointer;">Code of Conduct</button>
-                        <button class="pol-filter-btn ${currentFilter === 'IT_Security' ? 'active' : ''}" onclick="window.KylrxCompanyPoliciesUIController.setFilter('IT_Security')" style="padding: 6px 12px; border-radius: 8px; border: 1px solid ${currentFilter === 'IT_Security' ? '#2563eb' : '#e2e8f0'}; background: ${currentFilter === 'IT_Security' ? '#eff6ff' : 'white'}; color: ${currentFilter === 'IT_Security' ? '#1d4ed8' : '#64748b'}; font-weight: 700; font-size: 0.78rem; cursor: pointer;">IT Security</button>
-                        <button class="pol-filter-btn ${currentFilter === 'Operational' ? 'active' : ''}" onclick="window.KylrxCompanyPoliciesUIController.setFilter('Operational')" style="padding: 6px 12px; border-radius: 8px; border: 1px solid ${currentFilter === 'Operational' ? '#2563eb' : '#e2e8f0'}; background: ${currentFilter === 'Operational' ? '#eff6ff' : 'white'}; color: ${currentFilter === 'Operational' ? '#1d4ed8' : '#64748b'}; font-weight: 700; font-size: 0.78rem; cursor: pointer;">Operational</button>
+                        <button class="pol-filter-btn ${currentFilter === 'ALL' ? 'active' : ''}" onclick="window.KylrxCompanyPoliciesUIController.setFilter('ALL')" style="padding: 6px 12px; border-radius: 8px; border: 1px solid ${currentFilter === 'ALL' ? 'var(--k-accent)' : 'var(--k-border)'}; background: ${currentFilter === 'ALL' ? 'var(--k-accent-soft)' : 'white'}; color: ${currentFilter === 'ALL' ? 'var(--k-accent-text)' : 'var(--k-muted)'}; font-weight: 700; font-size: 0.78rem; cursor: pointer;">All Types</button>
+                        <button class="pol-filter-btn ${currentFilter === 'Statutory' ? 'active' : ''}" onclick="window.KylrxCompanyPoliciesUIController.setFilter('Statutory')" style="padding: 6px 12px; border-radius: 8px; border: 1px solid ${currentFilter === 'Statutory' ? 'var(--k-accent)' : 'var(--k-border)'}; background: ${currentFilter === 'Statutory' ? 'var(--k-accent-soft)' : 'white'}; color: ${currentFilter === 'Statutory' ? 'var(--k-accent-text)' : 'var(--k-muted)'}; font-weight: 700; font-size: 0.78rem; cursor: pointer;">Statutory</button>
+                        <button class="pol-filter-btn ${currentFilter === 'Code_of_Conduct' ? 'active' : ''}" onclick="window.KylrxCompanyPoliciesUIController.setFilter('Code_of_Conduct')" style="padding: 6px 12px; border-radius: 8px; border: 1px solid ${currentFilter === 'Code_of_Conduct' ? 'var(--k-accent)' : 'var(--k-border)'}; background: ${currentFilter === 'Code_of_Conduct' ? 'var(--k-accent-soft)' : 'white'}; color: ${currentFilter === 'Code_of_Conduct' ? 'var(--k-accent-text)' : 'var(--k-muted)'}; font-weight: 700; font-size: 0.78rem; cursor: pointer;">Code of Conduct</button>
+                        <button class="pol-filter-btn ${currentFilter === 'IT_Security' ? 'active' : ''}" onclick="window.KylrxCompanyPoliciesUIController.setFilter('IT_Security')" style="padding: 6px 12px; border-radius: 8px; border: 1px solid ${currentFilter === 'IT_Security' ? 'var(--k-accent)' : 'var(--k-border)'}; background: ${currentFilter === 'IT_Security' ? 'var(--k-accent-soft)' : 'white'}; color: ${currentFilter === 'IT_Security' ? 'var(--k-accent-text)' : 'var(--k-muted)'}; font-weight: 700; font-size: 0.78rem; cursor: pointer;">IT Security</button>
+                        <button class="pol-filter-btn ${currentFilter === 'Operational' ? 'active' : ''}" onclick="window.KylrxCompanyPoliciesUIController.setFilter('Operational')" style="padding: 6px 12px; border-radius: 8px; border: 1px solid ${currentFilter === 'Operational' ? 'var(--k-accent)' : 'var(--k-border)'}; background: ${currentFilter === 'Operational' ? 'var(--k-accent-soft)' : 'white'}; color: ${currentFilter === 'Operational' ? 'var(--k-accent-text)' : 'var(--k-muted)'}; font-weight: 700; font-size: 0.78rem; cursor: pointer;">Operational</button>
                     </div>
                     <div style="flex: 1; max-width: 320px; position: relative;">
-                        <input type="text" id="polSearchInput" placeholder="Search by policy code, name..." value="${searchQuery}" oninput="window.KylrxCompanyPoliciesUIController.handleSearch(this.value)" style="width: 100%; padding: 7px 12px 7px 32px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.82rem; outline: none;">
-                        <span style="position: absolute; left: 10px; top: 8px; color: #94a3b8;">🔍</span>
+                        <input type="text" id="polSearchInput" placeholder="Search by policy code, name..." value="${searchQuery}" oninput="window.KylrxCompanyPoliciesUIController.handleSearch(this.value)" style="width: 100%; padding: 7px 12px 7px 32px; border-radius: 10px; border: 1px solid var(--k-border); font-size: 0.82rem; outline: none;">
+                        <span style="position: absolute; left: 10px; top: 8px; color: var(--k-muted);">🔍</span>
                     </div>
                 </div>
 
                 <!-- Policies Table Card -->
-                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                <div style="background: white; border: 1px solid var(--k-border); border-radius: 16px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
                     <div id="polTableWrapper" style="overflow-x: auto;">
                         ${renderPoliciesTable(pulse)}
                     </div>
@@ -162,32 +162,32 @@
                 <div class="kpm-modal" style="max-width: 640px; height: auto; max-height: 90vh;">
                     <div class="kpm-header">
                         <div>
-                            <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0;" id="polEditorModalTitle">Configure Policy</h2>
-                            <p style="font-size: 0.78rem; color: #64748b; margin: 2px 0 0 0;">PRD §1 & §13 Policy Architecture</p>
+                            <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--k-text); margin: 0;" id="polEditorModalTitle">Configure Policy</h2>
+                            <p style="font-size: 0.78rem; color: var(--k-muted); margin: 2px 0 0 0;">PRD §1 & §13 Policy Architecture</p>
                         </div>
                         <button class="kpm-close-btn" onclick="window.KylrxCompanyPoliciesUIController.closePolicyEditorModal()">✕</button>
                     </div>
                     <form id="polEditorForm" onsubmit="window.KylrxCompanyPoliciesUIController.handleSavePolicy(event)" style="padding: 1.75rem; display: flex; flex-direction: column; gap: 1rem; overflow-y: auto;">
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                             <div>
-                                <label style="font-size: 0.75rem; font-weight: 800; color: #475569; text-transform: uppercase;">Policy Code (PK)*</label>
-                                <input type="text" id="polEditCode" required placeholder="e.g. POL_POSH_01" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.85rem; margin-top: 4px;">
+                                <label style="font-size: 0.75rem; font-weight: 800; color: var(--k-text-2); text-transform: uppercase;">Policy Code (PK)*</label>
+                                <input type="text" id="polEditCode" required placeholder="e.g. POL_POSH_01" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--k-border); font-size: 0.85rem; margin-top: 4px;">
                             </div>
                             <div>
-                                <label style="font-size: 0.75rem; font-weight: 800; color: #475569; text-transform: uppercase;">Version*</label>
-                                <input type="text" id="polEditVersion" required placeholder="e.g. 1.0" value="1.0" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.85rem; margin-top: 4px;">
+                                <label style="font-size: 0.75rem; font-weight: 800; color: var(--k-text-2); text-transform: uppercase;">Version*</label>
+                                <input type="text" id="polEditVersion" required placeholder="e.g. 1.0" value="1.0" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--k-border); font-size: 0.85rem; margin-top: 4px;">
                             </div>
                         </div>
 
                         <div>
-                            <label style="font-size: 0.75rem; font-weight: 800; color: #475569; text-transform: uppercase;">Policy Title / Display Name*</label>
-                            <input type="text" id="polEditName" required placeholder="e.g. Prevention of Sexual Harassment (POSH) Policy" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.85rem; margin-top: 4px;">
+                            <label style="font-size: 0.75rem; font-weight: 800; color: var(--k-text-2); text-transform: uppercase;">Policy Title / Display Name*</label>
+                            <input type="text" id="polEditName" required placeholder="e.g. Prevention of Sexual Harassment (POSH) Policy" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--k-border); font-size: 0.85rem; margin-top: 4px;">
                         </div>
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                             <div>
-                                <label style="font-size: 0.75rem; font-weight: 800; color: #475569; text-transform: uppercase;">Policy Type*</label>
-                                <select id="polEditType" required style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.85rem; margin-top: 4px; background: white;">
+                                <label style="font-size: 0.75rem; font-weight: 800; color: var(--k-text-2); text-transform: uppercase;">Policy Type*</label>
+                                <select id="polEditType" required style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--k-border); font-size: 0.85rem; margin-top: 4px; background: white;">
                                     <option value="Statutory">Statutory</option>
                                     <option value="Operational">Operational</option>
                                     <option value="Code_of_Conduct">Code_of_Conduct</option>
@@ -196,15 +196,15 @@
                                 </select>
                             </div>
                             <div>
-                                <label style="font-size: 0.75rem; font-weight: 800; color: #475569; text-transform: uppercase;">Effective From*</label>
-                                <input type="date" id="polEditEffective" required value="2026-01-01" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.85rem; margin-top: 4px;">
+                                <label style="font-size: 0.75rem; font-weight: 800; color: var(--k-text-2); text-transform: uppercase;">Effective From*</label>
+                                <input type="date" id="polEditEffective" required value="2026-01-01" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--k-border); font-size: 0.85rem; margin-top: 4px;">
                             </div>
                         </div>
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                             <div>
-                                <label style="font-size: 0.75rem; font-weight: 800; color: #475569; text-transform: uppercase;">Target Category</label>
-                                <select id="polEditCategory" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.85rem; margin-top: 4px; background: white;">
+                                <label style="font-size: 0.75rem; font-weight: 800; color: var(--k-text-2); text-transform: uppercase;">Target Category</label>
+                                <select id="polEditCategory" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--k-border); font-size: 0.85rem; margin-top: 4px; background: white;">
                                     <option value="ALL">ALL (Entire Workforce)</option>
                                     <option value="CAT_FT_REG">CAT_FT_REG (Full-Time Regular)</option>
                                     <option value="CAT_FT_EXEC">CAT_FT_EXEC (Executive Leadership)</option>
@@ -213,8 +213,8 @@
                                 </select>
                             </div>
                             <div>
-                                <label style="font-size: 0.75rem; font-weight: 800; color: #475569; text-transform: uppercase;">Target Location</label>
-                                <select id="polEditLocation" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.85rem; margin-top: 4px; background: white;">
+                                <label style="font-size: 0.75rem; font-weight: 800; color: var(--k-text-2); text-transform: uppercase;">Target Location</label>
+                                <select id="polEditLocation" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--k-border); font-size: 0.85rem; margin-top: 4px; background: white;">
                                     <option value="ALL">ALL (All Branches / Hubs)</option>
                                     <option value="LOC-BLR">LOC-BLR (Bangalore Tech Park)</option>
                                     <option value="LOC-MUM">LOC-MUM (Mumbai Commercial Hub)</option>
@@ -224,8 +224,8 @@
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                             <div>
-                                <label style="font-size: 0.75rem; font-weight: 800; color: #475569; text-transform: uppercase;">Acknowledgement Turnaround (Days)</label>
-                                <input type="number" id="polEditDueDays" min="1" max="90" value="14" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.85rem; margin-top: 4px;">
+                                <label style="font-size: 0.75rem; font-weight: 800; color: var(--k-text-2); text-transform: uppercase;">Acknowledgement Turnaround (Days)</label>
+                                <input type="number" id="polEditDueDays" min="1" max="90" value="14" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--k-border); font-size: 0.85rem; margin-top: 4px;">
                             </div>
                             <div style="display: flex; flex-direction: column; justify-content: center; gap: 8px; margin-top: 14px;">
                                 <label style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; font-weight: 700; cursor: pointer;">
@@ -241,17 +241,17 @@
 
                         <!-- Direct PDF Upload to Firebase Storage -->
                         <div>
-                            <label style="font-size: 0.75rem; font-weight: 800; color: #475569; text-transform: uppercase;">Upload PDF Asset to Firebase Storage</label>
+                            <label style="font-size: 0.75rem; font-weight: 800; color: var(--k-text-2); text-transform: uppercase;">Upload PDF Asset to Firebase Storage</label>
                             <div style="display: flex; gap: 10px; align-items: center; margin-top: 4px;">
                                 <input type="file" id="polEditPdfFile" accept="application/pdf" style="font-size: 0.8rem; flex: 1;">
-                                <input type="text" id="polEditDocUrl" placeholder="or paste Storage URL" style="flex: 1; padding: 7px 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.8rem;">
+                                <input type="text" id="polEditDocUrl" placeholder="or paste Storage URL" style="flex: 1; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--k-border); font-size: 0.8rem;">
                             </div>
-                            <span style="font-size: 0.7rem; color: #64748b;">Target Storage Path: <code>organizations/{orgId}/policies/{policyCode}_{version}.pdf</code></span>
+                            <span style="font-size: 0.7rem; color: var(--k-muted);">Target Storage Path: <code>organizations/{orgId}/policies/{policyCode}_{version}.pdf</code></span>
                         </div>
 
-                        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 1rem; border-top: 1px solid #e2e8f0; padding-top: 1rem;">
-                            <button type="button" onclick="window.KylrxCompanyPoliciesUIController.closePolicyEditorModal()" style="padding: 8px 16px; border-radius: 10px; border: 1px solid #cbd5e1; background: white; font-weight: 700; font-size: 0.82rem; cursor: pointer;">Cancel</button>
-                            <button type="submit" style="padding: 8px 20px; border-radius: 10px; border: none; background: #2563eb; color: white; font-weight: 700; font-size: 0.82rem; cursor: pointer;">Save Policy</button>
+                        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 1rem; border-top: 1px solid var(--k-border); padding-top: 1rem;">
+                            <button type="button" onclick="window.KylrxCompanyPoliciesUIController.closePolicyEditorModal()" style="padding: 8px 16px; border-radius: 10px; border: 1px solid var(--k-border); background: white; font-weight: 700; font-size: 0.82rem; cursor: pointer;">Cancel</button>
+                            <button type="submit" style="padding: 8px 20px; border-radius: 10px; border: none; background: var(--k-accent); color: white; font-weight: 700; font-size: 0.82rem; cursor: pointer;">Save Policy</button>
                         </div>
                     </form>
                 </div>
@@ -279,7 +279,7 @@
 
         if (filtered.length === 0) {
             return `
-                <div style="text-align: center; padding: 3rem 1rem; color: #64748b;">
+                <div style="text-align: center; padding: 3rem 1rem; color: var(--k-muted);">
                     <p style="font-size: 1rem; font-weight: 700; margin: 0;">No Company Policies Found</p>
                     <p style="font-size: 0.82rem; margin-top: 4px;">Click "Add New Policy" or upload the 'Company Policies' sheet from Templates.xlsx.</p>
                 </div>
@@ -289,7 +289,7 @@
         return `
             <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.83rem;">
                 <thead>
-                    <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; color: #475569; font-size: 0.72rem; text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em;">
+                    <tr style="background: var(--k-subtle); border-bottom: 1px solid var(--k-border); color: var(--k-text-2); font-size: 0.72rem; text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em;">
                         <th style="padding: 12px 16px;">Policy Code & Title</th>
                         <th style="padding: 12px 16px;">Type & Ver</th>
                         <th style="padding: 12px 16px;">Target Scope</th>
@@ -308,43 +308,43 @@
                             : 'background:#e0e7ff; color:#3730a3;';
 
                         return `
-                            <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.15s ease;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                            <tr style="border-bottom: 1px solid var(--k-border); transition: background 0.15s ease;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
                                 <td style="padding: 12px 16px;">
-                                    <div style="font-weight: 800; color: #0f172a;">${escapeHtml(policy.policyName)}</div>
-                                    <div style="font-size: 0.72rem; color: #2563eb; font-weight: 700;">${escapeHtml(policy.policyCode)}</div>
+                                    <div style="font-weight: 800; color: var(--k-text);">${escapeHtml(policy.policyName)}</div>
+                                    <div style="font-size: 0.72rem; color: var(--k-accent-text); font-weight: 700;">${escapeHtml(policy.policyCode)}</div>
                                 </td>
                                 <td style="padding: 12px 16px;">
                                     <span style="font-size: 0.68rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; ${typeBadgeStyle}">${escapeHtml(policy.policyType)}</span>
-                                    <span style="font-size: 0.68rem; font-weight: 700; color: #64748b; margin-left: 4px;">v${escapeHtml(policy.version)}</span>
+                                    <span style="font-size: 0.68rem; font-weight: 700; color: var(--k-muted); margin-left: 4px;">v${escapeHtml(policy.version)}</span>
                                 </td>
                                 <td style="padding: 12px 16px;">
-                                    <div style="font-size: 0.75rem; color: #334155;">Cat: <strong>${escapeHtml(policy.appliesToCategoryCode)}</strong></div>
-                                    <div style="font-size: 0.72rem; color: #64748b;">Loc: <strong>${escapeHtml(policy.appliesToLocationCode)}</strong></div>
+                                    <div style="font-size: 0.75rem; color: var(--k-text-2);">Cat: <strong>${escapeHtml(policy.appliesToCategoryCode)}</strong></div>
+                                    <div style="font-size: 0.72rem; color: var(--k-muted);">Loc: <strong>${escapeHtml(policy.appliesToLocationCode)}</strong></div>
                                 </td>
                                 <td style="padding: 12px 16px;">
-                                    <span style="font-weight: 700; color: #0f172a;">${escapeHtml(policy.acknowledgementDueDays)} d</span>
-                                    <div style="font-size: 0.68rem; color: ${policy.acknowledgementRequired ? '#166534' : '#64748b'};">${policy.acknowledgementRequired ? 'Mandatory' : 'Optional'}</div>
+                                    <span style="font-weight: 700; color: var(--k-text);">${escapeHtml(policy.acknowledgementDueDays)} d</span>
+                                    <div style="font-size: 0.68rem; color: ${policy.acknowledgementRequired ? 'var(--k-success-text)' : 'var(--k-muted)'};">${policy.acknowledgementRequired ? 'Mandatory' : 'Optional'}</div>
                                 </td>
                                 <td style="padding: 12px 16px;">
                                     <div style="display: flex; align-items: center; gap: 8px;">
-                                        <span style="font-weight: 800; font-size: 0.8rem; color: ${stat.compliancePercentage >= 80 ? '#166534' : '#b45309'};">${stat.compliancePercentage}%</span>
-                                        <div style="width: 50px; background: #e2e8f0; height: 5px; border-radius: 4px; overflow: hidden;">
-                                            <div style="background: ${stat.compliancePercentage >= 80 ? '#10b981' : '#f59e0b'}; height: 100%; width: ${stat.compliancePercentage}%;"></div>
+                                        <span style="font-weight: 800; font-size: 0.8rem; color: ${stat.compliancePercentage >= 80 ? 'var(--k-success-text)' : 'var(--k-warning-text)'};">${stat.compliancePercentage}%</span>
+                                        <div style="width: 50px; background: var(--k-border); height: 5px; border-radius: 4px; overflow: hidden;">
+                                            <div style="background: ${stat.compliancePercentage >= 80 ? 'var(--k-success)' : 'var(--k-warning)'}; height: 100%; width: ${stat.compliancePercentage}%;"></div>
                                         </div>
                                     </div>
-                                    <span style="font-size: 0.68rem; color: #64748b;">${stat.compliantCount}/${stat.assignedCount} staff</span>
+                                    <span style="font-size: 0.68rem; color: var(--k-muted);">${stat.compliantCount}/${stat.assignedCount} staff</span>
                                 </td>
                                 <td style="padding: 12px 16px;">
                                     <button onclick="window.KylrxCompanyPoliciesUIController.toggleActive('${escapeHtml(policy.policyCode)}')" style="background: none; border: none; cursor: pointer; padding: 0;">
-                                        <span style="font-size: 0.7rem; font-weight: 800; padding: 3px 8px; border-radius: 10px; background: ${policy.isActive ? '#dcfce7; color: #15803d;' : '#f1f5f9; color: #64748b;'}">
+                                        <span style="font-size: 0.7rem; font-weight: 800; padding: 3px 8px; border-radius: 10px; background: ${policy.isActive ? 'var(--k-success-soft); color: var(--k-success-text);' : '#f1f5f9; color: var(--k-muted);'}">
                                             ${policy.isActive ? '● Active' : '○ Inactive'}
                                         </span>
                                     </button>
                                 </td>
                                 <td style="padding: 12px 16px; text-align: right;">
-                                    <button onclick="window.KylrxCompanyPoliciesUIController.previewPolicy('${escapeHtml(policy.policyCode)}')" title="Preview ESS Reading Modal" style="background: #f1f5f9; border: 1px solid #cbd5e1; padding: 5px 8px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: 700; color: #1e293b; margin-right: 4px;">Preview</button>
-                                    <button onclick="window.KylrxCompanyPoliciesUIController.editPolicy('${escapeHtml(policy.policyCode)}')" title="Edit Policy Details" style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 5px 8px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: 700; color: #1d4ed8; margin-right: 4px;">Edit</button>
-                                    <button onclick="window.KylrxCompanyPoliciesUIController.deletePolicy('${escapeHtml(policy.policyCode)}')" title="Delete Policy" style="background: #fef2f2; border: 1px solid #fecaca; padding: 5px 8px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: 700; color: #dc2626;">✕</button>
+                                    <button onclick="window.KylrxCompanyPoliciesUIController.previewPolicy('${escapeHtml(policy.policyCode)}')" title="Preview ESS Reading Modal" style="background: var(--k-subtle); border: 1px solid var(--k-border); padding: 5px 8px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: 700; color: var(--k-text); margin-right: 4px;">Preview</button>
+                                    <button onclick="window.KylrxCompanyPoliciesUIController.editPolicy('${escapeHtml(policy.policyCode)}')" title="Edit Policy Details" style="background: var(--k-accent-soft); border: 1px solid var(--k-accent-border); padding: 5px 8px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: 700; color: var(--k-accent-text); margin-right: 4px;">Edit</button>
+                                    <button onclick="window.KylrxCompanyPoliciesUIController.deletePolicy('${escapeHtml(policy.policyCode)}')" title="Delete Policy" style="background: var(--k-danger-soft); border: 1px solid var(--k-danger-border); padding: 5px 8px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: 700; color: var(--k-danger-text);">✕</button>
                                 </td>
                             </tr>
                         `;

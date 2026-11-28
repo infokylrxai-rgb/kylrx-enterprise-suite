@@ -397,14 +397,14 @@ function renderAlertCards() {
 
     if (activeRules.length === 0) {
         container.innerHTML = `
-            <div style="grid-column: 1 / -1; text-align: center; padding: 3.5rem 2rem; background: #ffffff; border-radius: 14px; border: 1.5px dashed #cbd5e1; box-shadow: var(--card-shadow);">
-                <div style="width: 54px; height: 54px; border-radius: 50%; background: #ecfdf5; color: #10b981; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+            <div style="grid-column: 1 / -1; text-align: center; padding: 3.5rem 2rem; background: var(--k-surface); border-radius: 14px; border: 1.5px dashed var(--k-border); box-shadow: var(--card-shadow);">
+                <div style="width: 54px; height: 54px; border-radius: 50%; background: var(--k-success-soft); color: var(--k-success-text); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
                     <i data-lucide="shield-check" style="width: 28px; height: 28px;"></i>
                 </div>
-                <h3 style="font-size: 1.15rem; font-weight: 800; color: #0f172a; margin: 0 0 0.4rem 0;">Zero Active Threshold Breaches</h3>
-                <p style="color: #64748b; font-size: 0.85rem; max-width: 480px; margin: 0 auto 1.25rem;">Connected to Firebase Firestore backend in zero state. No rules are currently breached or alerting.</p>
+                <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--k-text); margin: 0 0 0.4rem 0;">Zero Active Threshold Breaches</h3>
+                <p style="color: var(--k-muted); font-size: 0.85rem; max-width: 480px; margin: 0 auto 1.25rem;">Connected to Firebase Firestore backend in zero state. No rules are currently breached or alerting.</p>
                 <div style="display:flex; justify-content:center; gap:10px;">
-                    <button class="btn-hub" onclick="restoreAlerts()" style="color:#2563eb; background:#eff6ff; border-color:#bfdbfe; font-weight:700;">
+                    <button class="btn-hub" onclick="restoreAlerts()" style="color:var(--k-accent-text); background:var(--k-accent-soft); border-color:var(--k-accent-border); font-weight:700;">
                         <i data-lucide="rotate-ccw"></i> Restore Default Monitors
                     </button>
                     <button class="btn-hub btn-hub-primary" onclick="openNewRuleModal()">
@@ -424,7 +424,7 @@ function renderAlertCards() {
 
         // Format recipient tags
         const recipientsList = (rule.recipients || [])
-            .map(r => `<span style="background:#f1f5f9; border:1px solid #e2e8f0; padding:2px 7px; border-radius:4px; font-size:0.75rem; font-weight:600;">${r.role || r}</span>`)
+            .map(r => `<span style="background:var(--k-subtle); border:1px solid var(--k-border); padding:2px 7px; border-radius:4px; font-size:0.75rem; font-weight:600;">${r.role || r}</span>`)
             .join(' ');
 
         // Format pipeline summary
@@ -439,7 +439,7 @@ function renderAlertCards() {
             } else if (step.type === 'decision') {
                 return `
                     <div class="pipe-arrow">▼</div>
-                    <div class="pipe-step" style="background:#eff6ff;">
+                    <div class="pipe-step" style="background:var(--k-accent-soft);">
                         <i data-lucide="git-branch" size="13" style="color:var(--info);"></i>
                         <span>Escalation Gate: Delay threshold breached</span>
                     </div>
@@ -473,7 +473,7 @@ function renderAlertCards() {
                         <div style="font-size:0.72rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px;">Recipients & Escalation</div>
                         <div style="display:flex; flex-wrap:wrap; gap:4px; align-items:center;">
                             ${recipientsList}
-                            ${rule.escalation ? `<span style="background:#fee2e2; border:1px solid #fecaca; color:#b91c1c; padding:2px 7px; border-radius:4px; font-size:0.75rem; font-weight:700;">➔ Escalates to ${rule.escalation.escalateTo || rule.escalation}</span>` : ''}
+                            ${rule.escalation ? `<span style="background:var(--k-danger-soft); border:1px solid var(--k-danger-border); color:var(--k-danger-text); padding:2px 7px; border-radius:4px; font-size:0.75rem; font-weight:700;">➔ Escalates to ${rule.escalation.escalateTo || rule.escalation}</span>` : ''}
                         </div>
                     </div>
 
@@ -484,7 +484,7 @@ function renderAlertCards() {
                 </div>
 
                 <div class="card-footer">
-                    <span style="font-size:0.75rem; color:#64748b; display:flex; align-items:center; gap:4px;">
+                    <span style="font-size:0.75rem; color:var(--k-muted); display:flex; align-items:center; gap:4px;">
                         <i data-lucide="activity" size="13" style="color:var(--success);"></i> Live Monitoring
                     </span>
                     <button class="btn-test-fire" onclick="quickTestFire('${rule.id}')">

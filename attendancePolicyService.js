@@ -828,93 +828,93 @@
                 z-index: 99999; animation: fadeIn 0.2s ease;
             `;
             modal.innerHTML = `
-                <div style="background: white; border-radius: 24px; padding: 2rem; width: 92%; max-width: 650px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); border: 1px solid #e2e8f0; max-height: 90vh; overflow-y: auto;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                <div style="background: white; border-radius: 24px; padding: 2rem; width: 92%; max-width: 650px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); border: 1px solid var(--k-border); max-height: 90vh; overflow-y: auto;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--k-border); padding-bottom: 1rem; margin-bottom: 1.5rem;">
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="width: 36px; height: 36px; border-radius: 10px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                            <div style="width: 36px; height: 36px; border-radius: 10px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center;">
                                 <i data-lucide="shield-alert" style="width: 20px; height: 20px;"></i>
                             </div>
-                            <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0;" id="policyModalTitle">New Attendance Policy</h2>
+                            <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--k-text); margin: 0;" id="policyModalTitle">New Attendance Policy</h2>
                         </div>
-                        <button type="button" id="btnClosePolicyModal" style="background: none; border: none; font-size: 1.5rem; color: #64748b; cursor: pointer; padding: 4px;">&times;</button>
+                        <button type="button" id="btnClosePolicyModal" style="background: none; border: none; font-size: 1.5rem; color: var(--k-muted); cursor: pointer; padding: 4px;">&times;</button>
                     </div>
 
                     <form id="attendancePolicyForm">
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
                             <div>
-                                <label style="font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase;">1. Policy Code * (PK)</label>
-                                <input type="text" id="inputPolicyCode" placeholder="e.g. POL_STD_CORP" style="width: 100%; padding: 10px 14px; border-radius: 12px; border: 1.5px solid #cbd5e1; font-family: monospace; font-size: 0.9rem; margin-top: 6px; box-sizing: border-box;" required>
+                                <label style="font-size: 0.75rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">1. Policy Code * (PK)</label>
+                                <input type="text" id="inputPolicyCode" placeholder="e.g. POL_STD_CORP" style="width: 100%; padding: 10px 14px; border-radius: 12px; border: 1.5px solid var(--k-border); font-family: monospace; font-size: 0.9rem; margin-top: 6px; box-sizing: border-box;" required>
                             </div>
                             <div>
-                                <label style="font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase;">2. Policy Name * (Display Title)</label>
-                                <input type="text" id="inputPolicyName" placeholder="e.g. Standard Corporate Policy" style="width: 100%; padding: 10px 14px; border-radius: 12px; border: 1.5px solid #cbd5e1; font-family: inherit; font-size: 0.9rem; margin-top: 6px; box-sizing: border-box;" required>
+                                <label style="font-size: 0.75rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">2. Policy Name * (Display Title)</label>
+                                <input type="text" id="inputPolicyName" placeholder="e.g. Standard Corporate Policy" style="width: 100%; padding: 10px 14px; border-radius: 12px; border: 1.5px solid var(--k-border); font-family: inherit; font-size: 0.9rem; margin-top: 6px; box-sizing: border-box;" required>
                             </div>
                         </div>
 
                         <!-- Numeric Limits: Late, Early, Cutoff -->
                         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
                             <div>
-                                <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">3. Late After (Mins)</label>
-                                <input type="number" id="inputLateAfterMinutes" value="15" min="0" max="120" style="width: 100%; padding: 8px 12px; border-radius: 10px; border: 1.5px solid #cbd5e1; font-family: inherit; font-size: 0.85rem; margin-top: 4px; box-sizing: border-box;" required>
-                                <span style="font-size: 0.68rem; color: #94a3b8;">Grace before LATE</span>
+                                <label style="font-size: 0.72rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">3. Late After (Mins)</label>
+                                <input type="number" id="inputLateAfterMinutes" value="15" min="0" max="120" style="width: 100%; padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--k-border); font-family: inherit; font-size: 0.85rem; margin-top: 4px; box-sizing: border-box;" required>
+                                <span style="font-size: 0.68rem; color: var(--k-muted);">Grace before LATE</span>
                             </div>
                             <div>
-                                <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">4. Early Leave (Mins)</label>
-                                <input type="number" id="inputEarlyLeavingGraceMinute" value="10" min="0" max="120" style="width: 100%; padding: 8px 12px; border-radius: 10px; border: 1.5px solid #cbd5e1; font-family: inherit; font-size: 0.85rem; margin-top: 4px; box-sizing: border-box;" required>
-                                <span style="font-size: 0.68rem; color: #94a3b8;">Grace before shift end</span>
+                                <label style="font-size: 0.72rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">4. Early Leave (Mins)</label>
+                                <input type="number" id="inputEarlyLeavingGraceMinute" value="10" min="0" max="120" style="width: 100%; padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--k-border); font-family: inherit; font-size: 0.85rem; margin-top: 4px; box-sizing: border-box;" required>
+                                <span style="font-size: 0.68rem; color: var(--k-muted);">Grace before shift end</span>
                             </div>
                             <div>
-                                <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">5. Absent Cutoff (Hours)</label>
-                                <input type="number" id="inputAbsentAfterHours" value="4" min="1" max="12" style="width: 100%; padding: 8px 12px; border-radius: 10px; border: 1.5px solid #cbd5e1; font-family: inherit; font-size: 0.85rem; margin-top: 4px; box-sizing: border-box;" required>
-                                <span style="font-size: 0.68rem; color: #94a3b8;">Auto-mark ABSENT</span>
+                                <label style="font-size: 0.72rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">5. Absent Cutoff (Hours)</label>
+                                <input type="number" id="inputAbsentAfterHours" value="4" min="1" max="12" style="width: 100%; padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--k-border); font-family: inherit; font-size: 0.85rem; margin-top: 4px; box-sizing: border-box;" required>
+                                <span style="font-size: 0.68rem; color: var(--k-muted);">Auto-mark ABSENT</span>
                             </div>
                         </div>
 
                         <!-- Regularization & Overtime Thresholds -->
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
                             <div>
-                                <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">7. Regularization Window (Days)</label>
-                                <input type="number" id="inputRegularizationWindowDays" value="7" min="1" max="90" style="width: 100%; padding: 8px 12px; border-radius: 10px; border: 1.5px solid #cbd5e1; font-family: inherit; font-size: 0.85rem; margin-top: 4px; box-sizing: border-box;" required>
-                                <span style="font-size: 0.68rem; color: #94a3b8;">Max days allowed to file claim</span>
+                                <label style="font-size: 0.72rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">7. Regularization Window (Days)</label>
+                                <input type="number" id="inputRegularizationWindowDays" value="7" min="1" max="90" style="width: 100%; padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--k-border); font-family: inherit; font-size: 0.85rem; margin-top: 4px; box-sizing: border-box;" required>
+                                <span style="font-size: 0.68rem; color: var(--k-muted);">Max days allowed to file claim</span>
                             </div>
                             <div>
-                                <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">9. OT Minimum (Minutes)</label>
-                                <input type="number" id="inputOtMinimumMinutes" value="60" min="0" max="300" style="width: 100%; padding: 8px 12px; border-radius: 10px; border: 1.5px solid #cbd5e1; font-family: inherit; font-size: 0.85rem; margin-top: 4px; box-sizing: border-box;" required>
-                                <span style="font-size: 0.68rem; color: #94a3b8;">Minimum minutes to trigger OT</span>
+                                <label style="font-size: 0.72rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">9. OT Minimum (Minutes)</label>
+                                <input type="number" id="inputOtMinimumMinutes" value="60" min="0" max="300" style="width: 100%; padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--k-border); font-family: inherit; font-size: 0.85rem; margin-top: 4px; box-sizing: border-box;" required>
+                                <span style="font-size: 0.68rem; color: var(--k-muted);">Minimum minutes to trigger OT</span>
                             </div>
                         </div>
 
                         <!-- Policy Boolean Toggle Switches (PRD §15) -->
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.25rem; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 10px;">
-                            <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-size: 0.85rem; font-weight: 700; color: #0f172a;">
+                        <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 16px; padding: 1.25rem; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 10px;">
+                            <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-size: 0.85rem; font-weight: 700; color: var(--k-text);">
                                 <span>6. Regularization Allowed</span>
                                 <input type="checkbox" id="checkRegularizationAllowed" style="width: 18px; height: 18px; accent-color: #2563eb; cursor: pointer;" checked>
                             </label>
-                            <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-size: 0.85rem; font-weight: 700; color: #0f172a;">
+                            <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-size: 0.85rem; font-weight: 700; color: var(--k-text);">
                                 <span>8. WFH (Work From Home) Allowed</span>
                                 <input type="checkbox" id="checkWfhAllowed" style="width: 18px; height: 18px; accent-color: #2563eb; cursor: pointer;" checked>
                             </label>
-                            <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-size: 0.85rem; font-weight: 700; color: #0f172a;">
+                            <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-size: 0.85rem; font-weight: 700; color: var(--k-text);">
                                 <span>10. Overtime Approval Required (L1 Manager Queue)</span>
                                 <input type="checkbox" id="checkOtApprovalRequired" style="width: 18px; height: 18px; accent-color: #2563eb; cursor: pointer;" checked>
                             </label>
-                            <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-size: 0.85rem; font-weight: 700; color: #0f172a;">
+                            <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-size: 0.85rem; font-weight: 700; color: var(--k-text);">
                                 <span>11. GeoFence Required (Verify Browser Coordinates)</span>
                                 <input type="checkbox" id="checkGeoFenceRequired" style="width: 18px; height: 18px; accent-color: #2563eb; cursor: pointer;">
                             </label>
-                            <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-size: 0.85rem; font-weight: 700; color: #0f172a;">
+                            <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-size: 0.85rem; font-weight: 700; color: var(--k-text);">
                                 <span>12. IP Restricted (Corporate Network Whitelist)</span>
                                 <input type="checkbox" id="checkIpRestricted" style="width: 18px; height: 18px; accent-color: #2563eb; cursor: pointer;">
                             </label>
-                            <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-size: 0.85rem; font-weight: 700; color: #0f172a;">
+                            <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-size: 0.85rem; font-weight: 700; color: var(--k-text);">
                                 <span>13. Operational Status (Active)</span>
                                 <input type="checkbox" id="checkPolicyActive" style="width: 18px; height: 18px; accent-color: #16a34a; cursor: pointer;" checked>
                             </label>
                         </div>
 
                         <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                            <button type="button" id="btnCancelPolicyModal" style="padding: 10px 18px; border-radius: 12px; border: 1px solid #cbd5e1; background: white; font-weight: 700; cursor: pointer;">Cancel</button>
-                            <button type="submit" id="btnSavePolicyModal" style="padding: 10px 22px; border-radius: 12px; border: none; background: #2563eb; color: white; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                            <button type="button" id="btnCancelPolicyModal" style="padding: 10px 18px; border-radius: 12px; border: 1px solid var(--k-border); background: white; font-weight: 700; cursor: pointer;">Cancel</button>
+                            <button type="submit" id="btnSavePolicyModal" style="padding: 10px 22px; border-radius: 12px; border: none; background: var(--k-accent); color: white; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
                                 <i data-lucide="check"></i> Save Attendance Policy
                             </button>
                         </div>
@@ -1046,106 +1046,106 @@
         const totalCount = policies.length;
 
         container.innerHTML = `
-            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 24px; padding: 2rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 2rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 1.25rem; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+            <div style="background: white; border: 1px solid var(--k-border); border-radius: 24px; padding: 2rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--k-border); padding-bottom: 1.25rem; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="width: 40px; height: 40px; border-radius: 12px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                            <div style="width: 40px; height: 40px; border-radius: 12px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center;">
                                 <i data-lucide="shield-alert" style="width: 22px; height: 22px;"></i>
                             </div>
                             <div>
-                                <h2 style="font-size: 1.3rem; font-weight: 800; color: #0f172a; margin: 0;">Attendance Rules &amp; Policies Console</h2>
-                                <p style="font-size: 0.8rem; color: #64748b; margin: 2px 0 0 0;">
+                                <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--k-text); margin: 0;">Attendance Rules &amp; Policies Console</h2>
+                                <p style="font-size: 0.8rem; color: var(--k-muted); margin: 2px 0 0 0;">
                                     PRD Sections 1, 15 &amp; 16: Strict 13-attribute schema with Geofence, IP Restriction, and Regularization Governance
                                 </p>
                             </div>
                         </div>
                     </div>
                     <div style="display: flex; gap: 10px;">
-                        <button type="button" class="btn btn-outline" id="btnAdminAddPolicy" style="font-size: 0.85rem; border: 1.5px solid #e2e8f0; background: white; cursor: pointer; padding: 10px 16px; border-radius: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
-                            <i data-lucide="plus-circle" style="color: #2563eb;"></i> Add Attendance Policy
+                        <button type="button" class="btn btn-outline" id="btnAdminAddPolicy" style="font-size: 0.85rem; border: 1.5px solid var(--k-border); background: white; cursor: pointer; padding: 10px 16px; border-radius: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                            <i data-lucide="plus-circle" style="color: var(--k-accent-text);"></i> Add Attendance Policy
                         </button>
                     </div>
                 </div>
 
                 <!-- Attributes Summary Cards -->
-                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+                <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 16px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
                     <div>
-                        <span style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">1. Policy Primary Key</span>
-                        <p style="font-size: 0.82rem; font-weight: 700; color: #0f172a; margin-top: 2px;">Attendance_Policy_Code</p>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">1. Policy Primary Key</span>
+                        <p style="font-size: 0.82rem; font-weight: 700; color: var(--k-text); margin-top: 2px;">Attendance_Policy_Code</p>
                     </div>
                     <div>
-                        <span style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">2. Grace Limits</span>
-                        <p style="font-size: 0.82rem; font-weight: 700; color: #0f172a; margin-top: 2px;">Late / Early / Cutoff</p>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">2. Grace Limits</span>
+                        <p style="font-size: 0.82rem; font-weight: 700; color: var(--k-text); margin-top: 2px;">Late / Early / Cutoff</p>
                     </div>
                     <div>
-                        <span style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">3. Governance &amp; Security</span>
-                        <p style="font-size: 0.82rem; font-weight: 700; color: #2563eb; margin-top: 2px;">GeoFence &bull; IP &bull; Regularization</p>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">3. Governance &amp; Security</span>
+                        <p style="font-size: 0.82rem; font-weight: 700; color: var(--k-accent-text); margin-top: 2px;">GeoFence &bull; IP &bull; Regularization</p>
                     </div>
                     <div>
-                        <span style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">4. Operational Status</span>
-                        <p style="font-size: 0.82rem; font-weight: 700; color: #166534; margin-top: 2px;">Active (${activeCount}/${totalCount})</p>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">4. Operational Status</span>
+                        <p style="font-size: 0.82rem; font-weight: 700; color: var(--k-success-text); margin-top: 2px;">Active (${activeCount}/${totalCount})</p>
                     </div>
                 </div>
 
                 <!-- Policies Table -->
-                <div style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 16px;">
+                <div style="overflow-x: auto; border: 1px solid var(--k-border); border-radius: 16px;">
                     <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
                         <thead>
-                            <tr style="background: #f8fafc; border-bottom: 1.5px solid #e2e8f0;">
-                                <th style="padding: 12px 16px; font-weight: 800; color: #475569;">#</th>
-                                <th style="padding: 12px 16px; font-weight: 800; color: #475569;">Policy Code</th>
-                                <th style="padding: 12px 16px; font-weight: 800; color: #475569;">Policy Name</th>
-                                <th style="padding: 12px 16px; font-weight: 800; color: #475569;">Late / Early Grace</th>
-                                <th style="padding: 12px 16px; font-weight: 800; color: #475569;">Absent Cutoff</th>
-                                <th style="padding: 12px 16px; font-weight: 800; color: #475569;">Regularization</th>
-                                <th style="padding: 12px 16px; font-weight: 800; color: #475569;">Overtime</th>
-                                <th style="padding: 12px 16px; font-weight: 800; color: #475569; text-align: center;">Security Flags</th>
-                                <th style="padding: 12px 16px; font-weight: 800; color: #475569; text-align: center;">Status</th>
-                                <th style="padding: 12px 16px; font-weight: 800; color: #475569; text-align: right;">Actions</th>
+                            <tr style="background: var(--k-subtle); border-bottom: 1.5px solid var(--k-border);">
+                                <th style="padding: 12px 16px; font-weight: 800; color: var(--k-text-2);">#</th>
+                                <th style="padding: 12px 16px; font-weight: 800; color: var(--k-text-2);">Policy Code</th>
+                                <th style="padding: 12px 16px; font-weight: 800; color: var(--k-text-2);">Policy Name</th>
+                                <th style="padding: 12px 16px; font-weight: 800; color: var(--k-text-2);">Late / Early Grace</th>
+                                <th style="padding: 12px 16px; font-weight: 800; color: var(--k-text-2);">Absent Cutoff</th>
+                                <th style="padding: 12px 16px; font-weight: 800; color: var(--k-text-2);">Regularization</th>
+                                <th style="padding: 12px 16px; font-weight: 800; color: var(--k-text-2);">Overtime</th>
+                                <th style="padding: 12px 16px; font-weight: 800; color: var(--k-text-2); text-align: center;">Security Flags</th>
+                                <th style="padding: 12px 16px; font-weight: 800; color: var(--k-text-2); text-align: center;">Status</th>
+                                <th style="padding: 12px 16px; font-weight: 800; color: var(--k-text-2); text-align: right;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             ${policies.map((p, idx) => {
                                 const statusBadge = p.isActive
-                                    ? '<span style="background: #dcfce7; color: #15803d; padding: 4px 10px; border-radius: 100px; font-size: 0.72rem; font-weight: 800;">Active</span>'
-                                    : '<span style="background: #fee2e2; color: #b91c1c; padding: 4px 10px; border-radius: 100px; font-size: 0.72rem; font-weight: 800;">Inactive</span>';
+                                    ? '<span style="background: var(--k-success-soft); color: var(--k-success-text); padding: 4px 10px; border-radius: 100px; font-size: 0.72rem; font-weight: 800;">Active</span>'
+                                    : '<span style="background: var(--k-danger-soft); color: var(--k-danger-text); padding: 4px 10px; border-radius: 100px; font-size: 0.72rem; font-weight: 800;">Inactive</span>';
 
                                 const geoBadge = p.geoFenceRequired
-                                    ? '<span style="background: #eff6ff; color: #1d4ed8; padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; font-weight: 700;">Geo</span>'
+                                    ? '<span style="background: var(--k-accent-soft); color: var(--k-accent-text); padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; font-weight: 700;">Geo</span>'
                                     : '';
                                 const ipBadge = p.ipRestricted
                                     ? '<span style="background: #faf5ff; color: #7e22ce; padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; margin-left: 2px;">IP</span>'
                                     : '';
                                 const wfhBadge = p.wfhAllowed
-                                    ? '<span style="background: #ecfdf5; color: #047857; padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; margin-left: 2px;">WFH</span>'
+                                    ? '<span style="background: var(--k-success-soft); color: var(--k-success-text); padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; margin-left: 2px;">WFH</span>'
                                     : '';
 
                                 return `
-                                    <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
-                                        <td style="padding: 12px 16px; color: #94a3b8; font-weight: 600;">${idx + 1}</td>
-                                        <td style="padding: 12px 16px; font-weight: 800; color: #0f172a; font-family: monospace;">${p.attendancePolicyCode}</td>
-                                        <td style="padding: 12px 16px; font-weight: 700; color: #334155;">${p.policyName}</td>
-                                        <td style="padding: 12px 16px; font-size: 0.8rem; color: #64748b;">
+                                    <tr style="border-bottom: 1px solid var(--k-border); transition: background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                                        <td style="padding: 12px 16px; color: var(--k-muted); font-weight: 600;">${idx + 1}</td>
+                                        <td style="padding: 12px 16px; font-weight: 800; color: var(--k-text); font-family: monospace;">${p.attendancePolicyCode}</td>
+                                        <td style="padding: 12px 16px; font-weight: 700; color: var(--k-text-2);">${p.policyName}</td>
+                                        <td style="padding: 12px 16px; font-size: 0.8rem; color: var(--k-muted);">
                                             Late: +${p.lateAfterMinutes}m | Early: -${p.earlyLeavingGraceMinute}m
                                         </td>
-                                        <td style="padding: 12px 16px; font-size: 0.8rem; color: #b91c1c; font-weight: 700;">
+                                        <td style="padding: 12px 16px; font-size: 0.8rem; color: var(--k-danger-text); font-weight: 700;">
                                             >${p.absentAfterHours}h from start
                                         </td>
-                                        <td style="padding: 12px 16px; font-size: 0.8rem; color: #334155;">
-                                            ${p.regularizationAllowed ? `<span style="color: #166534; font-weight: 700;">Allowed</span> (${p.regularizationWindowDays}d)` : '<span style="color: #94a3b8;">Disabled</span>'}
+                                        <td style="padding: 12px 16px; font-size: 0.8rem; color: var(--k-text-2);">
+                                            ${p.regularizationAllowed ? `<span style="color: var(--k-success-text); font-weight: 700;">Allowed</span> (${p.regularizationWindowDays}d)` : '<span style="color: var(--k-muted);">Disabled</span>'}
                                         </td>
-                                        <td style="padding: 12px 16px; font-size: 0.8rem; color: #334155;">
+                                        <td style="padding: 12px 16px; font-size: 0.8rem; color: var(--k-text-2);">
                                             Min ${p.otMinimumMinutes}m ${p.otApprovalRequired ? '(Requires L1)' : '(Auto)'}
                                         </td>
                                         <td style="padding: 12px 16px; text-align: center;">
-                                            ${geoBadge}${ipBadge}${wfhBadge || '<span style="color:#94a3b8; font-size:0.7rem;">None</span>'}
+                                            ${geoBadge}${ipBadge}${wfhBadge || '<span style="color:var(--k-muted); font-size:0.7rem;">None</span>'}
                                         </td>
                                         <td style="padding: 12px 16px; text-align: center;">${statusBadge}</td>
                                         <td style="padding: 12px 16px; text-align: right;">
                                             <div style="display: inline-flex; gap: 6px;">
-                                                <button onclick="window.KylrxAttendancePolicyService.openPolicyModal('${p.attendancePolicyCode}')" style="padding: 6px 10px; border: 1px solid #cbd5e1; background: white; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer;">Edit</button>
-                                                <button onclick="window.KylrxAttendancePolicyService.togglePolicyStatus('${p.attendancePolicyCode}').then(() => window.KylrxAttendancePolicyService.renderAdminConsole())" style="padding: 6px 10px; border: 1px solid ${p.isActive ? '#fecaca' : '#bbf7d0'}; background: ${p.isActive ? '#fff1f2' : '#f0fdf4'}; color: ${p.isActive ? '#991b1b' : '#166534'}; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer;">${p.isActive ? 'Deactivate' : 'Activate'}</button>
+                                                <button onclick="window.KylrxAttendancePolicyService.openPolicyModal('${p.attendancePolicyCode}')" style="padding: 6px 10px; border: 1px solid var(--k-border); background: white; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer;">Edit</button>
+                                                <button onclick="window.KylrxAttendancePolicyService.togglePolicyStatus('${p.attendancePolicyCode}').then(() => window.KylrxAttendancePolicyService.renderAdminConsole())" style="padding: 6px 10px; border: 1px solid ${p.isActive ? 'var(--k-danger-border)' : 'var(--k-success-border)'}; background: ${p.isActive ? '#fff1f2' : 'var(--k-success-soft)'}; color: ${p.isActive ? '#991b1b' : '#166534'}; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer;">${p.isActive ? 'Deactivate' : 'Activate'}</button>
                                             </div>
                                         </td>
                                     </tr>

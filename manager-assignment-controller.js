@@ -238,7 +238,7 @@
 
         if (!Array.isArray(history) || history.length === 0) {
             container.innerHTML = `
-                <div style="text-align: center; padding: 1.5rem; color: #94a3b8; font-size: 0.8rem; background: #f8fafc; border-radius: 8px; border: 1px dashed #cbd5e1;">
+                <div style="text-align: center; padding: 1.5rem; color: var(--k-muted); font-size: 0.8rem; background: var(--k-subtle); border-radius: 8px; border: 1px dashed var(--k-border);">
                     <i data-lucide="history" style="width: 24px; height: 24px; margin: 0 auto 6px; display: block; color: #cbd5e1;"></i>
                     No previous managerial hierarchy changes recorded.
                 </div>
@@ -262,19 +262,19 @@
             }) : '---';
 
             return `
-                <tr style="border-bottom: 1px solid #f1f5f9; font-size: 0.78rem;">
+                <tr style="border-bottom: 1px solid var(--k-border); font-size: 0.78rem;">
                     <td style="padding: 10px 12px;">
                         <span style="font-weight: 800; font-size: 0.7rem; padding: 2px 8px; border-radius: 6px; ${levelStyle}">
                             ${item.level || 'L1'}
                         </span>
                     </td>
-                    <td style="padding: 10px 12px; color: #64748b; font-family: monospace;">${oldMgr}</td>
-                    <td style="padding: 10px 12px; color: #0f172a; font-weight: 700; font-family: monospace;">
-                        <i data-lucide="arrow-right" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; color: #10b981; margin-right: 4px;"></i>
+                    <td style="padding: 10px 12px; color: var(--k-muted); font-family: monospace;">${oldMgr}</td>
+                    <td style="padding: 10px 12px; color: var(--k-text); font-weight: 700; font-family: monospace;">
+                        <i data-lucide="arrow-right" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; color: var(--k-success-text); margin-right: 4px;"></i>
                         ${newMgr}
                     </td>
-                    <td style="padding: 10px 12px; color: #475569;">${item.changedBy || 'Super Admin'}</td>
-                    <td style="padding: 10px 12px; color: #94a3b8; font-size: 0.74rem;">${dateStr}</td>
+                    <td style="padding: 10px 12px; color: var(--k-text-2);">${item.changedBy || 'Super Admin'}</td>
+                    <td style="padding: 10px 12px; color: var(--k-muted); font-size: 0.74rem;">${dateStr}</td>
                 </tr>
             `;
         }).join('');
@@ -282,7 +282,7 @@
         container.innerHTML = `
             <table style="width: 100%; border-collapse: collapse; text-align: left;">
                 <thead>
-                    <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; font-size: 0.7rem; color: #64748b; text-transform: uppercase;">
+                    <tr style="background: var(--k-subtle); border-bottom: 1px solid var(--k-border); font-size: 0.7rem; color: var(--k-muted); text-transform: uppercase;">
                         <th style="padding: 8px 12px;">Tier</th>
                         <th style="padding: 8px 12px;">Previous Manager</th>
                         <th style="padding: 8px 12px;">New Assigned Manager</th>
@@ -567,7 +567,7 @@
 
         const employees = window.state?.employees || [];
         if (employees.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding: 3rem; color: #94a3b8;">No personnel records available for organizational hierarchy.</div>';
+            container.innerHTML = '<div style="text-align:center; padding: 3rem; color: var(--k-muted);">No personnel records available for organizational hierarchy.</div>';
             modal.style.display = 'flex';
             setTimeout(() => modal.classList.add('active'), 10);
             return;
@@ -611,35 +611,35 @@
             const l2Display = getManagerDisplayString(l2, employees);
 
             const childrenHtml = node.children.length > 0 
-                ? `<div class="org-children" style="display: flex; gap: 16px; margin-top: 16px; padding-left: 20px; border-left: 2px dashed #cbd5e1;">
+                ? `<div class="org-children" style="display: flex; gap: 16px; margin-top: 16px; padding-left: 20px; border-left: 2px dashed var(--k-border);">
                     ${node.children.map(c => renderNodeHtml(c)).join('')}
                    </div>`
                 : '';
 
             return `
-                <div class="org-node" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 18px; min-width: 250px; max-width: 320px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 12px;">
+                <div class="org-node" style="background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 12px; padding: 14px 18px; min-width: 250px; max-width: 320px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 12px;">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                         <div>
-                            <div style="font-weight: 800; font-size: 0.9rem; color: #0f172a;">${name}</div>
-                            <div style="font-size: 0.72rem; color: #64748b; font-family: monospace;">${id} • ${desig}</div>
+                            <div style="font-weight: 800; font-size: 0.9rem; color: var(--k-text);">${name}</div>
+                            <div style="font-size: 0.72rem; color: var(--k-muted); font-family: monospace;">${id} • ${desig}</div>
                         </div>
-                        <button type="button" class="btn btn-secondary" onclick="ManagerAssignmentController.openAssignmentModal('${id}')" title="Reassign Managers" style="padding: 4px 8px; font-size: 0.7rem; border-radius: 6px; background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; cursor: pointer;">
+                        <button type="button" class="btn btn-secondary" onclick="ManagerAssignmentController.openAssignmentModal('${id}')" title="Reassign Managers" style="padding: 4px 8px; font-size: 0.7rem; border-radius: 6px; background: var(--k-accent-soft); color: var(--k-accent-text); border: 1px solid var(--k-accent-border); cursor: pointer;">
                             <i data-lucide="git-pull-request" style="width: 12px; height: 12px;"></i> Assign
                         </button>
                     </div>
-                    <div style="font-size: 0.72rem; color: #64748b; margin-bottom: 8px;">
-                        <span style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-weight: 600;">${dept}</span>
-                        ${node.children.length > 0 ? `<span style="background: #ecfdf5; color: #059669; padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-left: 4px;">${node.children.length} Reports</span>` : ''}
+                    <div style="font-size: 0.72rem; color: var(--k-muted); margin-bottom: 8px;">
+                        <span style="background: var(--k-subtle); padding: 2px 6px; border-radius: 4px; font-weight: 600;">${dept}</span>
+                        ${node.children.length > 0 ? `<span style="background: var(--k-success-soft); color: var(--k-success-text); padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-left: 4px;">${node.children.length} Reports</span>` : ''}
                     </div>
-                    <div style="display: flex; flex-direction: column; gap: 4px; border-top: 1px solid #f1f5f9; padding-top: 6px;">
+                    <div style="display: flex; flex-direction: column; gap: 4px; border-top: 1px solid var(--k-border); padding-top: 6px;">
                         <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.7rem;">
-                            <span style="font-weight: 800; color: #1d4ed8; background: #eff6ff; padding: 1px 6px; border-radius: 4px;">L1</span>
-                            <span style="color: #475569; font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 170px;" title="${l1Display}">${l1Display}</span>
+                            <span style="font-weight: 800; color: var(--k-accent-text); background: var(--k-accent-soft); padding: 1px 6px; border-radius: 4px;">L1</span>
+                            <span style="color: var(--k-text-2); font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 170px;" title="${l1Display}">${l1Display}</span>
                         </div>
                         ${l2 ? `
                         <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.7rem;">
                             <span style="font-weight: 800; color: #6d28d9; background: #f5f3ff; padding: 1px 6px; border-radius: 4px;">L2</span>
-                            <span style="color: #475569; font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 170px;" title="${l2Display}">${l2Display}</span>
+                            <span style="color: var(--k-text-2); font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 170px;" title="${l2Display}">${l2Display}</span>
                         </div>
                         ` : ''}
                     </div>

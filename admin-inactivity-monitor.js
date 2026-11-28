@@ -91,7 +91,7 @@ async function refreshDashboard() {
         renderAll();
     } catch (err) {
         const list = document.getElementById('inactivityList');
-        if (list) list.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: #b91c1c;">Could not load the inactivity radar: ${esc(err.message)}</div>`;
+        if (list) list.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--k-danger-text);">Could not load the inactivity radar: ${esc(err.message)}</div>`;
     }
 }
 
@@ -145,8 +145,8 @@ function renderInactivityList(list) {
             </div>
             <h4 style="font-weight: 800; margin-bottom: 4px;">${esc(p.name)}</h4>
             <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem;">${esc(p.email || 'No email')} • ${esc(p.department || 'No department')}</p>
-            <div style="background: #f8fafc; padding: 10px; border-radius: 12px; font-size: 0.75rem; line-height: 1.6;">
-                <p><strong>Status:</strong> <span style="color: ${suspended ? 'var(--danger)' : 'var(--warning)'}; font-weight: 700;">${esc(p.status)}</span>${p.inviteDelivered ? '' : ' · <span style="color:#b91c1c;font-weight:700;">invite not delivered</span>'}</p>
+            <div style="background: var(--k-subtle); padding: 10px; border-radius: 12px; font-size: 0.75rem; line-height: 1.6;">
+                <p><strong>Status:</strong> <span style="color: ${suspended ? 'var(--danger)' : 'var(--warning)'}; font-weight: 700;">${esc(p.status)}</span>${p.inviteDelivered ? '' : ' · <span style="color:var(--k-danger-text);font-weight:700;">invite not delivered</span>'}</p>
                 <p><strong>Invited:</strong> ${esc(new Date(p.invitedAt).toLocaleString())}</p>
                 ${!suspended && p.inviteDelivered ? `<p><strong>Auto-suspend:</strong> ${untilSuspend > 0 ? `in ${esc(fmtWait(untilSuspend))}` : 'at next sync'}</p>` : ''}
                 ${p.joiningDate ? `<p><strong>Joining:</strong> ${esc(p.joiningDate)}</p>` : ''}
@@ -240,10 +240,10 @@ async function openNudge(id) {
     modal.id = 'aiNudgeModal';
     modal.style.cssText = 'position:fixed; inset:0; background:rgba(15,23,42,0.45); backdrop-filter:blur(4px); z-index:10000; display:flex; align-items:center; justify-content:center; padding:20px;';
     modal.innerHTML = `
-        <div style="background:#fff; border-radius:20px; width:560px; max-width:100%; padding:22px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
+        <div style="background:var(--k-surface); border-radius:20px; width:560px; max-width:100%; padding:22px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <h3 style="margin:0; font-size:1.05rem; font-weight:800; color:#0f172a;">✨ AI reminder for ${esc(p.name)}</h3>
-                <button id="nudgeClose" style="background:#f1f5f9; border:none; border-radius:8px; width:30px; height:30px; cursor:pointer;">✕</button>
+                <h3 style="margin:0; font-size:1.05rem; font-weight:800; color:var(--k-text);">✨ AI reminder for ${esc(p.name)}</h3>
+                <button id="nudgeClose" style="background:var(--k-subtle); border:none; border-radius:8px; width:30px; height:30px; cursor:pointer;">✕</button>
             </div>
             <div style="display:flex; gap:8px; align-items:center; margin-bottom:10px; font-size:0.8rem;">
                 Tone <select id="nudgeTone" style="padding:6px 8px; border-radius:8px; border:1px solid var(--border);"><option value="friendly">Friendly</option><option value="formal">Formal</option></select>

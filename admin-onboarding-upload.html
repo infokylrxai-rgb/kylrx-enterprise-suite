@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="kylrx-theme-init.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Organization Setup & Structure | Kylrx AI</title>
@@ -208,7 +209,7 @@
             font-family: inherit;
             font-size: 0.875rem;
             transition: 0.2s;
-            background: #f8fafc;
+            background: var(--k-subtle);
         }
         .form-group input:focus, .form-group select:focus {
             border-color: var(--primary);
@@ -292,30 +293,30 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background: #fef3c7;
-            color: #92400e;
+            background: var(--k-warning-soft);
+            color: var(--k-warning-text);
             padding: 6px 14px;
             border-radius: 9999px;
             font-size: 0.75rem;
             font-weight: 700;
-            border: 1px solid #fde68a;
+            border: 1px solid var(--k-warning-border);
         }
 
         .badge-verified {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background: #dcfce7;
-            color: #166534;
+            background: var(--k-success-soft);
+            color: var(--k-success-text);
             padding: 6px 14px;
             border-radius: 9999px;
             font-size: 0.75rem;
             font-weight: 700;
-            border: 1px solid #bbf7d0;
+            border: 1px solid var(--k-success-border);
         }
 
         .form-section {
-            background: #ffffff;
+            background: var(--k-surface);
             border: 1px solid var(--border);
             border-radius: 20px;
             padding: 1.5rem 2rem;
@@ -371,7 +372,7 @@
             font-family: inherit;
             font-size: 0.875rem;
             transition: 0.2s;
-            background: #f8fafc;
+            background: var(--k-subtle);
             resize: vertical;
             min-height: 72px;
         }
@@ -383,7 +384,7 @@
 
         .form-group .input-hint {
             font-size: 0.7rem;
-            color: #94a3b8;
+            color: var(--k-muted);
             margin-top: 4px;
         }
 
@@ -391,13 +392,13 @@
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            background: #f1f5f9;
-            color: #334155;
+            background: var(--k-subtle);
+            color: var(--k-text-2);
             padding: 4px 10px;
             border-radius: 6px;
             font-size: 0.7rem;
             font-family: monospace;
-            border: 1px solid #cbd5e1;
+            border: 1px solid var(--k-border);
             margin: 2px 4px 2px 0;
             font-weight: 600;
         }
@@ -407,7 +408,7 @@
             align-items: center;
             justify-content: space-between;
             background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
-            border: 1.5px solid #86efac;
+            border: 1.5px solid var(--k-success-border);
             border-radius: 18px;
             padding: 1.5rem 2rem;
             margin-bottom: 2rem;
@@ -422,7 +423,7 @@
         }
 
         .preview-table th {
-            background: #f8fafc;
+            background: var(--k-subtle);
             border-bottom: 1.5px solid var(--border);
             padding: 10px 14px;
             text-align: left;
@@ -435,10 +436,14 @@
         .preview-table td {
             padding: 10px 14px;
             border-bottom: 1px solid var(--border);
-            color: #1e293b;
+            color: var(--k-text);
         }
     </style>
     <link rel="stylesheet" href="sidebar-lock.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="kylrx-theme.css">
 </head>
 <body>
 
@@ -555,18 +560,18 @@
             <!-- In-App Download Policy Callout Banner (PRD Section 1) -->
             <div class="download-banner">
                 <div style="display: flex; align-items: center; gap: 16px;">
-                    <div style="width: 48px; height: 48px; border-radius: 14px; background: #dcfce7; display: flex; align-items: center; justify-content: center; color: #166534; flex-shrink: 0;">
+                    <div style="width: 48px; height: 48px; border-radius: 14px; background: var(--k-success-soft); display: flex; align-items: center; justify-content: center; color: var(--k-success-text); flex-shrink: 0;">
                         <i data-lucide="file-spreadsheet" style="width: 26px; height: 26px;"></i>
                     </div>
                     <div>
-                        <h3 style="font-size: 1rem; font-weight: 800; color: #166534; margin: 0 0 4px 0;">Official 27-Sheet Organization Template (Templates.xlsx)</h3>
-                        <p style="font-size: 0.8rem; color: #15803d; margin: 0; line-height: 1.45;">
+                        <h3 style="font-size: 1rem; font-weight: 800; color: var(--k-success-text); margin: 0 0 4px 0;">Official 27-Sheet Organization Template (Templates.xlsx)</h3>
+                        <p style="font-size: 0.8rem; color: var(--k-success-text); margin: 0; line-height: 1.45;">
                             <strong>In-App Download Strictly Enforced:</strong> Per PRD security policies, the official template is served strictly in-app via direct browser download and is never distributed via external email or unauthenticated links.
                         </p>
                     </div>
                 </div>
                 <div style="flex-shrink: 0;">
-                    <a href="assets/Templates.xlsx" download="Templates.xlsx" class="btn btn-primary" id="btnDownloadBanner" style="background: #16a34a; border-color: #15803d;">
+                    <a href="assets/Templates.xlsx" download="Templates.xlsx" class="btn btn-primary" id="btnDownloadBanner" style="background: var(--k-success); border-color: #15803d;">
                         <i data-lucide="download"></i> In-App Download
                     </a>
                 </div>
@@ -823,7 +828,7 @@
                             <i data-lucide="list-checks" style="width: 18px; height: 18px; color: var(--primary);"></i>
                             PRD Organization Sheet Schema (Exact 21 Attributes)
                         </h3>
-                        <span style="font-size: 0.7rem; font-weight: 700; color: #166534; background: #dcfce7; padding: 3px 10px; border-radius: 9999px;">21 Columns Defined</span>
+                        <span style="font-size: 0.7rem; font-weight: 700; color: var(--k-success-text); background: var(--k-success-soft); padding: 3px 10px; border-radius: 9999px;">21 Columns Defined</span>
                     </div>
                     <p style="font-size: 0.875rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 1rem;">
                         The bulk parser validates and captures only and exactly these 21 attributes from the uploaded spreadsheet:
@@ -855,14 +860,14 @@
                 </div>
 
                 <!-- Live Parse Results Preview Container -->
-                <div id="parseResultsContainer" style="display: none; background: white; border: 1.5px solid #93c5fd; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+                <div id="parseResultsContainer" style="display: none; background: white; border: 1.5px solid var(--k-accent-border); border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.25rem;">
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="width: 38px; height: 38px; border-radius: 10px; background: #dcfce7; color: #166534; display: flex; align-items: center; justify-content: center;">
+                            <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--k-success-soft); color: var(--k-success-text); display: flex; align-items: center; justify-content: center;">
                                 <i data-lucide="check" style="width: 22px; height: 22px;"></i>
                             </div>
                             <div>
-                                <h3 style="font-size: 1rem; font-weight: 800; color: #0f172a; margin: 0;" id="parseResultFileName">Spreadsheet Parsed Successfully</h3>
+                                <h3 style="font-size: 1rem; font-weight: 800; color: var(--k-text); margin: 0;" id="parseResultFileName">Spreadsheet Parsed Successfully</h3>
                                 <p style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0 0;" id="parseResultMeta">21 attributes extracted from 'Organization' sheet</p>
                             </div>
                         </div>
@@ -895,14 +900,14 @@
                 </div>
 
                 <!-- Live Business Unit Parse Results Preview Container (PRD Section 1 & Section 10) -->
-                <div id="buParseResultsContainer" style="display: none; background: white; border: 1.5px solid #86efac; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+                <div id="buParseResultsContainer" style="display: none; background: white; border: 1.5px solid var(--k-success-border); border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.25rem;">
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="width: 38px; height: 38px; border-radius: 10px; background: #dcfce7; color: #166534; display: flex; align-items: center; justify-content: center;">
+                            <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--k-success-soft); color: var(--k-success-text); display: flex; align-items: center; justify-content: center;">
                                 <i data-lucide="building-2" style="width: 22px; height: 22px;"></i>
                             </div>
                             <div>
-                                <h3 style="font-size: 1rem; font-weight: 800; color: #0f172a; margin: 0;" id="buParseResultTitle">Business Units Sheet Parsed</h3>
+                                <h3 style="font-size: 1rem; font-weight: 800; color: var(--k-text); margin: 0;" id="buParseResultTitle">Business Units Sheet Parsed</h3>
                                 <p style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0 0;" id="buParseResultMeta">Extracted 4 attributes from 'Business Unit' sheet</p>
                             </div>
                         </div>
@@ -911,7 +916,7 @@
 
                     <!-- Schema Badges Header -->
                     <div style="margin-bottom: 1rem;">
-                        <span style="font-size: 0.7rem; font-weight: 800; color: #166534; text-transform: uppercase;">PRD §1 &amp; §10 Strict 4 Attributes:</span>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-success-text); text-transform: uppercase;">PRD §1 &amp; §10 Strict 4 Attributes:</span>
                         <div style="margin-top: 4px;">
                             <span class="schema-pill">1. Business_Unit_Code (PK)</span>
                             <span class="schema-pill">2. Business_Unit_Name</span>
@@ -941,21 +946,21 @@
 
                     <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.25rem;">
                         <button type="button" class="btn btn-outline" id="btnCancelBuIngest">Discard Business Units</button>
-                        <button type="button" class="btn btn-primary" id="btnConfirmBuIngest" style="font-size: 1rem; padding: 14px 28px; background: #16a34a; border-color: #15803d; color: white;">
+                        <button type="button" class="btn btn-primary" id="btnConfirmBuIngest" style="font-size: 1rem; padding: 14px 28px; background: var(--k-success); border-color: #15803d; color: white;">
                             <i data-lucide="database"></i> Ingest Business Units to Cloud Firestore
                         </button>
                     </div>
                 </div>
 
                 <!-- Cost Center Ingestion Results (PRD Sections 1 & 13) -->
-                <div id="ccParseResultsContainer" style="display: none; background: white; border: 1.5px solid #93c5fd; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+                <div id="ccParseResultsContainer" style="display: none; background: white; border: 1.5px solid var(--k-accent-border); border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.25rem;">
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="width: 38px; height: 38px; border-radius: 10px; background: #eff6ff; color: #1d4ed8; display: flex; align-items: center; justify-content: center;">
+                            <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center;">
                                 <i data-lucide="calculator" style="width: 22px; height: 22px;"></i>
                             </div>
                             <div>
-                                <h3 style="font-size: 1rem; font-weight: 800; color: #0f172a; margin: 0;" id="ccParseResultTitle">Cost Centers Sheet Parsed</h3>
+                                <h3 style="font-size: 1rem; font-weight: 800; color: var(--k-text); margin: 0;" id="ccParseResultTitle">Cost Centers Sheet Parsed</h3>
                                 <p style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0 0;" id="ccParseResultMeta">Extracted 4 attributes from 'Cost Center' / 'Cost Centre' sheet</p>
                             </div>
                         </div>
@@ -964,7 +969,7 @@
 
                     <!-- Schema Badges Header -->
                     <div style="margin-bottom: 1rem;">
-                        <span style="font-size: 0.7rem; font-weight: 800; color: #1d4ed8; text-transform: uppercase;">PRD §1 &amp; §13 Strict 4 Attributes:</span>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-accent-text); text-transform: uppercase;">PRD §1 &amp; §13 Strict 4 Attributes:</span>
                         <div style="margin-top: 4px;">
                             <span class="schema-pill">1. Cost_Center_Code (PK)</span>
                             <span class="schema-pill">2. Cost_Center_Name</span>
@@ -994,7 +999,7 @@
 
                     <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.25rem;">
                         <button type="button" class="btn btn-outline" id="btnCancelCcIngest">Discard Cost Centers</button>
-                        <button type="button" class="btn btn-primary" id="btnConfirmCcIngest" style="font-size: 1rem; padding: 14px 28px; background: #2563eb; border-color: #1d4ed8; color: white;">
+                        <button type="button" class="btn btn-primary" id="btnConfirmCcIngest" style="font-size: 1rem; padding: 14px 28px; background: var(--k-accent); border-color: #1d4ed8; color: white;">
                             <i data-lucide="database"></i> Ingest Cost Centers to Cloud Firestore
                         </button>
                     </div>
@@ -1008,7 +1013,7 @@
                                 <i data-lucide="layers" style="width: 22px; height: 22px;"></i>
                             </div>
                             <div>
-                                <h3 style="font-size: 1rem; font-weight: 800; color: #0f172a; margin: 0;" id="subDeptParseResultTitle">Sub-Departments Sheet Parsed</h3>
+                                <h3 style="font-size: 1rem; font-weight: 800; color: var(--k-text); margin: 0;" id="subDeptParseResultTitle">Sub-Departments Sheet Parsed</h3>
                                 <p style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0 0;" id="subDeptParseResultMeta">Extracted 5 attributes from 'Sub-Departments' sheet</p>
                             </div>
                         </div>
@@ -1056,14 +1061,14 @@
                 </div>
 
                 <!-- Shifts & Week-offs Ingestion Results (PRD Sections 1, 13 & 16) -->
-                <div id="shiftParseResultsContainer" style="display: none; background: white; border: 1.5px solid #3b82f6; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+                <div id="shiftParseResultsContainer" style="display: none; background: white; border: 1.5px solid var(--k-accent); border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.25rem;">
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="width: 38px; height: 38px; border-radius: 10px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                            <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center;">
                                 <i data-lucide="clock" style="width: 22px; height: 22px;"></i>
                             </div>
                             <div>
-                                <h3 style="font-size: 1rem; font-weight: 800; color: #0f172a; margin: 0;" id="shiftParseResultTitle">Shifts &amp; Week-offs Sheet Parsed</h3>
+                                <h3 style="font-size: 1rem; font-weight: 800; color: var(--k-text); margin: 0;" id="shiftParseResultTitle">Shifts &amp; Week-offs Sheet Parsed</h3>
                                 <p style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0 0;" id="shiftParseResultMeta">Extracted 13 attributes from 'Shifts &amp; Week-offs' sheet</p>
                             </div>
                         </div>
@@ -1072,7 +1077,7 @@
 
                     <!-- Schema Badges Header -->
                     <div style="margin-bottom: 1rem;">
-                        <span style="font-size: 0.7rem; font-weight: 800; color: #2563eb; text-transform: uppercase;">PRD §1, §13 &amp; §16 Strict 13 Attributes:</span>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-accent-text); text-transform: uppercase;">PRD §1, §13 &amp; §16 Strict 13 Attributes:</span>
                         <div style="margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px;">
                             <span class="schema-pill">1. Shift_Code (PK)</span>
                             <span class="schema-pill">2. Shift_Name</span>
@@ -1115,7 +1120,7 @@
 
                     <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.25rem;">
                         <button type="button" class="btn btn-outline" id="btnCancelShiftIngest">Discard Shifts</button>
-                        <button type="button" class="btn btn-primary" id="btnConfirmShiftIngest" style="font-size: 1rem; padding: 14px 28px; background: #2563eb; border-color: #1d4ed8; color: white;">
+                        <button type="button" class="btn btn-primary" id="btnConfirmShiftIngest" style="font-size: 1rem; padding: 14px 28px; background: var(--k-accent); border-color: #1d4ed8; color: white;">
                             <i data-lucide="database"></i> Ingest Shifts &amp; Week-offs to Cloud Firestore
                         </button>
                     </div>
@@ -1125,11 +1130,11 @@
                 <div id="policyParseResultsContainer" style="display: none; background: white; border: 1.5px solid #10b981; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.25rem;">
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="width: 38px; height: 38px; border-radius: 10px; background: #ecfdf5; color: #059669; display: flex; align-items: center; justify-content: center;">
+                            <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--k-success-soft); color: var(--k-success-text); display: flex; align-items: center; justify-content: center;">
                                 <i data-lucide="shield-check" style="width: 22px; height: 22px;"></i>
                             </div>
                             <div>
-                                <h3 style="font-size: 1rem; font-weight: 800; color: #0f172a; margin: 0;" id="policyParseResultTitle">Attendance Rules &amp; Policies Sheet Parsed</h3>
+                                <h3 style="font-size: 1rem; font-weight: 800; color: var(--k-text); margin: 0;" id="policyParseResultTitle">Attendance Rules &amp; Policies Sheet Parsed</h3>
                                 <p style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0 0;" id="policyParseResultMeta">Extracted 13 attributes from 'Attendance Rules' sheet</p>
                             </div>
                         </div>
@@ -1138,7 +1143,7 @@
 
                     <!-- Schema Badges Header -->
                     <div style="margin-bottom: 1rem;">
-                        <span style="font-size: 0.7rem; font-weight: 800; color: #059669; text-transform: uppercase;">PRD §1, §15 &amp; §16 Strict 13 Attributes:</span>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-success-text); text-transform: uppercase;">PRD §1, §15 &amp; §16 Strict 13 Attributes:</span>
                         <div style="margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px;">
                             <span class="schema-pill">1. Attendance_Policy_Code (PK)</span>
                             <span class="schema-pill">2. Policy_Name</span>
@@ -1180,7 +1185,7 @@
 
                     <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.25rem;">
                         <button type="button" class="btn btn-outline" id="btnCancelPolicyIngest">Discard Policies</button>
-                        <button type="button" class="btn btn-primary" id="btnConfirmPolicyIngest" style="font-size: 1rem; padding: 14px 28px; background: #059669; border-color: #047857; color: white;">
+                        <button type="button" class="btn btn-primary" id="btnConfirmPolicyIngest" style="font-size: 1rem; padding: 14px 28px; background: var(--k-success); border-color: #047857; color: white;">
                             <i data-lucide="database"></i> Ingest Attendance Policies to Cloud Firestore
                         </button>
                     </div>
@@ -1194,7 +1199,7 @@
                                 <i data-lucide="users" style="width: 22px; height: 22px;"></i>
                             </div>
                             <div>
-                                <h3 style="font-size: 1rem; font-weight: 800; color: #0f172a; margin: 0;" id="employeeTypeParseResultTitle">Employee Types Sheet Parsed</h3>
+                                <h3 style="font-size: 1rem; font-weight: 800; color: var(--k-text); margin: 0;" id="employeeTypeParseResultTitle">Employee Types Sheet Parsed</h3>
                                 <p style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0 0;" id="employeeTypeParseResultMeta">Extracted 7 attributes from 'Employee Type' sheet</p>
                             </div>
                         </div>
@@ -1249,11 +1254,11 @@
                 <div id="employeeFinanceParseResultsContainer" style="display: none; background: white; border: 1.5px solid #10b981; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.25rem;">
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="width: 38px; height: 38px; border-radius: 10px; background: #ecfdf5; color: #059669; display: flex; align-items: center; justify-content: center;">
+                            <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--k-success-soft); color: var(--k-success-text); display: flex; align-items: center; justify-content: center;">
                                 <i data-lucide="credit-card" style="width: 22px; height: 22px;"></i>
                             </div>
                             <div>
-                                <h3 style="font-size: 1rem; font-weight: 800; color: #0f172a; margin: 0;" id="employeeFinanceParseResultTitle">Employee Finance Sheet Parsed</h3>
+                                <h3 style="font-size: 1rem; font-weight: 800; color: var(--k-text); margin: 0;" id="employeeFinanceParseResultTitle">Employee Finance Sheet Parsed</h3>
                                 <p style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0 0;" id="employeeFinanceParseResultMeta">Extracted 17 attributes from 'Employee Finance Deatils' sheet</p>
                             </div>
                         </div>
@@ -1262,7 +1267,7 @@
 
                     <!-- Schema Badges Header -->
                     <div style="margin-bottom: 1rem;">
-                        <span style="font-size: 0.7rem; font-weight: 800; color: #059669; text-transform: uppercase;">PRD §1, §4 &amp; §13 Strict 17 Attributes:</span>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-success-text); text-transform: uppercase;">PRD §1, §4 &amp; §13 Strict 17 Attributes:</span>
                         <div style="margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px;">
                             <span class="schema-pill">1. Employee_ID (FK)</span>
                             <span class="schema-pill">2. Account_Holder_Name</span>
@@ -1308,7 +1313,7 @@
 
                     <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.25rem;">
                         <button type="button" class="btn btn-outline" id="btnCancelEmployeeFinanceIngest">Discard Finance Records</button>
-                        <button type="button" class="btn btn-primary" id="btnConfirmLegacyEmpFinanceIngest" style="font-size: 1rem; padding: 14px 28px; background: #059669; border-color: #047857; color: white;">
+                        <button type="button" class="btn btn-primary" id="btnConfirmLegacyEmpFinanceIngest" style="font-size: 1rem; padding: 14px 28px; background: var(--k-success); border-color: #047857; color: white;">
                             <i data-lucide="database"></i> Ingest Employee Finance to Cloud Firestore
                         </button>
                     </div>
@@ -1322,7 +1327,7 @@
                                 <i data-lucide="shield-check" style="width: 22px; height: 22px;"></i>
                             </div>
                             <div>
-                                <h3 style="font-size: 1rem; font-weight: 800; color: #0f172a; margin: 0;" id="epfoMasterParseResultTitle">EPFO Statutory Master Sheet Parsed</h3>
+                                <h3 style="font-size: 1rem; font-weight: 800; color: var(--k-text); margin: 0;" id="epfoMasterParseResultTitle">EPFO Statutory Master Sheet Parsed</h3>
                                 <p style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0 0;" id="epfoMasterParseResultMeta">Extracted 19 attributes from 'PF Details' / 'EPFO Master' sheet</p>
                             </div>
                         </div>
@@ -1394,7 +1399,7 @@
                                 <i data-lucide="cross" style="width: 22px; height: 22px;"></i>
                             </div>
                             <div>
-                                <h3 style="font-size: 1rem; font-weight: 800; color: #0f172a; margin: 0;" id="esicMasterParseResultTitle">ESIC Statutory Master Sheet Parsed</h3>
+                                <h3 style="font-size: 1rem; font-weight: 800; color: var(--k-text); margin: 0;" id="esicMasterParseResultTitle">ESIC Statutory Master Sheet Parsed</h3>
                                 <p style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0 0;" id="esicMasterParseResultMeta">Extracted 18 attributes from 'ESIC Details' / 'ESIC Master' sheet</p>
                             </div>
                         </div>
@@ -1461,11 +1466,11 @@
                 <div id="ptMasterParseResultsContainer" style="display: none; background: white; border: 1.5px solid #059669; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.25rem;">
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="width: 38px; height: 38px; border-radius: 10px; background: #ecfdf5; color: #047857; display: flex; align-items: center; justify-content: center;">
+                            <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--k-success-soft); color: var(--k-success-text); display: flex; align-items: center; justify-content: center;">
                                 <i data-lucide="scale" style="width: 22px; height: 22px;"></i>
                             </div>
                             <div>
-                                <h3 style="font-size: 1rem; font-weight: 800; color: #0f172a; margin: 0;" id="ptMasterParseResultTitle">Professional Tax Sheet Parsed</h3>
+                                <h3 style="font-size: 1rem; font-weight: 800; color: var(--k-text); margin: 0;" id="ptMasterParseResultTitle">Professional Tax Sheet Parsed</h3>
                                 <p style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0 0;" id="ptMasterParseResultMeta">Extracted 10 attributes from 'PT Details' / 'PT Master' sheet</p>
                             </div>
                         </div>
@@ -1474,7 +1479,7 @@
 
                     <!-- Schema Badges Header (Strict 10 Attributes) -->
                     <div style="margin-bottom: 1rem;">
-                        <span style="font-size: 0.7rem; font-weight: 800; color: #047857; text-transform: uppercase;">PRD §1, §4, §11 &amp; §13 Strict 10 Attributes:</span>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-success-text); text-transform: uppercase;">PRD §1, §4, §11 &amp; §13 Strict 10 Attributes:</span>
                         <div style="margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px;">
                             <span class="schema-pill">1. Employee ID (FK)</span>
                             <span class="schema-pill">2. Organization ID</span>
@@ -1514,21 +1519,21 @@
 
                     <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.25rem;">
                         <button type="button" class="btn btn-outline" id="btnCancelPtMasterIngest">Discard PT Records</button>
-                        <button type="button" class="btn btn-primary" id="btnConfirmPtMasterIngest" style="font-size: 1rem; padding: 14px 28px; background: #059669; border-color: #047857; color: white;">
+                        <button type="button" class="btn btn-primary" id="btnConfirmPtMasterIngest" style="font-size: 1rem; padding: 14px 28px; background: var(--k-success); border-color: #047857; color: white;">
                             <i data-lucide="database"></i> Ingest PT Master to Cloud Firestore
                         </button>
                     </div>
                 </div>
 
                 <!-- Live LWF Statutory Master Parse Results Preview Container (PRD Sections 1, 4, 11 & 13) -->
-                <div id="lwfMasterParseResultsContainer" style="display: none; background: white; border: 1.5px solid #2563eb; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+                <div id="lwfMasterParseResultsContainer" style="display: none; background: white; border: 1.5px solid var(--k-accent); border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.25rem;">
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="width: 38px; height: 38px; border-radius: 10px; background: #eff6ff; color: #1d4ed8; display: flex; align-items: center; justify-content: center;">
+                            <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center;">
                                 <i data-lucide="shield-check" style="width: 22px; height: 22px;"></i>
                             </div>
                             <div>
-                                <h3 style="font-size: 1rem; font-weight: 800; color: #0f172a; margin: 0;" id="lwfMasterParseResultTitle">Labour Welfare Fund (LWF) Sheet Parsed</h3>
+                                <h3 style="font-size: 1rem; font-weight: 800; color: var(--k-text); margin: 0;" id="lwfMasterParseResultTitle">Labour Welfare Fund (LWF) Sheet Parsed</h3>
                                 <p style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0 0;" id="lwfMasterParseResultMeta">Extracted 10 attributes from 'LWF Details' / 'LWF Master' sheet</p>
                             </div>
                         </div>
@@ -1537,7 +1542,7 @@
 
                     <!-- Schema Badges Header (Strict 10 Attributes) -->
                     <div style="margin-bottom: 1rem;">
-                        <span style="font-size: 0.7rem; font-weight: 800; color: #1d4ed8; text-transform: uppercase;">PRD §1, §4, §11 &amp; §13 Strict 10 Attributes:</span>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-accent-text); text-transform: uppercase;">PRD §1, §4, §11 &amp; §13 Strict 10 Attributes:</span>
                         <div style="margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px;">
                             <span class="schema-pill">1. Employee ID (FK)</span>
                             <span class="schema-pill">2. Organization ID</span>
@@ -1577,7 +1582,7 @@
 
                     <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.25rem;">
                         <button type="button" class="btn btn-outline" id="btnCancelLwfMasterIngest">Discard LWF Records</button>
-                        <button type="button" class="btn btn-primary" id="btnConfirmLwfMasterIngest" style="font-size: 1rem; padding: 14px 28px; background: #2563eb; border-color: #1d4ed8; color: white;">
+                        <button type="button" class="btn btn-primary" id="btnConfirmLwfMasterIngest" style="font-size: 1rem; padding: 14px 28px; background: var(--k-accent); border-color: #1d4ed8; color: white;">
                             <i data-lucide="database"></i> Ingest LWF Master to Cloud Firestore
                         </button>
                     </div>
@@ -1587,11 +1592,11 @@
                 <div id="npsMasterParseResultsContainer" style="display: none; background: white; border: 1.5px solid #059669; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.25rem;">
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="width: 38px; height: 38px; border-radius: 10px; background: #ecfdf5; color: #059669; display: flex; align-items: center; justify-content: center;">
+                            <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--k-success-soft); color: var(--k-success-text); display: flex; align-items: center; justify-content: center;">
                                 <i data-lucide="piggy-bank" style="width: 22px; height: 22px;"></i>
                             </div>
                             <div>
-                                <h3 style="font-size: 1rem; font-weight: 800; color: #0f172a; margin: 0;" id="npsMasterParseResultTitle">National Pension System (NPS) Sheet Parsed</h3>
+                                <h3 style="font-size: 1rem; font-weight: 800; color: var(--k-text); margin: 0;" id="npsMasterParseResultTitle">National Pension System (NPS) Sheet Parsed</h3>
                                 <p style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0 0;" id="npsMasterParseResultMeta">Extracted 22 attributes from 'NPS Details' / 'NPS Master' sheet</p>
                             </div>
                         </div>
@@ -1600,7 +1605,7 @@
 
                     <!-- Schema Badges Header (Strict 22 Attributes) -->
                     <div style="margin-bottom: 1rem;">
-                        <span style="font-size: 0.7rem; font-weight: 800; color: #059669; text-transform: uppercase;">PRD §1, §4, §11 &amp; §13 Strict 22 Attributes:</span>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-success-text); text-transform: uppercase;">PRD §1, §4, §11 &amp; §13 Strict 22 Attributes:</span>
                         <div style="margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px;">
                             <span class="schema-pill">1. Employee ID (FK)</span>
                             <span class="schema-pill">2. Organization ID</span>
@@ -1653,7 +1658,7 @@
 
                     <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.25rem;">
                         <button type="button" class="btn btn-outline" id="btnCancelNpsMasterIngest">Discard NPS Records</button>
-                        <button type="button" class="btn btn-primary" id="btnConfirmNpsMasterIngest" style="font-size: 1rem; padding: 14px 28px; background: #059669; border-color: #047857; color: white;">
+                        <button type="button" class="btn btn-primary" id="btnConfirmNpsMasterIngest" style="font-size: 1rem; padding: 14px 28px; background: var(--k-success); border-color: #047857; color: white;">
                             <i data-lucide="database"></i> Ingest NPS Master to Cloud Firestore
                         </button>
                     </div>
@@ -1667,7 +1672,7 @@
                                 <i data-lucide="award" style="width: 22px; height: 22px;"></i>
                             </div>
                             <div>
-                                <h3 style="font-size: 1rem; font-weight: 800; color: #0f172a; margin: 0;" id="gratuityMasterParseResultTitle">Gratuity Statutory Master Sheet Parsed</h3>
+                                <h3 style="font-size: 1rem; font-weight: 800; color: var(--k-text); margin: 0;" id="gratuityMasterParseResultTitle">Gratuity Statutory Master Sheet Parsed</h3>
                                 <p style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0 0;" id="gratuityMasterParseResultMeta">Extracted 18 attributes from 'Gratuity Details' / 'Gratuity Master' sheet</p>
                             </div>
                         </div>
@@ -1741,7 +1746,7 @@
                                 <i data-lucide="badge-percent" style="width: 22px; height: 22px;"></i>
                             </div>
                             <div>
-                                <h3 style="font-size: 1rem; font-weight: 800; color: #0f172a; margin: 0;" id="salaryStructureParseResultTitle">Salary Structure Sheet Parsed</h3>
+                                <h3 style="font-size: 1rem; font-weight: 800; color: var(--k-text); margin: 0;" id="salaryStructureParseResultTitle">Salary Structure Sheet Parsed</h3>
                                 <p style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0 0;" id="salaryStructureParseResultMeta">Extracted 9 attributes from 'Salary Stcruture' sheet</p>
                             </div>
                         </div>
@@ -1766,21 +1771,21 @@
 
                     <!-- Computed Breakdown Metrics Cards -->
                     <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.25rem;">
-                        <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 0.75rem 1rem;">
-                            <span style="font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Total Component Rows</span>
-                            <p id="salaryTotalRowsDisplay" style="font-size: 1.125rem; font-weight: 800; color: #0f172a; margin: 2px 0 0 0;">0</p>
+                        <div style="background: var(--k-subtle); border: 1px solid var(--border); border-radius: 12px; padding: 0.75rem 1rem;">
+                            <span style="font-size: 0.7rem; font-weight: 700; color: var(--k-muted); text-transform: uppercase;">Total Component Rows</span>
+                            <p id="salaryTotalRowsDisplay" style="font-size: 1.125rem; font-weight: 800; color: var(--k-text); margin: 2px 0 0 0;">0</p>
                         </div>
-                        <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 0.75rem 1rem;">
-                            <span style="font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Employees / Structures</span>
+                        <div style="background: var(--k-subtle); border: 1px solid var(--border); border-radius: 12px; padding: 0.75rem 1rem;">
+                            <span style="font-size: 0.7rem; font-weight: 700; color: var(--k-muted); text-transform: uppercase;">Employees / Structures</span>
                             <p id="salaryTotalStructuresDisplay" style="font-size: 1.125rem; font-weight: 800; color: #4f46e5; margin: 2px 0 0 0;">0</p>
                         </div>
-                        <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 0.75rem 1rem;">
-                            <span style="font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Total Monthly Gross</span>
-                            <p id="salaryTotalMonthlyGrossDisplay" style="font-size: 1.125rem; font-weight: 800; color: #0f172a; margin: 2px 0 0 0;">₹0.00</p>
+                        <div style="background: var(--k-subtle); border: 1px solid var(--border); border-radius: 12px; padding: 0.75rem 1rem;">
+                            <span style="font-size: 0.7rem; font-weight: 700; color: var(--k-muted); text-transform: uppercase;">Total Monthly Gross</span>
+                            <p id="salaryTotalMonthlyGrossDisplay" style="font-size: 1.125rem; font-weight: 800; color: var(--k-text); margin: 2px 0 0 0;">₹0.00</p>
                         </div>
-                        <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 0.75rem 1rem;">
-                            <span style="font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Total Annual CTC</span>
-                            <p id="salaryTotalAnnualCtcDisplay" style="font-size: 1.125rem; font-weight: 800; color: #166534; margin: 2px 0 0 0;">₹0.00</p>
+                        <div style="background: var(--k-subtle); border: 1px solid var(--border); border-radius: 12px; padding: 0.75rem 1rem;">
+                            <span style="font-size: 0.7rem; font-weight: 700; color: var(--k-muted); text-transform: uppercase;">Total Annual CTC</span>
+                            <p id="salaryTotalAnnualCtcDisplay" style="font-size: 1.125rem; font-weight: 800; color: var(--k-success-text); margin: 2px 0 0 0;">₹0.00</p>
                         </div>
                     </div>
 
@@ -1823,7 +1828,7 @@
                                 <i data-lucide="calendar" style="width: 24px; height: 24px;"></i>
                             </div>
                             <div>
-                                <h3 style="font-size: 1rem; font-weight: 800; color: #0f172a; margin: 0;" id="holidayCalendarParseResultTitle">Holiday Calendar Sheet Parsed</h3>
+                                <h3 style="font-size: 1rem; font-weight: 800; color: var(--k-text); margin: 0;" id="holidayCalendarParseResultTitle">Holiday Calendar Sheet Parsed</h3>
                                 <p style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0 0;" id="holidayCalendarParseResultMeta">Extracted 9 attributes from 'Holiday Calendar' sheet</p>
                             </div>
                         </div>
@@ -1838,17 +1843,17 @@
                             <span style="font-size: 0.7rem; font-weight: 800; color: #9d174d; text-transform: uppercase;">Total Holidays</span>
                             <p style="font-size: 1.25rem; font-weight: 800; color: #be185d; margin: 4px 0 0 0;" id="holidayTotalRowsDisplay">0</p>
                         </div>
-                        <div style="background: #eff6ff; border: 1px solid #dbeafe; border-radius: 14px; padding: 1rem;">
-                            <span style="font-size: 0.7rem; font-weight: 800; color: #1e40af; text-transform: uppercase;">Mapped Calendars</span>
-                            <p style="font-size: 1.25rem; font-weight: 800; color: #2563eb; margin: 4px 0 0 0;" id="holidayTotalCalendarsDisplay">0</p>
+                        <div style="background: var(--k-accent-soft); border: 1px solid var(--k-accent-border); border-radius: 14px; padding: 1rem;">
+                            <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-accent-text); text-transform: uppercase;">Mapped Calendars</span>
+                            <p style="font-size: 1.25rem; font-weight: 800; color: var(--k-accent-text); margin: 4px 0 0 0;" id="holidayTotalCalendarsDisplay">0</p>
                         </div>
-                        <div style="background: #f0fdf4; border: 1px solid #dcfce7; border-radius: 14px; padding: 1rem;">
-                            <span style="font-size: 0.7rem; font-weight: 800; color: #166534; text-transform: uppercase;">Mandatory Closures</span>
-                            <p style="font-size: 1.25rem; font-weight: 800; color: #15803d; margin: 4px 0 0 0;" id="holidayTotalMandatoryDisplay">0</p>
+                        <div style="background: var(--k-success-soft); border: 1px solid #dcfce7; border-radius: 14px; padding: 1rem;">
+                            <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-success-text); text-transform: uppercase;">Mandatory Closures</span>
+                            <p style="font-size: 1.25rem; font-weight: 800; color: var(--k-success-text); margin: 4px 0 0 0;" id="holidayTotalMandatoryDisplay">0</p>
                         </div>
-                        <div style="background: #fffbeb; border: 1px solid #fef3c7; border-radius: 14px; padding: 1rem;">
-                            <span style="font-size: 0.7rem; font-weight: 800; color: #92400e; text-transform: uppercase;">Optional / Floating</span>
-                            <p style="font-size: 1.25rem; font-weight: 800; color: #d97706; margin: 4px 0 0 0;" id="holidayTotalOptionalDisplay">0</p>
+                        <div style="background: var(--k-warning-soft); border: 1px solid #fef3c7; border-radius: 14px; padding: 1rem;">
+                            <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-warning-text); text-transform: uppercase;">Optional / Floating</span>
+                            <p style="font-size: 1.25rem; font-weight: 800; color: var(--k-warning-text); margin: 4px 0 0 0;" id="holidayTotalOptionalDisplay">0</p>
                         </div>
                     </div>
 
@@ -1882,14 +1887,14 @@
                 </div>
 
                 <!-- Statutory Compliance Preview (PRD Sections 1, 4, 11, & 13) -->
-                <div id="statutoryComplianceParseResultsContainer" style="display: none; background: white; border: 1.5px solid #2563eb; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+                <div id="statutoryComplianceParseResultsContainer" style="display: none; background: white; border: 1.5px solid var(--k-accent); border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1.25rem; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                         <div style="display: flex; align-items: center; gap: 12px;">
-                            <div style="width: 44px; height: 44px; border-radius: 14px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                            <div style="width: 44px; height: 44px; border-radius: 14px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
                                 <i data-lucide="scale" style="width: 24px; height: 24px;"></i>
                             </div>
                             <div>
-                                <h3 style="font-size: 1rem; font-weight: 800; color: #0f172a; margin: 0;" id="statutoryComplianceParseResultTitle">Statutory Compliance Sheet Parsed</h3>
+                                <h3 style="font-size: 1rem; font-weight: 800; color: var(--k-text); margin: 0;" id="statutoryComplianceParseResultTitle">Statutory Compliance Sheet Parsed</h3>
                                 <p style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0 0;" id="statutoryComplianceParseResultMeta">Extracted 11 attributes from 'Statuatory Compliance' sheet</p>
                             </div>
                         </div>
@@ -1900,13 +1905,13 @@
 
                     <!-- Summary Cards -->
                     <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
-                        <div style="background: #eff6ff; border: 1px solid #dbeafe; border-radius: 14px; padding: 1rem;">
-                            <span style="font-size: 0.7rem; font-weight: 800; color: #1e40af; text-transform: uppercase;">Total Schemes</span>
-                            <p style="font-size: 1.25rem; font-weight: 800; color: #2563eb; margin: 4px 0 0 0;" id="statutoryTotalRowsDisplay">0</p>
+                        <div style="background: var(--k-accent-soft); border: 1px solid var(--k-accent-border); border-radius: 14px; padding: 1rem;">
+                            <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-accent-text); text-transform: uppercase;">Total Schemes</span>
+                            <p style="font-size: 1.25rem; font-weight: 800; color: var(--k-accent-text); margin: 4px 0 0 0;" id="statutoryTotalRowsDisplay">0</p>
                         </div>
-                        <div style="background: #f0fdf4; border: 1px solid #dcfce7; border-radius: 14px; padding: 1rem;">
-                            <span style="font-size: 0.7rem; font-weight: 800; color: #166534; text-transform: uppercase;">Mandated / Applicable</span>
-                            <p style="font-size: 1.25rem; font-weight: 800; color: #15803d; margin: 4px 0 0 0;" id="statutoryTotalApplicableDisplay">0</p>
+                        <div style="background: var(--k-success-soft); border: 1px solid #dcfce7; border-radius: 14px; padding: 1rem;">
+                            <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-success-text); text-transform: uppercase;">Mandated / Applicable</span>
+                            <p style="font-size: 1.25rem; font-weight: 800; color: var(--k-success-text); margin: 4px 0 0 0;" id="statutoryTotalApplicableDisplay">0</p>
                         </div>
                         <div style="background: #faf5ff; border: 1px solid #f3e8ff; border-radius: 14px; padding: 1rem;">
                             <span style="font-size: 0.7rem; font-weight: 800; color: #7e22ce; text-transform: uppercase;">Jurisdictions</span>
@@ -1943,7 +1948,7 @@
 
                     <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.25rem;">
                         <button type="button" class="btn btn-outline" id="btnCancelStatutoryComplianceIngest">Discard Statutory Policies</button>
-                        <button type="button" class="btn btn-primary" id="btnConfirmStatutoryComplianceIngest" style="font-size: 1rem; padding: 14px 28px; background: #2563eb; border-color: #1d4ed8; color: white;">
+                        <button type="button" class="btn btn-primary" id="btnConfirmStatutoryComplianceIngest" style="font-size: 1rem; padding: 14px 28px; background: var(--k-accent); border-color: #1d4ed8; color: white;">
                             <i data-lucide="database"></i> Ingest Statutory Rules to Cloud Firestore
                         </button>
                     </div>
@@ -1957,7 +1962,7 @@
                                 <i data-lucide="shield-check" style="width: 24px; height: 24px;"></i>
                             </div>
                             <div>
-                                <h3 style="font-size: 1rem; font-weight: 800; color: #0f172a; margin: 0;" id="rolePermissionParseResultTitle">Role &amp; Permission Overrides Sheet Parsed</h3>
+                                <h3 style="font-size: 1rem; font-weight: 800; color: var(--k-text); margin: 0;" id="rolePermissionParseResultTitle">Role &amp; Permission Overrides Sheet Parsed</h3>
                                 <p style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0 0;" id="rolePermissionParseResultMeta">Extracted 13 attributes from 'Role_Code/Employee Cod' sheet</p>
                             </div>
                         </div>
@@ -1972,17 +1977,17 @@
                             <span style="font-size: 0.7rem; font-weight: 800; color: #4338ca; text-transform: uppercase;">Total Profiles</span>
                             <p style="font-size: 1.25rem; font-weight: 800; color: #4f46e5; margin: 4px 0 0 0;" id="roleTotalRowsDisplay">0</p>
                         </div>
-                        <div style="background: #eff6ff; border: 1px solid #dbeafe; border-radius: 14px; padding: 1rem;">
-                            <span style="font-size: 0.7rem; font-weight: 800; color: #1e40af; text-transform: uppercase;">Standard Roles</span>
-                            <p style="font-size: 1.25rem; font-weight: 800; color: #2563eb; margin: 4px 0 0 0;" id="roleTotalBaseRolesDisplay">0</p>
+                        <div style="background: var(--k-accent-soft); border: 1px solid var(--k-accent-border); border-radius: 14px; padding: 1rem;">
+                            <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-accent-text); text-transform: uppercase;">Standard Roles</span>
+                            <p style="font-size: 1.25rem; font-weight: 800; color: var(--k-accent-text); margin: 4px 0 0 0;" id="roleTotalBaseRolesDisplay">0</p>
                         </div>
                         <div style="background: #fdf2f8; border: 1px solid #fce7f3; border-radius: 14px; padding: 1rem;">
                             <span style="font-size: 0.7rem; font-weight: 800; color: #9d174d; text-transform: uppercase;">User Overrides</span>
                             <p style="font-size: 1.25rem; font-weight: 800; color: #be185d; margin: 4px 0 0 0;" id="roleTotalOverridesDisplay">0</p>
                         </div>
-                        <div style="background: #f0fdf4; border: 1px solid #dcfce7; border-radius: 14px; padding: 1rem;">
-                            <span style="font-size: 0.7rem; font-weight: 800; color: #166534; text-transform: uppercase;">Active Profiles</span>
-                            <p style="font-size: 1.25rem; font-weight: 800; color: #15803d; margin: 4px 0 0 0;" id="roleTotalActiveDisplay">0</p>
+                        <div style="background: var(--k-success-soft); border: 1px solid #dcfce7; border-radius: 14px; padding: 1rem;">
+                            <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-success-text); text-transform: uppercase;">Active Profiles</span>
+                            <p style="font-size: 1.25rem; font-weight: 800; color: var(--k-success-text); margin: 4px 0 0 0;" id="roleTotalActiveDisplay">0</p>
                         </div>
                     </div>
 
@@ -2028,7 +2033,7 @@
                                 <i data-lucide="git-merge" style="width: 24px; height: 24px;"></i>
                             </div>
                             <div>
-                                <h3 style="font-size: 1rem; font-weight: 800; color: #0f172a; margin: 0;" id="workflowRulesParseResultTitle">Workflow Rules &amp; Multi-Step Approvals Sheet Parsed</h3>
+                                <h3 style="font-size: 1rem; font-weight: 800; color: var(--k-text); margin: 0;" id="workflowRulesParseResultTitle">Workflow Rules &amp; Multi-Step Approvals Sheet Parsed</h3>
                                 <p style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0 0;" id="workflowRulesParseResultMeta">Extracted 10 attributes from 'Workflow Rules' sheet (PRD §§ 1, 9, 12, 14, &amp; 18)</p>
                             </div>
                         </div>
@@ -2043,13 +2048,13 @@
                             <span style="font-size: 0.7rem; font-weight: 800; color: #0369a1; text-transform: uppercase;">Total Step Rows</span>
                             <p style="font-size: 1.25rem; font-weight: 800; color: #0284c7; margin: 4px 0 0 0;" id="wfTotalStepRowsDisplay">0</p>
                         </div>
-                        <div style="background: #eff6ff; border: 1px solid #dbeafe; border-radius: 14px; padding: 1rem;">
-                            <span style="font-size: 0.7rem; font-weight: 800; color: #1e40af; text-transform: uppercase;">Unique Workflows</span>
-                            <p style="font-size: 1.25rem; font-weight: 800; color: #2563eb; margin: 4px 0 0 0;" id="wfTotalWorkflowsDisplay">0</p>
+                        <div style="background: var(--k-accent-soft); border: 1px solid var(--k-accent-border); border-radius: 14px; padding: 1rem;">
+                            <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-accent-text); text-transform: uppercase;">Unique Workflows</span>
+                            <p style="font-size: 1.25rem; font-weight: 800; color: var(--k-accent-text); margin: 4px 0 0 0;" id="wfTotalWorkflowsDisplay">0</p>
                         </div>
-                        <div style="background: #f0fdf4; border: 1px solid #dcfce7; border-radius: 14px; padding: 1rem;">
-                            <span style="font-size: 0.7rem; font-weight: 800; color: #166534; text-transform: uppercase;">Active Workflows</span>
-                            <p style="font-size: 1.25rem; font-weight: 800; color: #15803d; margin: 4px 0 0 0;" id="wfActiveWorkflowsDisplay">0</p>
+                        <div style="background: var(--k-success-soft); border: 1px solid #dcfce7; border-radius: 14px; padding: 1rem;">
+                            <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-success-text); text-transform: uppercase;">Active Workflows</span>
+                            <p style="font-size: 1.25rem; font-weight: 800; color: var(--k-success-text); margin: 4px 0 0 0;" id="wfActiveWorkflowsDisplay">0</p>
                         </div>
                         <div style="background: #faf5ff; border: 1px solid #f3e8ff; border-radius: 14px; padding: 1rem;">
                             <span style="font-size: 0.7rem; font-weight: 800; color: #6b21a8; text-transform: uppercase;">Modules Covered</span>
@@ -2058,7 +2063,7 @@
                     </div>
 
                     <!-- Flow Canvas Preview Area (PRD Sections 9 & 12) -->
-                    <div id="wfCanvasPreviewContainer" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.25rem; margin-bottom: 1.5rem;">
+                    <div id="wfCanvasPreviewContainer" style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 16px; padding: 1.25rem; margin-bottom: 1.5rem;">
                         <!-- Rendered by KylrxWorkflowFlowDesigner -->
                     </div>
 
@@ -2093,14 +2098,14 @@
                 </div>
 
                 <!-- Payroll Components Catalog Ingestion Preview (PRD Sections 1 & 4) -->
-                <div id="payrollComponentsParseResultsContainer" style="display: none; background: white; border: 1.5px solid #2563eb; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+                <div id="payrollComponentsParseResultsContainer" style="display: none; background: white; border: 1.5px solid var(--k-accent); border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1.25rem; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                         <div style="display: flex; align-items: center; gap: 12px;">
-                            <div style="width: 44px; height: 44px; border-radius: 14px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                            <div style="width: 44px; height: 44px; border-radius: 14px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
                                 <i data-lucide="layers" style="width: 24px; height: 24px;"></i>
                             </div>
                             <div>
-                                <h3 style="font-size: 1rem; font-weight: 800; color: #0f172a; margin: 0;" id="payrollComponentsParseResultTitle">Payroll Components Sheet Parsed</h3>
+                                <h3 style="font-size: 1rem; font-weight: 800; color: var(--k-text); margin: 0;" id="payrollComponentsParseResultTitle">Payroll Components Sheet Parsed</h3>
                                 <p style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0 0;" id="payrollComponentsParseResultMeta">Extracted 13 attributes from 'Payroll Components' sheet (PRD §§ 1 &amp; 4)</p>
                             </div>
                         </div>
@@ -2111,17 +2116,17 @@
 
                     <!-- Summary Cards -->
                     <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
-                        <div style="background: #eff6ff; border: 1px solid #dbeafe; border-radius: 14px; padding: 1rem;">
-                            <span style="font-size: 0.7rem; font-weight: 800; color: #1e40af; text-transform: uppercase;">Total Components</span>
-                            <p style="font-size: 1.25rem; font-weight: 800; color: #2563eb; margin: 4px 0 0 0;" id="compTotalRowsDisplay">0</p>
+                        <div style="background: var(--k-accent-soft); border: 1px solid var(--k-accent-border); border-radius: 14px; padding: 1rem;">
+                            <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-accent-text); text-transform: uppercase;">Total Components</span>
+                            <p style="font-size: 1.25rem; font-weight: 800; color: var(--k-accent-text); margin: 4px 0 0 0;" id="compTotalRowsDisplay">0</p>
                         </div>
-                        <div style="background: #f0fdf4; border: 1px solid #dcfce7; border-radius: 14px; padding: 1rem;">
-                            <span style="font-size: 0.7rem; font-weight: 800; color: #166534; text-transform: uppercase;">Earnings</span>
-                            <p style="font-size: 1.25rem; font-weight: 800; color: #15803d; margin: 4px 0 0 0;" id="compEarningsDisplay">0</p>
+                        <div style="background: var(--k-success-soft); border: 1px solid #dcfce7; border-radius: 14px; padding: 1rem;">
+                            <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-success-text); text-transform: uppercase;">Earnings</span>
+                            <p style="font-size: 1.25rem; font-weight: 800; color: var(--k-success-text); margin: 4px 0 0 0;" id="compEarningsDisplay">0</p>
                         </div>
-                        <div style="background: #fffbeb; border: 1px solid #fef3c7; border-radius: 14px; padding: 1rem;">
-                            <span style="font-size: 0.7rem; font-weight: 800; color: #b45309; text-transform: uppercase;">Deductions</span>
-                            <p style="font-size: 1.25rem; font-weight: 800; color: #d97706; margin: 4px 0 0 0;" id="compDeductionsDisplay">0</p>
+                        <div style="background: var(--k-warning-soft); border: 1px solid #fef3c7; border-radius: 14px; padding: 1rem;">
+                            <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-warning-text); text-transform: uppercase;">Deductions</span>
+                            <p style="font-size: 1.25rem; font-weight: 800; color: var(--k-warning-text); margin: 4px 0 0 0;" id="compDeductionsDisplay">0</p>
                         </div>
                         <div style="background: #faf5ff; border: 1px solid #f3e8ff; border-radius: 14px; padding: 1rem;">
                             <span style="font-size: 0.7rem; font-weight: 800; color: #6b21a8; text-transform: uppercase;">Statutory Linked</span>
@@ -2156,7 +2161,7 @@
 
                     <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.25rem;">
                         <button type="button" class="btn btn-outline" id="btnCancelPayrollComponentsIngest">Discard Components</button>
-                        <button type="button" class="btn btn-primary" id="btnConfirmPayrollComponentsIngest" style="font-size: 1rem; padding: 14px 28px; background: #2563eb; border-color: #1d4ed8; color: white;">
+                        <button type="button" class="btn btn-primary" id="btnConfirmPayrollComponentsIngest" style="font-size: 1rem; padding: 14px 28px; background: var(--k-accent); border-color: #1d4ed8; color: white;">
                             <i data-lucide="database"></i> Ingest Payroll Components to Cloud Firestore
                         </button>
                     </div>
@@ -2169,13 +2174,13 @@
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1.25rem; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                         <div>
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 40px; height: 40px; border-radius: 12px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                                <div style="width: 40px; height: 40px; border-radius: 12px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center;">
                                     <i data-lucide="building-2" style="width: 22px; height: 22px;"></i>
                                 </div>
                                 <div>
-                                    <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0;">Business Unit Management Console</h2>
+                                    <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--k-text); margin: 0;">Business Unit Management Console</h2>
                                     <p style="font-size: 0.8rem; color: var(--text-muted); margin: 2px 0 0 0;">
-                                        Cloud Firestore: <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #2563eb; font-weight: 700;">organizations/{orgId}/business_units/{businessUnitCode}</code>
+                                        Cloud Firestore: <code style="background: var(--k-subtle); padding: 2px 6px; border-radius: 4px; color: var(--k-accent-text); font-weight: 700;">organizations/{orgId}/business_units/{businessUnitCode}</code>
                                     </p>
                                 </div>
                             </div>
@@ -2191,22 +2196,22 @@
                     </div>
 
                     <!-- PRD §1 & §10 Specifications banner -->
-                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+                    <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 16px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
                         <div>
-                            <span style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">1. Code Attribute</span>
-                            <p style="font-size: 0.8rem; font-weight: 700; color: #0f172a; margin-top: 2px;">Business_Unit_Code (PK)</p>
+                            <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">1. Code Attribute</span>
+                            <p style="font-size: 0.8rem; font-weight: 700; color: var(--k-text); margin-top: 2px;">Business_Unit_Code (PK)</p>
                         </div>
                         <div>
-                            <span style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">2. Title Attribute</span>
-                            <p style="font-size: 0.8rem; font-weight: 700; color: #0f172a; margin-top: 2px;">Business_Unit_Name</p>
+                            <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">2. Title Attribute</span>
+                            <p style="font-size: 0.8rem; font-weight: 700; color: var(--k-text); margin-top: 2px;">Business_Unit_Name</p>
                         </div>
                         <div>
-                            <span style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">3. Head Reference</span>
-                            <p style="font-size: 0.8rem; font-weight: 700; color: #0f172a; margin-top: 2px;">Head_Employee_ID</p>
+                            <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">3. Head Reference</span>
+                            <p style="font-size: 0.8rem; font-weight: 700; color: var(--k-text); margin-top: 2px;">Head_Employee_ID</p>
                         </div>
                         <div>
-                            <span style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">4. Operational Status</span>
-                            <p style="font-size: 0.8rem; font-weight: 700; color: #166534; margin-top: 2px;">Active: true / false</p>
+                            <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">4. Operational Status</span>
+                            <p style="font-size: 0.8rem; font-weight: 700; color: var(--k-success-text); margin-top: 2px;">Active: true / false</p>
                         </div>
                     </div>
 
@@ -2251,12 +2256,12 @@
             <div id="statutoryMastersView" style="display: none; margin-bottom: 1.25rem;">
                 <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
                     <span style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; margin-right: 0.25rem;">Master</span>
-                    <button type="button" class="statutory-master-btn" data-master="epfo" style="padding: 6px 14px; border-radius: 9999px; border: 1px solid var(--border); background: #fff; font-size: 0.8rem; font-weight: 600; cursor: pointer; color: var(--text-muted);"><i data-lucide="shield-check" style="width: 14px; height: 14px; display: inline-block; vertical-align: text-bottom; margin-right: 4px;"></i>EPFO & PF</button>
-                    <button type="button" class="statutory-master-btn" data-master="esic" style="padding: 6px 14px; border-radius: 9999px; border: 1px solid var(--border); background: #fff; font-size: 0.8rem; font-weight: 600; cursor: pointer; color: var(--text-muted);"><i data-lucide="cross" style="width: 14px; height: 14px; display: inline-block; vertical-align: text-bottom; margin-right: 4px;"></i>ESIC</button>
-                    <button type="button" class="statutory-master-btn" data-master="pt" style="padding: 6px 14px; border-radius: 9999px; border: 1px solid var(--border); background: #fff; font-size: 0.8rem; font-weight: 600; cursor: pointer; color: var(--text-muted);"><i data-lucide="landmark" style="width: 14px; height: 14px; display: inline-block; vertical-align: text-bottom; margin-right: 4px;"></i>PT</button>
-                    <button type="button" class="statutory-master-btn" data-master="lwf" style="padding: 6px 14px; border-radius: 9999px; border: 1px solid var(--border); background: #fff; font-size: 0.8rem; font-weight: 600; cursor: pointer; color: var(--text-muted);"><i data-lucide="shield" style="width: 14px; height: 14px; display: inline-block; vertical-align: text-bottom; margin-right: 4px;"></i>LWF</button>
-                    <button type="button" class="statutory-master-btn" data-master="nps" style="padding: 6px 14px; border-radius: 9999px; border: 1px solid var(--border); background: #fff; font-size: 0.8rem; font-weight: 600; cursor: pointer; color: var(--text-muted);"><i data-lucide="piggy-bank" style="width: 14px; height: 14px; display: inline-block; vertical-align: text-bottom; margin-right: 4px;"></i>NPS</button>
-                    <button type="button" class="statutory-master-btn" data-master="gratuity" style="padding: 6px 14px; border-radius: 9999px; border: 1px solid var(--border); background: #fff; font-size: 0.8rem; font-weight: 600; cursor: pointer; color: var(--text-muted);"><i data-lucide="award" style="width: 14px; height: 14px; display: inline-block; vertical-align: text-bottom; margin-right: 4px;"></i>Gratuity</button>
+                    <button type="button" class="statutory-master-btn" data-master="epfo" style="padding: 6px 14px; border-radius: 9999px; border: 1px solid var(--border); background: var(--k-surface); font-size: 0.8rem; font-weight: 600; cursor: pointer; color: var(--text-muted);"><i data-lucide="shield-check" style="width: 14px; height: 14px; display: inline-block; vertical-align: text-bottom; margin-right: 4px;"></i>EPFO & PF</button>
+                    <button type="button" class="statutory-master-btn" data-master="esic" style="padding: 6px 14px; border-radius: 9999px; border: 1px solid var(--border); background: var(--k-surface); font-size: 0.8rem; font-weight: 600; cursor: pointer; color: var(--text-muted);"><i data-lucide="cross" style="width: 14px; height: 14px; display: inline-block; vertical-align: text-bottom; margin-right: 4px;"></i>ESIC</button>
+                    <button type="button" class="statutory-master-btn" data-master="pt" style="padding: 6px 14px; border-radius: 9999px; border: 1px solid var(--border); background: var(--k-surface); font-size: 0.8rem; font-weight: 600; cursor: pointer; color: var(--text-muted);"><i data-lucide="landmark" style="width: 14px; height: 14px; display: inline-block; vertical-align: text-bottom; margin-right: 4px;"></i>PT</button>
+                    <button type="button" class="statutory-master-btn" data-master="lwf" style="padding: 6px 14px; border-radius: 9999px; border: 1px solid var(--border); background: var(--k-surface); font-size: 0.8rem; font-weight: 600; cursor: pointer; color: var(--text-muted);"><i data-lucide="shield" style="width: 14px; height: 14px; display: inline-block; vertical-align: text-bottom; margin-right: 4px;"></i>LWF</button>
+                    <button type="button" class="statutory-master-btn" data-master="nps" style="padding: 6px 14px; border-radius: 9999px; border: 1px solid var(--border); background: var(--k-surface); font-size: 0.8rem; font-weight: 600; cursor: pointer; color: var(--text-muted);"><i data-lucide="piggy-bank" style="width: 14px; height: 14px; display: inline-block; vertical-align: text-bottom; margin-right: 4px;"></i>NPS</button>
+                    <button type="button" class="statutory-master-btn" data-master="gratuity" style="padding: 6px 14px; border-radius: 9999px; border: 1px solid var(--border); background: var(--k-surface); font-size: 0.8rem; font-weight: 600; cursor: pointer; color: var(--text-muted);"><i data-lucide="award" style="width: 14px; height: 14px; display: inline-block; vertical-align: text-bottom; margin-right: 4px;"></i>Gratuity</button>
                 </div>
             </div>
             <div id="epfoMasterManagementView" style="display: none;">
@@ -2316,7 +2321,7 @@
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                         <div>
                             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
-                                <div style="width: 40px; height: 40px; border-radius: 12px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                                <div style="width: 40px; height: 40px; border-radius: 12px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center;">
                                     <i data-lucide="briefcase" style="width: 22px; height: 22px;"></i>
                                 </div>
                                 <div>
@@ -2333,7 +2338,7 @@
                     </div>
 
                     <div style="margin-bottom: 1.5rem;">
-                        <span style="font-size: 0.7rem; font-weight: 800; color: #2563eb; text-transform: uppercase;">PRD §1 &amp; §3 Schema Checklist (Exact 11 Attributes):</span>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-accent-text); text-transform: uppercase;">PRD §1 &amp; §3 Schema Checklist (Exact 11 Attributes):</span>
                         <div style="margin-top: 6px;">
                             <span class="schema-pill">1. Employee_ID (FK)</span>
                             <span class="schema-pill">2. Organization_ID</span>
@@ -2358,10 +2363,10 @@
                     </div>
 
                     <!-- Preview Container -->
-                    <div id="jobRosterPreviewContainer" style="display: none; border: 1.5px solid #93c5fd; border-radius: 20px; padding: 1.5rem; background: #ffffff; margin-top: 1.5rem;">
+                    <div id="jobRosterPreviewContainer" style="display: none; border: 1.5px solid var(--k-accent-border); border-radius: 20px; padding: 1.5rem; background: var(--k-surface); margin-top: 1.5rem;">
                         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.25rem;">
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 36px; height: 36px; border-radius: 10px; background: #dcfce7; color: #166534; display: flex; align-items: center; justify-content: center;">
+                                <div style="width: 36px; height: 36px; border-radius: 10px; background: var(--k-success-soft); color: var(--k-success-text); display: flex; align-items: center; justify-content: center;">
                                     <i data-lucide="check" style="width: 20px; height: 20px;"></i>
                                 </div>
                                 <div>
@@ -2393,7 +2398,7 @@
 
                         <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.25rem;">
                             <button type="button" class="btn btn-outline" onclick="document.getElementById('jobRosterPreviewContainer').style.display='none'">Discard Batch</button>
-                            <button type="button" class="btn btn-primary" id="btnConfirmJobRosterIngest" style="background: #2563eb; color: white;">
+                            <button type="button" class="btn btn-primary" id="btnConfirmJobRosterIngest" style="background: var(--k-accent); color: white;">
                                 <i data-lucide="database"></i> Ingest Job &amp; Rosters to Cloud Firestore
                             </button>
                         </div>
@@ -2409,7 +2414,7 @@
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                         <div>
                             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
-                                <div style="width: 40px; height: 40px; border-radius: 12px; background: #f0fdf4; color: #16a34a; display: flex; align-items: center; justify-content: center;">
+                                <div style="width: 40px; height: 40px; border-radius: 12px; background: var(--k-success-soft); color: var(--k-success-text); display: flex; align-items: center; justify-content: center;">
                                     <i data-lucide="credit-card" style="width: 22px; height: 22px;"></i>
                                 </div>
                                 <div>
@@ -2426,18 +2431,18 @@
                     </div>
 
                     <!-- Cashfree Integration Callout -->
-                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 12px 18px; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                    <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 14px; padding: 12px 18px; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <i data-lucide="zap" style="color: #3b82f6; width: 20px; height: 20px;"></i>
-                            <span style="font-size: 0.8rem; color: #334155; font-weight: 600;">
+                            <i data-lucide="zap" style="color: var(--k-accent-text); width: 20px; height: 20px;"></i>
+                            <span style="font-size: 0.8rem; color: var(--k-text-2); font-weight: 600;">
                                 <strong>Cashfree Penny Drop Automation:</strong> Accounts marked <em>PENDING_VERIFICATION</em> automatically trigger real-time bank validation requests.
                             </span>
                         </div>
-                        <span style="font-size: 0.7rem; font-weight: 700; background: #dbeafe; color: #1e40af; padding: 3px 10px; border-radius: 9999px;">Cashfree Ready</span>
+                        <span style="font-size: 0.7rem; font-weight: 700; background: var(--k-accent-soft); color: var(--k-accent-text); padding: 3px 10px; border-radius: 9999px;">Cashfree Ready</span>
                     </div>
 
                     <div style="margin-bottom: 1.5rem;">
-                        <span style="font-size: 0.7rem; font-weight: 800; color: #16a34a; text-transform: uppercase;">PRD §1, §4, §11 &amp; §13 Schema Checklist (Exact 12 Attributes):</span>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-success-text); text-transform: uppercase;">PRD §1, §4, §11 &amp; §13 Schema Checklist (Exact 12 Attributes):</span>
                         <div style="margin-top: 6px;">
                             <span class="schema-pill">1. Employee_ID (FK)</span>
                             <span class="schema-pill">2. Organization_ID</span>
@@ -2463,10 +2468,10 @@
                     </div>
 
                     <!-- Preview Container -->
-                    <div id="employeeFinancePreviewContainer" style="display: none; border: 1.5px solid #86efac; border-radius: 20px; padding: 1.5rem; background: #ffffff; margin-top: 1.5rem;">
+                    <div id="employeeFinancePreviewContainer" style="display: none; border: 1.5px solid var(--k-success-border); border-radius: 20px; padding: 1.5rem; background: var(--k-surface); margin-top: 1.5rem;">
                         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.25rem;">
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 36px; height: 36px; border-radius: 10px; background: #dcfce7; color: #166534; display: flex; align-items: center; justify-content: center;">
+                                <div style="width: 36px; height: 36px; border-radius: 10px; background: var(--k-success-soft); color: var(--k-success-text); display: flex; align-items: center; justify-content: center;">
                                     <i data-lucide="check" style="width: 20px; height: 20px;"></i>
                                 </div>
                                 <div>
@@ -2499,7 +2504,7 @@
 
                         <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.25rem;">
                             <button type="button" class="btn btn-outline" onclick="document.getElementById('employeeFinancePreviewContainer').style.display='none'">Discard Batch</button>
-                            <button type="button" class="btn btn-primary" id="btnConfirmEmployeeFinanceIngest" style="background: #16a34a; color: white;">
+                            <button type="button" class="btn btn-primary" id="btnConfirmEmployeeFinanceIngest" style="background: var(--k-success); color: white;">
                                 <i data-lucide="database"></i> Ingest Financial Details to Cloud Firestore
                             </button>
                         </div>
@@ -2557,10 +2562,10 @@
                     </div>
 
                     <!-- Preview Container -->
-                    <div id="orgCompliancePreviewContainer" style="display: none; border: 1.5px solid #d8b4fe; border-radius: 20px; padding: 1.5rem; background: #ffffff; margin-top: 1.5rem;">
+                    <div id="orgCompliancePreviewContainer" style="display: none; border: 1.5px solid #d8b4fe; border-radius: 20px; padding: 1.5rem; background: var(--k-surface); margin-top: 1.5rem;">
                         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.25rem;">
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 36px; height: 36px; border-radius: 10px; background: #dcfce7; color: #166534; display: flex; align-items: center; justify-content: center;">
+                                <div style="width: 36px; height: 36px; border-radius: 10px; background: var(--k-success-soft); color: var(--k-success-text); display: flex; align-items: center; justify-content: center;">
                                     <i data-lucide="check" style="width: 20px; height: 20px;"></i>
                                 </div>
                                 <div>
@@ -2684,27 +2689,27 @@
                 justify-content: center;
             }
             #customAppsModal .modal {
-                background: #ffffff !important;
-                color: #0f172a !important;
+                background: var(--k-surface) !important;
+                color: var(--k-text) !important;
                 padding: 2rem;
                 border-radius: 24px;
                 width: 90%;
                 max-width: 500px;
                 box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-                border: 1px solid #e2e8f0;
+                border: 1px solid var(--k-border);
                 position: relative;
                 text-align: left;
             }
             #customAppsModal .modal h2 {
                 font-weight: 800;
                 font-size: 1.25rem;
-                color: #0f172a !important;
+                color: var(--k-text) !important;
                 margin-bottom: 4px;
                 margin-top: 0;
             }
             #customAppsModal .modal p {
                 font-size: 0.75rem;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 margin: 0;
             }
             #customAppsModal .modal .form-group {
@@ -2716,7 +2721,7 @@
             #customAppsModal .modal label {
                 font-size: 0.7rem;
                 font-weight: 800;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 text-transform: uppercase;
                 display: block;
                 margin-bottom: 4px;
@@ -2725,9 +2730,9 @@
                 width: 100%;
                 padding: 12px 16px;
                 border-radius: 12px;
-                border: 1px solid #cbd5e1 !important;
-                background: #ffffff !important;
-                color: #0f172a !important;
+                border: 1px solid var(--k-border) !important;
+                background: var(--k-surface) !important;
+                color: var(--k-text) !important;
                 outline: none;
                 margin-top: 4px;
                 font-family: inherit;
@@ -2735,15 +2740,15 @@
                 transition: border-color 0.2s, box-shadow 0.2s;
             }
             #customAppsModal .modal input:focus {
-                border-color: #3b82f6 !important;
+                border-color: var(--k-accent) !important;
                 box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
             }
             #customAppsModal .modal input::placeholder {
-                color: #94a3b8 !important;
+                color: var(--k-muted) !important;
                 opacity: 0.8;
             }
             #customAppsModal .modal button.map-btn {
-                background: #3b82f6;
+                background: var(--k-accent);
                 color: white !important;
                 border: none;
                 border-radius: 12px;
@@ -2757,13 +2762,13 @@
                 margin-top: 0.5rem;
             }
             #customAppsModal .modal button.map-btn:hover {
-                background: #2563eb;
+                background: var(--k-accent);
                 transform: translateY(-1px);
             }
             #customAppsModal .modal h3 {
                 font-size: 0.7rem;
                 font-weight: 800;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 text-transform: uppercase;
                 margin-bottom: 10px;
                 margin-top: 0;
@@ -2775,8 +2780,8 @@
                 width: 36px;
                 height: 36px;
                 border-radius: 10px;
-                background: #f8fafc;
-                color: #64748b !important;
+                background: var(--k-subtle);
+                color: var(--k-muted) !important;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -2785,8 +2790,8 @@
                 border: none;
             }
             #customAppsModal .close-modal:hover {
-                color: #ef4444 !important;
-                background: #fee2e2;
+                color: var(--k-danger-text) !important;
+                background: var(--k-danger-soft);
             }
         </style>
         <div class="modal">
@@ -2810,7 +2815,7 @@
                 <button class="map-btn" onclick="addCustomApp()">Map Tool Link</button>
             </div>
 
-            <div style="border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
+            <div style="border-top: 1px solid var(--k-border); padding-top: 1.25rem;">
                 <h3>Mapped Connections</h3>
                 <div id="registryAppsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;">
                     <!-- Mapped apps inside the registry panel -->

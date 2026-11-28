@@ -1070,77 +1070,77 @@
                 z-index: 99999; animation: fadeIn 0.2s ease;
             `;
             modal.innerHTML = `
-                <div style="background: white; border-radius: 24px; padding: 2rem; width: 92%; max-width: 560px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); border: 1px solid #e2e8f0; max-height: 90vh; overflow-y: auto;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                <div style="background: white; border-radius: 24px; padding: 2rem; width: 92%; max-width: 560px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); border: 1px solid var(--k-border); max-height: 90vh; overflow-y: auto;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--k-border); padding-bottom: 1rem; margin-bottom: 1.5rem;">
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="width: 36px; height: 36px; border-radius: 10px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                            <div style="width: 36px; height: 36px; border-radius: 10px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center;">
                                 <i data-lucide="layers" style="width: 20px; height: 20px;"></i>
                             </div>
-                            <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0;" id="subDeptModalTitle">New Sub-Department</h2>
+                            <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--k-text); margin: 0;" id="subDeptModalTitle">New Sub-Department</h2>
                         </div>
-                        <button type="button" id="btnCloseSubDeptModal" style="background: none; border: none; font-size: 1.5rem; color: #64748b; cursor: pointer; padding: 4px;">&times;</button>
+                        <button type="button" id="btnCloseSubDeptModal" style="background: none; border: none; font-size: 1.5rem; color: var(--k-muted); cursor: pointer; padding: 4px;">&times;</button>
                     </div>
 
                     <form id="subDeptForm">
                         <div style="margin-bottom: 1.25rem;">
-                            <label style="font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase;">1. Sub-Department Code * (Primary Key)</label>
-                            <input type="text" id="inputSubDeptCode" placeholder="e.g. SUB_QA_AUTO" style="width: 100%; padding: 10px 14px; border-radius: 12px; border: 1.5px solid #cbd5e1; font-family: inherit; font-size: 0.9rem; margin-top: 6px; box-sizing: border-box;" required>
-                            <span style="font-size: 0.72rem; color: #94a3b8; margin-top: 4px; display: block;">Immutable unique identifier (e.g. SUB_QA_AUTO, ENG-FRONTEND)</span>
+                            <label style="font-size: 0.75rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">1. Sub-Department Code * (Primary Key)</label>
+                            <input type="text" id="inputSubDeptCode" placeholder="e.g. SUB_QA_AUTO" style="width: 100%; padding: 10px 14px; border-radius: 12px; border: 1.5px solid var(--k-border); font-family: inherit; font-size: 0.9rem; margin-top: 6px; box-sizing: border-box;" required>
+                            <span style="font-size: 0.72rem; color: var(--k-muted); margin-top: 4px; display: block;">Immutable unique identifier (e.g. SUB_QA_AUTO, ENG-FRONTEND)</span>
                         </div>
 
                         <div style="margin-bottom: 1.25rem;">
-                            <label style="font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase;">2. Sub-Department Name * (Display Title)</label>
-                            <input type="text" id="inputSubDeptName" placeholder="e.g. QA & Automation" style="width: 100%; padding: 10px 14px; border-radius: 12px; border: 1.5px solid #cbd5e1; font-family: inherit; font-size: 0.9rem; margin-top: 6px; box-sizing: border-box;" required>
+                            <label style="font-size: 0.75rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">2. Sub-Department Name * (Display Title)</label>
+                            <input type="text" id="inputSubDeptName" placeholder="e.g. QA & Automation" style="width: 100%; padding: 10px 14px; border-radius: 12px; border: 1.5px solid var(--k-border); font-family: inherit; font-size: 0.9rem; margin-top: 6px; box-sizing: border-box;" required>
                         </div>
 
                         <div style="margin-bottom: 1.25rem;">
-                            <label style="font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase;">3. Linked Cost Center * (Cost_Center_Code Foreign Key)</label>
-                            <select id="selectSubDeptCostCenter" style="width: 100%; padding: 10px 14px; border-radius: 12px; border: 1.5px solid #cbd5e1; font-family: inherit; font-size: 0.9rem; margin-top: 6px; box-sizing: border-box;" required>
+                            <label style="font-size: 0.75rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">3. Linked Cost Center * (Cost_Center_Code Foreign Key)</label>
+                            <select id="selectSubDeptCostCenter" style="width: 100%; padding: 10px 14px; border-radius: 12px; border: 1.5px solid var(--k-border); font-family: inherit; font-size: 0.9rem; margin-top: 6px; box-sizing: border-box;" required>
                                 <!-- Populated dynamically -->
                             </select>
-                            <span style="font-size: 0.72rem; color: #94a3b8; margin-top: 4px; display: block;">Determines departmental budget & organizational parent linkage</span>
+                            <span style="font-size: 0.72rem; color: var(--k-muted); margin-top: 4px; display: block;">Determines departmental budget & organizational parent linkage</span>
                         </div>
 
                         <!-- Same as Department Head Fallback Control -->
-                        <div style="margin-bottom: 1.25rem; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 14px; padding: 14px;">
+                        <div style="margin-bottom: 1.25rem; background: var(--k-subtle); border: 1.5px solid var(--k-border); border-radius: 14px; padding: 14px;">
                             <div style="display: flex; align-items: center; justify-content: space-between;">
-                                <label for="checkSameAsDeptHead" style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 700; color: #0f172a;">
+                                <label for="checkSameAsDeptHead" style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 700; color: var(--k-text);">
                                     <input type="checkbox" id="checkSameAsDeptHead" style="width: 18px; height: 18px; accent-color: #2563eb; cursor: pointer;" checked>
                                     Same as Department Head (Inherit)
                                 </label>
-                                <span style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; font-size: 0.7rem; font-weight: 800; padding: 2px 8px; border-radius: 6px;">Automatic Fallback</span>
+                                <span style="background: var(--k-accent-soft); color: var(--k-accent-text); border: 1px solid var(--k-accent-border); font-size: 0.7rem; font-weight: 800; padding: 2px 8px; border-radius: 6px;">Automatic Fallback</span>
                             </div>
                             
-                            <div id="resolvedDeptHeadDisplay" style="margin-top: 10px; background: white; border: 1px dashed #cbd5e1; border-radius: 10px; padding: 10px 12px; display: flex; align-items: center; gap: 8px;">
-                                <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #dcfce7; color: #15803d; font-size: 0.75rem; font-weight: 800;">✓</span>
-                                <div style="font-size: 0.8rem; color: #334155;">
+                            <div id="resolvedDeptHeadDisplay" style="margin-top: 10px; background: white; border: 1px dashed var(--k-border); border-radius: 10px; padding: 10px 12px; display: flex; align-items: center; gap: 8px;">
+                                <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--k-success-soft); color: var(--k-success-text); font-size: 0.75rem; font-weight: 800;">✓</span>
+                                <div style="font-size: 0.8rem; color: var(--k-text-2);">
                                     Inherited Head: <strong id="resolvedHeadNameText">Vikram Malhotra</strong>
-                                    <span style="font-family: monospace; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; margin-left: 4px;" id="resolvedHeadIdText">EMP0002</span>
-                                    <span style="color: #64748b; font-size: 0.75rem; display: block;" id="resolvedDeptNameText">Parent Dept: QA & Engineering (DEPT_ENG)</span>
+                                    <span style="font-family: monospace; background: var(--k-subtle); padding: 2px 6px; border-radius: 4px; margin-left: 4px;" id="resolvedHeadIdText">EMP0002</span>
+                                    <span style="color: var(--k-muted); font-size: 0.75rem; display: block;" id="resolvedDeptNameText">Parent Dept: QA & Engineering (DEPT_ENG)</span>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Distinct Sub-Department Head Selection -->
                         <div style="margin-bottom: 1.25rem;" id="subDeptHeadSection">
-                            <label style="font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase;">4. Sub-Department Head Lead (Employee ID)</label>
-                            <select id="selectSubDeptHead" style="width: 100%; padding: 10px 14px; border-radius: 12px; border: 1.5px solid #cbd5e1; font-family: inherit; font-size: 0.9rem; margin-top: 6px; box-sizing: border-box;" disabled>
+                            <label style="font-size: 0.75rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">4. Sub-Department Head Lead (Employee ID)</label>
+                            <select id="selectSubDeptHead" style="width: 100%; padding: 10px 14px; border-radius: 12px; border: 1.5px solid var(--k-border); font-family: inherit; font-size: 0.9rem; margin-top: 6px; box-sizing: border-box;" disabled>
                                 <!-- Populated dynamically -->
                             </select>
-                            <span id="subDeptHeadHelpText" style="font-size: 0.72rem; color: #64748b; margin-top: 4px; display: block;">Inherited automatically from parent Department Head. Uncheck "Same as Department Head" above to assign a distinct lead.</span>
+                            <span id="subDeptHeadHelpText" style="font-size: 0.72rem; color: var(--k-muted); margin-top: 4px; display: block;">Inherited automatically from parent Department Head. Uncheck "Same as Department Head" above to assign a distinct lead.</span>
                         </div>
 
-                        <div style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px; background: #f8fafc; padding: 12px 16px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                        <div style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px; background: var(--k-subtle); padding: 12px 16px; border-radius: 12px; border: 1px solid var(--k-border);">
                             <input type="checkbox" id="checkSubDeptActive" style="width: 18px; height: 18px; cursor: pointer;" checked>
                             <div>
-                                <label for="checkSubDeptActive" style="font-size: 0.85rem; font-weight: 700; color: #0f172a; cursor: pointer;">Operational Status (Active)</label>
-                                <p style="font-size: 0.72rem; color: #64748b; margin: 0;">When disabled, this Sub-Department will be hidden from employee assignment dropdowns</p>
+                                <label for="checkSubDeptActive" style="font-size: 0.85rem; font-weight: 700; color: var(--k-text); cursor: pointer;">Operational Status (Active)</label>
+                                <p style="font-size: 0.72rem; color: var(--k-muted); margin: 0;">When disabled, this Sub-Department will be hidden from employee assignment dropdowns</p>
                             </div>
                         </div>
 
                         <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                            <button type="button" id="btnCancelSubDeptModal" style="padding: 10px 18px; border-radius: 12px; border: 1px solid #cbd5e1; background: white; font-weight: 700; cursor: pointer;">Cancel</button>
-                            <button type="submit" id="btnSaveSubDeptModal" style="padding: 10px 22px; border-radius: 12px; border: none; background: #2563eb; color: white; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                            <button type="button" id="btnCancelSubDeptModal" style="padding: 10px 18px; border-radius: 12px; border: 1px solid var(--k-border); background: white; font-weight: 700; cursor: pointer;">Cancel</button>
+                            <button type="submit" id="btnSaveSubDeptModal" style="padding: 10px 22px; border-radius: 12px; border: none; background: var(--k-accent); color: white; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
                                 <i data-lucide="check"></i> Save Sub-Department
                             </button>
                         </div>
@@ -1300,97 +1300,97 @@
         const totalCount = subDepts.length;
 
         container.innerHTML = `
-            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 24px; padding: 2rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 2rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 1.25rem; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+            <div style="background: white; border: 1px solid var(--k-border); border-radius: 24px; padding: 2rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--k-border); padding-bottom: 1.25rem; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="width: 40px; height: 40px; border-radius: 12px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                            <div style="width: 40px; height: 40px; border-radius: 12px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center;">
                                 <i data-lucide="layers" style="width: 22px; height: 22px;"></i>
                             </div>
                             <div>
-                                <h2 style="font-size: 1.3rem; font-weight: 800; color: #0f172a; margin: 0;">Sub-Departments Management Console</h2>
-                                <p style="font-size: 0.8rem; color: #64748b; margin: 2px 0 0 0;">
+                                <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--k-text); margin: 0;">Sub-Departments Management Console</h2>
+                                <p style="font-size: 0.8rem; color: var(--k-muted); margin: 2px 0 0 0;">
                                     PRD Sections 1, 10 & 13: Strict 5-attribute schema with "Same as Department Head" fallback inheritance
                                 </p>
                             </div>
                         </div>
                     </div>
                     <div style="display: flex; gap: 10px;">
-                        <button type="button" class="btn btn-outline" id="btnAdminAddSubDept" style="font-size: 0.85rem; border: 1.5px solid #e2e8f0; background: white; cursor: pointer; padding: 10px 16px; border-radius: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
-                            <i data-lucide="plus-circle" style="color: #2563eb;"></i> Add Sub-Department
+                        <button type="button" class="btn btn-outline" id="btnAdminAddSubDept" style="font-size: 0.85rem; border: 1.5px solid var(--k-border); background: white; cursor: pointer; padding: 10px 16px; border-radius: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                            <i data-lucide="plus-circle" style="color: var(--k-accent-text);"></i> Add Sub-Department
                         </button>
                     </div>
                 </div>
 
                 <!-- Attributes Summary Cards -->
-                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem;">
+                <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 16px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem;">
                     <div>
-                        <span style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">1. Code Attribute</span>
-                        <p style="font-size: 0.82rem; font-weight: 700; color: #0f172a; margin-top: 2px;">Sub-Department_Code (PK)</p>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">1. Code Attribute</span>
+                        <p style="font-size: 0.82rem; font-weight: 700; color: var(--k-text); margin-top: 2px;">Sub-Department_Code (PK)</p>
                     </div>
                     <div>
-                        <span style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">2. Display Title</span>
-                        <p style="font-size: 0.82rem; font-weight: 700; color: #0f172a; margin-top: 2px;">Sub-Department_Name</p>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">2. Display Title</span>
+                        <p style="font-size: 0.82rem; font-weight: 700; color: var(--k-text); margin-top: 2px;">Sub-Department_Name</p>
                     </div>
                     <div>
-                        <span style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">3. Head Lead ID</span>
-                        <p style="font-size: 0.82rem; font-weight: 700; color: #0f172a; margin-top: 2px;">Sub-Department_Head_Employee_ID</p>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">3. Head Lead ID</span>
+                        <p style="font-size: 0.82rem; font-weight: 700; color: var(--k-text); margin-top: 2px;">Sub-Department_Head_Employee_ID</p>
                     </div>
                     <div>
-                        <span style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">4. Foreign Key</span>
-                        <p style="font-size: 0.82rem; font-weight: 700; color: #2563eb; margin-top: 2px;">Cost_Center_Code (FK)</p>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">4. Foreign Key</span>
+                        <p style="font-size: 0.82rem; font-weight: 700; color: var(--k-accent-text); margin-top: 2px;">Cost_Center_Code (FK)</p>
                     </div>
                     <div>
-                        <span style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">5. Operational Status</span>
-                        <p style="font-size: 0.82rem; font-weight: 700; color: #166534; margin-top: 2px;">Active (${activeCount}/${totalCount})</p>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">5. Operational Status</span>
+                        <p style="font-size: 0.82rem; font-weight: 700; color: var(--k-success-text); margin-top: 2px;">Active (${activeCount}/${totalCount})</p>
                     </div>
                 </div>
 
                 <!-- Table Preview -->
-                <div style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 16px;">
+                <div style="overflow-x: auto; border: 1px solid var(--k-border); border-radius: 16px;">
                     <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
                         <thead>
-                            <tr style="background: #f8fafc; border-bottom: 1.5px solid #e2e8f0;">
-                                <th style="padding: 12px 16px; font-weight: 800; color: #475569;">#</th>
-                                <th style="padding: 12px 16px; font-weight: 800; color: #475569;">Sub-Department Code</th>
-                                <th style="padding: 12px 16px; font-weight: 800; color: #475569;">Sub-Department Name</th>
-                                <th style="padding: 12px 16px; font-weight: 800; color: #475569;">Head Lead</th>
-                                <th style="padding: 12px 16px; font-weight: 800; color: #475569;">Linked Cost Center</th>
-                                <th style="padding: 12px 16px; font-weight: 800; color: #475569; text-align: center;">Status</th>
-                                <th style="padding: 12px 16px; font-weight: 800; color: #475569; text-align: right;">Actions</th>
+                            <tr style="background: var(--k-subtle); border-bottom: 1.5px solid var(--k-border);">
+                                <th style="padding: 12px 16px; font-weight: 800; color: var(--k-text-2);">#</th>
+                                <th style="padding: 12px 16px; font-weight: 800; color: var(--k-text-2);">Sub-Department Code</th>
+                                <th style="padding: 12px 16px; font-weight: 800; color: var(--k-text-2);">Sub-Department Name</th>
+                                <th style="padding: 12px 16px; font-weight: 800; color: var(--k-text-2);">Head Lead</th>
+                                <th style="padding: 12px 16px; font-weight: 800; color: var(--k-text-2);">Linked Cost Center</th>
+                                <th style="padding: 12px 16px; font-weight: 800; color: var(--k-text-2); text-align: center;">Status</th>
+                                <th style="padding: 12px 16px; font-weight: 800; color: var(--k-text-2); text-align: right;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             ${subDepts.map((sub, idx) => {
                                 const statusBadge = sub.isActive
-                                    ? '<span style="background: #dcfce7; color: #15803d; padding: 4px 10px; border-radius: 100px; font-size: 0.75rem; font-weight: 800;">Active (Yes)</span>'
-                                    : '<span style="background: #fee2e2; color: #b91c1c; padding: 4px 10px; border-radius: 100px; font-size: 0.75rem; font-weight: 800;">Inactive (No)</span>';
+                                    ? '<span style="background: var(--k-success-soft); color: var(--k-success-text); padding: 4px 10px; border-radius: 100px; font-size: 0.75rem; font-weight: 800;">Active (Yes)</span>'
+                                    : '<span style="background: var(--k-danger-soft); color: var(--k-danger-text); padding: 4px 10px; border-radius: 100px; font-size: 0.75rem; font-weight: 800;">Inactive (No)</span>';
 
                                 const isInherited = sub.sameAsDeptHead === true || sub.inheritedFromDeptHead === true;
                                 const headTag = isInherited
                                     ? '<span style="background: #e0e7ff; color: #3730a3; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; margin-left: 6px;">Inherited</span>'
-                                    : '<span style="background: #f1f5f9; color: #475569; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; margin-left: 6px;">Distinct</span>';
+                                    : '<span style="background: var(--k-subtle); color: var(--k-text-2); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; margin-left: 6px;">Distinct</span>';
 
                                 return `
-                                    <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
-                                        <td style="padding: 12px 16px; color: #94a3b8; font-weight: 600;">${idx + 1}</td>
-                                        <td style="padding: 12px 16px; font-weight: 800; color: #0f172a; font-family: monospace;">${sub.subDepartmentCode}</td>
-                                        <td style="padding: 12px 16px; font-weight: 700; color: #334155;">${sub.subDepartmentName}</td>
+                                    <tr style="border-bottom: 1px solid var(--k-border); transition: background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                                        <td style="padding: 12px 16px; color: var(--k-muted); font-weight: 600;">${idx + 1}</td>
+                                        <td style="padding: 12px 16px; font-weight: 800; color: var(--k-text); font-family: monospace;">${sub.subDepartmentCode}</td>
+                                        <td style="padding: 12px 16px; font-weight: 700; color: var(--k-text-2);">${sub.subDepartmentName}</td>
                                         <td style="padding: 12px 16px;">
-                                            <div style="font-weight: 700; color: #0f172a; display: flex; align-items: center;">
+                                            <div style="font-weight: 700; color: var(--k-text); display: flex; align-items: center;">
                                                 ${sub.subDepartmentHeadName || sub.headEmployeeName || 'Not Assigned'}
                                                 ${headTag}
                                             </div>
-                                            <div style="font-size: 0.75rem; color: #64748b; font-family: monospace;">${sub.subDepartmentHeadEmployeeId || sub.headEmployeeId || ''}</div>
+                                            <div style="font-size: 0.75rem; color: var(--k-muted); font-family: monospace;">${sub.subDepartmentHeadEmployeeId || sub.headEmployeeId || ''}</div>
                                         </td>
                                         <td style="padding: 12px 16px;">
-                                            <span style="background: #eff6ff; color: #1d4ed8; padding: 4px 8px; border-radius: 6px; font-family: monospace; font-size: 0.8rem; font-weight: 700;">${sub.costCenterCode}</span>
+                                            <span style="background: var(--k-accent-soft); color: var(--k-accent-text); padding: 4px 8px; border-radius: 6px; font-family: monospace; font-size: 0.8rem; font-weight: 700;">${sub.costCenterCode}</span>
                                         </td>
                                         <td style="padding: 12px 16px; text-align: center;">${statusBadge}</td>
                                         <td style="padding: 12px 16px; text-align: right;">
                                             <div style="display: inline-flex; gap: 6px;">
-                                                <button onclick="window.KylrxSubDepartmentService.openSubDepartmentModal('${sub.subDepartmentCode}')" style="padding: 6px 10px; border: 1px solid #cbd5e1; background: white; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer;" title="Edit Sub-Department">Edit</button>
-                                                <button onclick="window.KylrxSubDepartmentService.toggleSubDepartmentStatus('${sub.subDepartmentCode}').then(() => window.KylrxSubDepartmentService.renderAdminConsole())" style="padding: 6px 10px; border: 1px solid ${sub.isActive ? '#fecaca' : '#bbf7d0'}; background: ${sub.isActive ? '#fff1f2' : '#f0fdf4'}; color: ${sub.isActive ? '#991b1b' : '#166534'}; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer;">${sub.isActive ? 'Deactivate' : 'Activate'}</button>
+                                                <button onclick="window.KylrxSubDepartmentService.openSubDepartmentModal('${sub.subDepartmentCode}')" style="padding: 6px 10px; border: 1px solid var(--k-border); background: white; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer;" title="Edit Sub-Department">Edit</button>
+                                                <button onclick="window.KylrxSubDepartmentService.toggleSubDepartmentStatus('${sub.subDepartmentCode}').then(() => window.KylrxSubDepartmentService.renderAdminConsole())" style="padding: 6px 10px; border: 1px solid ${sub.isActive ? 'var(--k-danger-border)' : 'var(--k-success-border)'}; background: ${sub.isActive ? '#fff1f2' : 'var(--k-success-soft)'}; color: ${sub.isActive ? '#991b1b' : '#166534'}; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer;">${sub.isActive ? 'Deactivate' : 'Activate'}</button>
                                             </div>
                                         </td>
                                     </tr>

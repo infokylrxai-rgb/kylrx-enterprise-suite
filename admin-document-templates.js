@@ -123,7 +123,7 @@ function safeDocHtml(html) {
 async function loadTemplates() {
     const grid = document.getElementById('template-grid');
     if (grid && !allTemplates.length) {
-        grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="spinner" style="margin:0 auto 8px;"></div><p style="font-size:0.85rem;color:#94a3b8;">Loading templates from Firebase…</p></div>';
+        grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="spinner" style="margin:0 auto 8px;"></div><p style="font-size:0.85rem;color:var(--k-muted);">Loading templates from Firebase…</p></div>';
     }
     try {
         const json = await apiCall('/document-templates');
@@ -133,7 +133,7 @@ async function loadTemplates() {
         renderGatingRules(allTemplates);
     } catch (err) {
         console.error('[DOCS] Could not load templates:', err);
-        if (grid) grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><h3 style="font-size:1.05rem;font-weight:700;color:#b91c1c;">Could not load templates</h3><p style="font-size:0.85rem;color:#64748b;">${escapeHtmlTpl(err.message)}</p><button class="btn btn-secondary btn-sm" style="margin-top:10px;" onclick="loadTemplates()">Try again</button></div>`;
+        if (grid) grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><h3 style="font-size:1.05rem;font-weight:700;color:var(--k-danger-text);">Could not load templates</h3><p style="font-size:0.85rem;color:var(--k-muted);">${escapeHtmlTpl(err.message)}</p><button class="btn btn-secondary btn-sm" style="margin-top:10px;" onclick="loadTemplates()">Try again</button></div>`;
     }
 }
 
@@ -210,9 +210,9 @@ function renderTemplateGrid(templates) {
     if (!templates.length) {
         grid.innerHTML = `
             <div class="empty-state" style="grid-column:1/-1">
-                <i data-lucide="file-text" style="width:36px;height:36px;color:#94a3b8;margin-bottom:8px;"></i>
-                <h3 style="font-size:1.1rem;font-weight:700;color:#334155;">No templates found</h3>
-                <p style="font-size:0.85rem;color:#94a3b8;">Adjust your search or category filter criteria.</p>
+                <i data-lucide="file-text" style="width:36px;height:36px;color:var(--k-muted);margin-bottom:8px;"></i>
+                <h3 style="font-size:1.1rem;font-weight:700;color:var(--k-text-2);">No templates found</h3>
+                <p style="font-size:0.85rem;color:var(--k-muted);">Adjust your search or category filter criteria.</p>
             </div>`;
         if (window.renderLucideIcons) window.renderLucideIcons(grid);
         return;
@@ -412,7 +412,7 @@ function renderSidePanel(template) {
             </div>
             <p style="font-size:11.5px;color:var(--text-muted);margin-top:10px;line-height:1.6;">
                 <i data-lucide="info" style="width:13px;height:13px;color:var(--primary);margin-right:4px;"></i>
-                Only explicitly permitted modules may invoke <code style="font-size:11px;background:#eff6ff;color:#2563eb;padding:2px 6px;border-radius:4px;font-family:monospace;">generateDocument()</code>.
+                Only explicitly permitted modules may invoke <code style="font-size:11px;background:var(--k-accent-soft);color:var(--k-accent-text);padding:2px 6px;border-radius:4px;font-family:monospace;">generateDocument()</code>.
             </p>
         </div>
 
@@ -468,15 +468,15 @@ function openDocumentModal({ title, subtitle, generateKey }) {
     previewContainer.id = modalId;
     previewContainer.innerHTML = `
         <div style="position:fixed;inset:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(6px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)this.parentElement.remove()">
-            <div style="background:#ffffff;border:1px solid var(--border);border-radius:20px;width:92vw;max-width:960px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);" onclick="event.stopPropagation()">
+            <div style="background:var(--k-surface);border:1px solid var(--border);border-radius:20px;width:92vw;max-width:960px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);" onclick="event.stopPropagation()">
                 <!-- Modal Header -->
-                <div style="padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:#f8fafc;">
+                <div style="padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:var(--k-subtle);">
                     <div style="display:flex;align-items:center;gap:12px;min-width:0;">
-                        <div style="width:36px;height:36px;border-radius:10px;background:#eff6ff;color:#2563eb;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <div style="width:36px;height:36px;border-radius:10px;background:var(--k-accent-soft);color:var(--k-accent-text);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                             <i data-lucide="file-text" style="width:20px;height:20px;"></i>
                         </div>
                         <div style="min-width:0;">
-                            <h2 style="font-size:1.05rem;font-weight:800;color:#0f172a;margin:0;">${escapeHtmlTpl(title)}</h2>
+                            <h2 style="font-size:1.05rem;font-weight:800;color:var(--k-text);margin:0;">${escapeHtmlTpl(title)}</h2>
                             <p style="font-size:0.75rem;color:var(--text-muted);margin:2px 0 0 0;">${escapeHtmlTpl(subtitle)}</p>
                         </div>
                     </div>
@@ -490,17 +490,17 @@ function openDocumentModal({ title, subtitle, generateKey }) {
                         ${generateKey ? `<button class="btn btn-primary btn-sm" onclick="quickGenerate('${generateKey}'); document.getElementById('${modalId}').remove();" title="Proceed to Generate">
                             <i data-lucide="file-plus"></i> Generate
                         </button>` : ''}
-                        <button onclick="document.getElementById('${modalId}').remove()" style="background:#f1f5f9;border:1px solid var(--border);border-radius:10px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;color:#64748b;cursor:pointer;margin-left:4px;">
+                        <button onclick="document.getElementById('${modalId}').remove()" style="background:var(--k-subtle);border:1px solid var(--border);border-radius:10px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;color:var(--k-muted);cursor:pointer;margin-left:4px;">
                             <i data-lucide="x" style="width:16px;height:16px;"></i>
                         </button>
                     </div>
                 </div>
 
                 <!-- Modal Body with A4 Paper Simulation -->
-                <div style="flex:1;overflow-y:auto;padding:2rem;background:#f1f5f9;display:flex;justify-content:center;" id="preview-modal-body">
+                <div style="flex:1;overflow-y:auto;padding:2rem;background:var(--k-subtle);display:flex;justify-content:center;" id="preview-modal-body">
                     <div class="preview-loading" style="display:flex;flex-direction:column;gap:10px;align-items:center;">
                         <div class="spinner"></div>
-                        <span style="font-size:0.85rem;color:#64748b;font-weight:600;">Rendering document…</span>
+                        <span style="font-size:0.85rem;color:var(--k-muted);font-weight:600;">Rendering document…</span>
                     </div>
                 </div>
             </div>
@@ -512,7 +512,7 @@ function openDocumentModal({ title, subtitle, generateKey }) {
 function renderPreviewError(message) {
     const modalBody = document.getElementById('preview-modal-body');
     if (!modalBody) return;
-    modalBody.innerHTML = `<div style="max-width:520px;background:#fff;border:1px solid #fecaca;border-radius:12px;padding:1.5rem;color:#b91c1c;font-size:0.9rem;"><strong>Could not render the document.</strong><br>${escapeHtmlTpl(message)}</div>`;
+    modalBody.innerHTML = `<div style="max-width:520px;background:var(--k-surface);border:1px solid var(--k-danger-border);border-radius:12px;padding:1.5rem;color:var(--k-danger-text);font-size:0.9rem;"><strong>Could not render the document.</strong><br>${escapeHtmlTpl(message)}</div>`;
 }
 
 /** data: { renderedHtml, versionNumber, effectiveFrom, companyName?, sha256?, docId? } */
@@ -522,17 +522,17 @@ function renderPreviewContent(data) {
     const companyName = data.companyName || data.samplePayload?.company?.name || 'Company Document';
 
     modalBody.innerHTML = `
-        <div style="width:100%;max-width:800px;background:#ffffff;border:1px solid var(--border);border-radius:8px;padding:3.5rem 4rem;box-shadow:0 10px 25px rgba(0,0,0,0.06);position:relative;color:#1e293b;font-size:0.92rem;line-height:1.8;" class="preview-frame" id="printable-preview-frame">
+        <div style="width:100%;max-width:800px;background:var(--k-surface);border:1px solid var(--border);border-radius:8px;padding:3.5rem 4rem;box-shadow:0 10px 25px rgba(0,0,0,0.06);position:relative;color:var(--k-text);font-size:0.92rem;line-height:1.8;" class="preview-frame" id="printable-preview-frame">
             <!-- Official Header -->
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;border-bottom:2px solid #2563eb;padding-bottom:1.5rem;margin-bottom:2rem;">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;border-bottom:2px solid var(--k-accent);padding-bottom:1.5rem;margin-bottom:2rem;">
                 <div>
-                    <h1 style="font-size:1.4rem;font-weight:800;color:#0f172a;margin:0;letter-spacing:-0.5px;text-transform:uppercase;">${escapeHtmlTpl(companyName)}</h1>
-                    <p style="font-size:0.75rem;color:#64748b;margin:2px 0 0 0;text-transform:uppercase;letter-spacing:1px;font-weight:700;">${data.docId ? `Document ${escapeHtmlTpl(data.docId)}` : 'Preview · Sample Values'}</p>
+                    <h1 style="font-size:1.4rem;font-weight:800;color:var(--k-text);margin:0;letter-spacing:-0.5px;text-transform:uppercase;">${escapeHtmlTpl(companyName)}</h1>
+                    <p style="font-size:0.75rem;color:var(--k-muted);margin:2px 0 0 0;text-transform:uppercase;letter-spacing:1px;font-weight:700;">${data.docId ? `Document ${escapeHtmlTpl(data.docId)}` : 'Preview · Sample Values'}</p>
                 </div>
-                <div style="text-align:right;font-size:0.75rem;color:#64748b;">
+                <div style="text-align:right;font-size:0.75rem;color:var(--k-muted);">
                     <div>Version: <strong>${escapeHtmlTpl(data.versionNumber || 'v1.0')}</strong></div>
                     <div>${data.generatedAt ? 'Generated' : 'Effective'}: <strong>${new Date(data.generatedAt || data.effectiveFrom || Date.now()).toLocaleDateString('en-IN')}</strong></div>
-                    ${data.sha256 ? `<div style="color:#059669;font-weight:700;display:flex;align-items:center;gap:4px;justify-content:flex-end;margin-top:2px;">
+                    ${data.sha256 ? `<div style="color:var(--k-success-text);font-weight:700;display:flex;align-items:center;gap:4px;justify-content:flex-end;margin-top:2px;">
                         <i data-lucide="shield-check" style="width:13px;height:13px;"></i> Sealed (SHA-256)
                     </div>` : ''}
                 </div>
@@ -544,9 +544,9 @@ function renderPreviewContent(data) {
             </div>
 
             <!-- Footer -->
-            <div style="margin-top:3.5rem;border-top:1px solid #e2e8f0;padding-top:1.5rem;display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:0.75rem;color:#94a3b8;">
+            <div style="margin-top:3.5rem;border-top:1px solid var(--k-border);padding-top:1.5rem;display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:0.75rem;color:var(--k-muted);">
                 <div>${data.docId ? 'Generated by the Kylrx AI Document Engine and stored in Firebase.' : 'Preview only — not saved. Generate the document to issue it.'}</div>
-                ${data.sha256 ? `<div style="font-family:monospace;font-size:0.7rem;background:#f8fafc;padding:3px 8px;border-radius:4px;border:1px solid #e2e8f0;" title="${escapeHtmlTpl(data.sha256)}">SHA-256 ${escapeHtmlTpl(data.sha256.slice(0, 16))}…</div>` : ''}
+                ${data.sha256 ? `<div style="font-family:monospace;font-size:0.7rem;background:var(--k-subtle);padding:3px 8px;border-radius:4px;border:1px solid var(--k-border);" title="${escapeHtmlTpl(data.sha256)}">SHA-256 ${escapeHtmlTpl(data.sha256.slice(0, 16))}…</div>` : ''}
             </div>
         </div>`;
 
@@ -630,19 +630,19 @@ function quickGenerate(templateKey) {
     modal.id = modalId;
     modal.innerHTML = `
         <div style="position:fixed;inset:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(6px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)this.parentElement.remove()">
-            <div style="background:#ffffff;border:1px solid var(--border);border-radius:20px;width:90vw;max-width:620px;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);" onclick="event.stopPropagation()">
+            <div style="background:var(--k-surface);border:1px solid var(--border);border-radius:20px;width:90vw;max-width:620px;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);" onclick="event.stopPropagation()">
                 <!-- Header -->
-                <div style="padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:#f8fafc;">
+                <div style="padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--k-subtle);">
                     <div style="display:flex;align-items:center;gap:12px;">
-                        <div style="width:38px;height:38px;border-radius:12px;background:#ecfdf5;color:#059669;display:flex;align-items:center;justify-content:center;">
+                        <div style="width:38px;height:38px;border-radius:12px;background:var(--k-success-soft);color:var(--k-success-text);display:flex;align-items:center;justify-content:center;">
                             <i data-lucide="file-plus" style="width:20px;height:20px;"></i>
                         </div>
                         <div>
-                            <h2 style="font-size:1.1rem;font-weight:800;color:#0f172a;margin:0;">Generate — ${escapeHtmlTpl(template.name)}</h2>
+                            <h2 style="font-size:1.1rem;font-weight:800;color:var(--k-text);margin:0;">Generate — ${escapeHtmlTpl(template.name)}</h2>
                             <p style="font-size:0.75rem;color:var(--text-muted);margin:2px 0 0 0;">Version ${escapeHtmlTpl(approvedVer.versionNumber)} · ${fieldMappings.length} token fields</p>
                         </div>
                     </div>
-                    <button onclick="document.getElementById('${modalId}').remove()" style="background:#f1f5f9;border:1px solid var(--border);border-radius:10px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;color:#64748b;cursor:pointer;">
+                    <button onclick="document.getElementById('${modalId}').remove()" style="background:var(--k-subtle);border:1px solid var(--border);border-radius:10px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;color:var(--k-muted);cursor:pointer;">
                         <i data-lucide="x" style="width:16px;height:16px;"></i>
                     </button>
                 </div>
@@ -655,7 +655,7 @@ function quickGenerate(templateKey) {
                             <i data-lucide="sparkles" style="width:16px;height:16px;"></i> AI Fill from employee record
                         </div>
                         <div style="display:flex;gap:8px;">
-                            <select id="gen-ai-person" style="flex:1;background:#fff;border:1px solid #cbd5e1;border-radius:10px;font-size:0.85rem;padding:8px 10px;font-family:inherit;">
+                            <select id="gen-ai-person" style="flex:1;background:var(--k-surface);border:1px solid var(--k-border);border-radius:10px;font-size:0.85rem;padding:8px 10px;font-family:inherit;">
                                 <option value="">Loading people…</option>
                             </select>
                             <button class="btn btn-primary btn-sm" id="gen-ai-fill-btn" onclick="aiFillGenerate('${templateKey}')" style="background:#7c3aed;border-color:#7c3aed;">Fill</button>
@@ -663,7 +663,7 @@ function quickGenerate(templateKey) {
                         <div id="gen-ai-result" style="font-size:0.75rem;color:#5b21b6;"></div>
                     </div>
 
-                    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:12px 16px;font-size:0.82rem;color:#1e40af;display:flex;align-items:center;gap:10px;">
+                    <div style="background:var(--k-accent-soft);border:1px solid var(--k-accent-border);border-radius:12px;padding:12px 16px;font-size:0.82rem;color:var(--k-accent-text);display:flex;align-items:center;gap:10px;">
                         <i data-lucide="info" style="width:18px;height:18px;flex-shrink:0;"></i>
                         <span>Fill in the recipient's details. Fields marked * are required; an empty field prints as [token] in the document.</span>
                     </div>
@@ -671,28 +671,28 @@ function quickGenerate(templateKey) {
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;" id="gen-fields">
                         ${fieldMappings.map(f => `
                         <div>
-                            <label style="font-size:0.72rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:5px;">
-                                ${escapeHtmlTpl(f.label)} ${f.required ? '<span style="color:#ef4444;">*</span>' : ''}
+                            <label style="font-size:0.72rem;font-weight:700;color:var(--k-text-2);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:5px;">
+                                ${escapeHtmlTpl(f.label)} ${f.required ? '<span style="color:var(--k-danger-text);">*</span>' : ''}
                             </label>
                             <input type="text" placeholder="e.g. ${escapeHtmlTpl(f.sample || 'value')}"
                                 data-token="${escapeHtmlTpl(f.token)}" data-required="${f.required ? '1' : ''}" data-label="${escapeHtmlTpl(f.label)}"
                                 value=""
-                                style="width:100%;background:#ffffff;border:1px solid #cbd5e1;border-radius:10px;color:#0f172a;font-size:0.85rem;padding:9px 12px;font-family:inherit;outline:none;transition:all 0.2s;"
+                                style="width:100%;background:var(--k-surface);border:1px solid var(--k-border);border-radius:10px;color:var(--k-text);font-size:0.85rem;padding:9px 12px;font-family:inherit;outline:none;transition:all 0.2s;"
                                 onfocus="this.style.borderColor='#2563eb';this.style.boxShadow='0 0 0 3px rgba(37,99,235,0.12)'"
                                 onblur="this.style.borderColor='#cbd5e1';this.style.boxShadow='none'" />
                         </div>`).join('')}
                     </div>
 
                     <div>
-                        <label style="font-size:0.72rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:5px;">Caller Authorization Module</label>
-                        <select id="gen-module" style="width:100%;background:#ffffff;border:1px solid #cbd5e1;border-radius:10px;color:#0f172a;font-size:0.85rem;padding:10px 12px;font-family:inherit;outline:none;">
+                        <label style="font-size:0.72rem;font-weight:700;color:var(--k-text-2);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:5px;">Caller Authorization Module</label>
+                        <select id="gen-module" style="width:100%;background:var(--k-surface);border:1px solid var(--k-border);border-radius:10px;color:var(--k-text);font-size:0.85rem;padding:10px 12px;font-family:inherit;outline:none;">
                             ${(template.permittedModules || ['hr_admin']).map(m => `<option value="${escapeHtmlTpl(m)}">${escapeHtmlTpl(MODULE_LABELS[m]?.label || m)}</option>`).join('')}
                         </select>
                     </div>
                 </div>
 
                 <!-- Footer -->
-                <div style="padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;background:#f8fafc;">
+                <div style="padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;background:var(--k-subtle);">
                     <button class="btn btn-secondary" onclick="document.getElementById('${modalId}').remove()">Cancel</button>
                     <button class="btn btn-primary" id="gen-submit-btn" onclick="submitGenerateDoc('${templateKey}')">
                         <i data-lucide="file-check"></i> Generate &amp; Save
@@ -802,7 +802,7 @@ async function loadGeneratedDocs() {
         generatedDocsList = Array.isArray(json.data) ? json.data : [];
         renderGeneratedDocsTable(generatedDocsList);
     } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:40px;color:#b91c1c;">Could not load the archive: ${escapeHtmlTpl(err.message)}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--k-danger-text);">Could not load the archive: ${escapeHtmlTpl(err.message)}</td></tr>`;
     }
 }
 
@@ -815,7 +815,7 @@ function renderGeneratedDocsTable(docs) {
             <tr>
                 <td colspan="9" style="text-align:center;padding:48px 20px;color:var(--text-muted);">
                     <i data-lucide="archive" style="width:36px;height:36px;margin:0 auto 10px;display:block;opacity:0.4;"></i>
-                    <strong style="display:block;font-size:0.95rem;color:#334155;margin-bottom:4px;">No Generated Documents Yet</strong>
+                    <strong style="display:block;font-size:0.95rem;color:var(--k-text-2);margin-bottom:4px;">No Generated Documents Yet</strong>
                     <span style="font-size:0.82rem;">Click "+ Generate Document" above to issue your first document.</span>
                 </td>
             </tr>`;
@@ -826,8 +826,8 @@ function renderGeneratedDocsTable(docs) {
     tbody.innerHTML = docs.map(doc => `
         <tr>
             <td style="font-family:monospace;font-size:12px;font-weight:700;color:var(--primary);">${escapeHtmlTpl(doc.docId)}</td>
-            <td style="font-weight:700;color:#0f172a;">${escapeHtmlTpl(doc.templateName || doc.templateKey)}</td>
-            <td style="font-weight:600;color:#334155;">${escapeHtmlTpl(doc.recipientName || '—')}</td>
+            <td style="font-weight:700;color:var(--k-text);">${escapeHtmlTpl(doc.templateName || doc.templateKey)}</td>
+            <td style="font-weight:600;color:var(--k-text-2);">${escapeHtmlTpl(doc.recipientName || '—')}</td>
             <td><span class="tag tag-blue" style="font-size:10px;">${escapeHtmlTpl(doc.versionNumber || 'v1.0')}</span></td>
             <td style="color:var(--text-secondary);font-size:12px;">${escapeHtmlTpl(doc.generatedBy || 'System')}</td>
             <td><span class="status-badge generated"><i data-lucide="check-circle" style="width:12px;height:12px;"></i> Generated</span></td>
@@ -913,13 +913,13 @@ async function openNewVersionModal(templateKey) {
     modal.id = modalId;
     modal.innerHTML = `
         <div style="position:fixed;inset:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(6px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)this.parentElement.remove()">
-            <div style="background:#ffffff;border:1px solid var(--border);border-radius:20px;width:94vw;max-width:820px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);" onclick="event.stopPropagation()">
-                <div style="padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:#f8fafc;">
+            <div style="background:var(--k-surface);border:1px solid var(--border);border-radius:20px;width:94vw;max-width:820px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);" onclick="event.stopPropagation()">
+                <div style="padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--k-subtle);">
                     <div>
-                        <h2 style="font-size:1.1rem;font-weight:800;color:#0f172a;margin:0;">Create Draft Version — ${escapeHtmlTpl(template.name)}</h2>
+                        <h2 style="font-size:1.1rem;font-weight:800;color:var(--k-text);margin:0;">Create Draft Version — ${escapeHtmlTpl(template.name)}</h2>
                         <p style="font-size:0.75rem;color:var(--text-muted);margin:2px 0 0 0;">Starts from ${escapeHtmlTpl(base?.versionNumber || 'the current version')}. Drafts must be approved before they are used.</p>
                     </div>
-                    <button onclick="document.getElementById('${modalId}').remove()" style="background:#f1f5f9;border:1px solid var(--border);border-radius:10px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;color:#64748b;cursor:pointer;">
+                    <button onclick="document.getElementById('${modalId}').remove()" style="background:var(--k-subtle);border:1px solid var(--border);border-radius:10px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;color:var(--k-muted);cursor:pointer;">
                         <i data-lucide="x" style="width:16px;height:16px;"></i>
                     </button>
                 </div>
@@ -931,7 +931,7 @@ async function openNewVersionModal(templateKey) {
                             <span id="draft-ai-mode" style="font-size:0.68rem;font-weight:700;color:#6d28d9;"></span>
                         </div>
                         <div style="display:flex;gap:8px;">
-                            <input type="text" id="draft-ai-instruction" placeholder="e.g. Add a 6-month probation clause, 90 days notice and a confidentiality clause" style="flex:1;padding:9px 12px;border:1px solid #cbd5e1;border-radius:10px;font-size:0.85rem;outline:none;" />
+                            <input type="text" id="draft-ai-instruction" placeholder="e.g. Add a 6-month probation clause, 90 days notice and a confidentiality clause" style="flex:1;padding:9px 12px;border:1px solid var(--k-border);border-radius:10px;font-size:0.85rem;outline:none;" />
                             <button class="btn btn-primary btn-sm" id="draft-ai-btn" onclick="aiDraftVersion('${templateKey}')" style="background:#7c3aed;border-color:#7c3aed;">Draft</button>
                         </div>
                         <div id="draft-ai-result" style="font-size:0.75rem;color:#5b21b6;"></div>
@@ -939,28 +939,28 @@ async function openNewVersionModal(templateKey) {
 
                     <div style="display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:12px;">
                         <div>
-                            <label style="font-size:0.75rem;font-weight:700;color:#475569;display:block;margin-bottom:4px;">Version Number</label>
-                            <input type="text" id="draft-ver-num" value="${escapeHtmlTpl(nextVersionNumber(template.versions))}" style="width:100%;padding:10px 14px;border:1px solid #cbd5e1;border-radius:10px;font-size:0.85rem;outline:none;" />
+                            <label style="font-size:0.75rem;font-weight:700;color:var(--k-text-2);display:block;margin-bottom:4px;">Version Number</label>
+                            <input type="text" id="draft-ver-num" value="${escapeHtmlTpl(nextVersionNumber(template.versions))}" style="width:100%;padding:10px 14px;border:1px solid var(--k-border);border-radius:10px;font-size:0.85rem;outline:none;" />
                         </div>
                         <div>
-                            <label style="font-size:0.75rem;font-weight:700;color:#475569;display:block;margin-bottom:4px;">Effective From</label>
-                            <input type="date" id="draft-effective-date" value="${new Date().toISOString().split('T')[0]}" style="width:100%;padding:10px 14px;border:1px solid #cbd5e1;border-radius:10px;font-size:0.85rem;outline:none;" />
+                            <label style="font-size:0.75rem;font-weight:700;color:var(--k-text-2);display:block;margin-bottom:4px;">Effective From</label>
+                            <input type="date" id="draft-effective-date" value="${new Date().toISOString().split('T')[0]}" style="width:100%;padding:10px 14px;border:1px solid var(--k-border);border-radius:10px;font-size:0.85rem;outline:none;" />
                         </div>
                         <div>
-                            <label style="font-size:0.75rem;font-weight:700;color:#475569;display:block;margin-bottom:4px;">Change Notes</label>
-                            <input type="text" id="draft-change-notes" placeholder="e.g. Updated compensation clauses per FY27 policies" style="width:100%;padding:10px 14px;border:1px solid #cbd5e1;border-radius:10px;font-size:0.85rem;outline:none;" />
+                            <label style="font-size:0.75rem;font-weight:700;color:var(--k-text-2);display:block;margin-bottom:4px;">Change Notes</label>
+                            <input type="text" id="draft-change-notes" placeholder="e.g. Updated compensation clauses per FY27 policies" style="width:100%;padding:10px 14px;border:1px solid var(--k-border);border-radius:10px;font-size:0.85rem;outline:none;" />
                         </div>
                     </div>
                     <div>
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-                            <label style="font-size:0.75rem;font-weight:700;color:#475569;">Template Body (HTML with {{tokens}})</label>
+                            <label style="font-size:0.75rem;font-weight:700;color:var(--k-text-2);">Template Body (HTML with {{tokens}})</label>
                             <button class="btn btn-secondary btn-sm" onclick="aiReviewDraft('${templateKey}')" style="padding:3px 10px;font-size:0.72rem;"><i data-lucide="sparkles" style="width:12px;height:12px;"></i> AI Review</button>
                         </div>
-                        <textarea id="draft-body" rows="14" spellcheck="false" style="width:100%;padding:12px 14px;border:1px solid #cbd5e1;border-radius:10px;font-size:0.8rem;font-family:ui-monospace,Consolas,monospace;line-height:1.5;outline:none;resize:vertical;">${escapeHtmlTpl(base?.templateBody || '')}</textarea>
+                        <textarea id="draft-body" rows="14" spellcheck="false" style="width:100%;padding:12px 14px;border:1px solid var(--k-border);border-radius:10px;font-size:0.8rem;font-family:ui-monospace,Consolas,monospace;line-height:1.5;outline:none;resize:vertical;">${escapeHtmlTpl(base?.templateBody || '')}</textarea>
                         <div id="draft-review" style="margin-top:8px;"></div>
                     </div>
                 </div>
-                <div style="padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;background:#f8fafc;">
+                <div style="padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;background:var(--k-subtle);">
                     <button class="btn btn-secondary" onclick="document.getElementById('${modalId}').remove()">Cancel</button>
                     <button class="btn btn-primary" id="draft-submit-btn" onclick="submitDraftVersion('${templateKey}')">Save Draft</button>
                 </div>
@@ -998,12 +998,12 @@ async function aiDraftVersion(templateKey) {
 
 async function aiReviewDraft(templateKey) {
     const box = document.getElementById('draft-review');
-    box.innerHTML = '<span style="font-size:0.75rem;color:#64748b;">Reviewing…</span>';
+    box.innerHTML = '<span style="font-size:0.75rem;color:var(--k-muted);">Reviewing…</span>';
     try {
         const { data } = await apiCall('/document-templates/ai/review', { method: 'POST', body: { templateKey, templateBody: document.getElementById('draft-body').value } });
         renderAiReview(box, data);
     } catch (err) {
-        box.innerHTML = `<span style="font-size:0.75rem;color:#b91c1c;">Review failed: ${escapeHtmlTpl(err.message)}</span>`;
+        box.innerHTML = `<span style="font-size:0.75rem;color:var(--k-danger-text);">Review failed: ${escapeHtmlTpl(err.message)}</span>`;
     }
 }
 
@@ -1015,12 +1015,12 @@ async function aiReviewVersion(templateKey, versionNumber) {
     modal.id = modalId;
     modal.innerHTML = `
         <div style="position:fixed;inset:0;background:rgba(15,23,42,0.5);backdrop-filter:blur(4px);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)this.parentElement.remove()">
-            <div style="background:#fff;border-radius:18px;width:92vw;max-width:560px;max-height:85vh;overflow-y:auto;padding:20px 22px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);" onclick="event.stopPropagation()">
+            <div style="background:var(--k-surface);border-radius:18px;width:92vw;max-width:560px;max-height:85vh;overflow-y:auto;padding:20px 22px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);" onclick="event.stopPropagation()">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-                    <h2 style="font-size:1.05rem;font-weight:800;color:#0f172a;margin:0;display:flex;align-items:center;gap:8px;"><i data-lucide="sparkles" style="width:18px;height:18px;color:#7c3aed;"></i> AI Review — ${escapeHtmlTpl(versionNumber)}</h2>
-                    <button onclick="document.getElementById('${modalId}').remove()" style="background:#f1f5f9;border:1px solid var(--border);border-radius:10px;width:32px;height:32px;cursor:pointer;color:#64748b;">✕</button>
+                    <h2 style="font-size:1.05rem;font-weight:800;color:var(--k-text);margin:0;display:flex;align-items:center;gap:8px;"><i data-lucide="sparkles" style="width:18px;height:18px;color:#7c3aed;"></i> AI Review — ${escapeHtmlTpl(versionNumber)}</h2>
+                    <button onclick="document.getElementById('${modalId}').remove()" style="background:var(--k-subtle);border:1px solid var(--border);border-radius:10px;width:32px;height:32px;cursor:pointer;color:var(--k-muted);">✕</button>
                 </div>
-                <div id="ai-review-body"><span style="font-size:0.8rem;color:#64748b;">Reviewing…</span></div>
+                <div id="ai-review-body"><span style="font-size:0.8rem;color:var(--k-muted);">Reviewing…</span></div>
             </div>
         </div>`;
     document.body.appendChild(modal);
@@ -1029,7 +1029,7 @@ async function aiReviewVersion(templateKey, versionNumber) {
         const { data } = await apiCall('/document-templates/ai/review', { method: 'POST', body: { templateKey, versionNumber } });
         renderAiReview(document.getElementById('ai-review-body'), data);
     } catch (err) {
-        document.getElementById('ai-review-body').innerHTML = `<span style="font-size:0.8rem;color:#b91c1c;">Review failed: ${escapeHtmlTpl(err.message)}</span>`;
+        document.getElementById('ai-review-body').innerHTML = `<span style="font-size:0.8rem;color:var(--k-danger-text);">Review failed: ${escapeHtmlTpl(err.message)}</span>`;
     }
 }
 
@@ -1038,13 +1038,13 @@ function renderAiReview(container, review) {
     const color = review.score >= 85 ? '#059669' : review.score >= 60 ? '#d97706' : '#dc2626';
     const sev = { critical: ['#fef2f2', '#b91c1c'], high: ['#fff7ed', '#c2410c'], medium: ['#fffbeb', '#a16207'], low: ['#f8fafc', '#475569'] };
     container.innerHTML = `
-        <div style="border:1px solid var(--border);border-radius:12px;padding:12px 14px;background:#fff;display:flex;flex-direction:column;gap:8px;">
+        <div style="border:1px solid var(--border);border-radius:12px;padding:12px 14px;background:var(--k-surface);display:flex;flex-direction:column;gap:8px;">
             <div style="display:flex;align-items:center;gap:10px;">
-                <div style="font-size:1.4rem;font-weight:800;color:${color};">${review.score}<span style="font-size:0.75rem;color:#94a3b8;">/100</span></div>
-                <div style="font-size:0.75rem;color:#64748b;">${review.issues.length ? `${review.issues.length} issue(s) to fix` : 'No blocking issues found'} · ${review.source === 'openai' ? 'rules + AI model' : 'rule-based checks'}</div>
+                <div style="font-size:1.4rem;font-weight:800;color:${color};">${review.score}<span style="font-size:0.75rem;color:var(--k-muted);">/100</span></div>
+                <div style="font-size:0.75rem;color:var(--k-muted);">${review.issues.length ? `${review.issues.length} issue(s) to fix` : 'No blocking issues found'} · ${review.source === 'openai' ? 'rules + AI model' : 'rule-based checks'}</div>
             </div>
             ${review.issues.map(i => `<div style="font-size:0.78rem;padding:6px 10px;border-radius:8px;background:${sev[i.severity][0]};color:${sev[i.severity][1]};"><strong>${escapeHtmlTpl(i.severity.toUpperCase())}</strong> · ${escapeHtmlTpl(i.message)}</div>`).join('')}
-            ${review.suggestions.length ? `<div style="font-size:0.72rem;font-weight:800;color:#5b21b6;margin-top:4px;">SUGGESTIONS</div>${review.suggestions.map(s => `<div style="font-size:0.78rem;color:#334155;">• ${escapeHtmlTpl(s)}</div>`).join('')}` : ''}
+            ${review.suggestions.length ? `<div style="font-size:0.72rem;font-weight:800;color:#5b21b6;margin-top:4px;">SUGGESTIONS</div>${review.suggestions.map(s => `<div style="font-size:0.78rem;color:var(--k-text-2);">• ${escapeHtmlTpl(s)}</div>`).join('')}` : ''}
         </div>`;
 }
 
@@ -1089,15 +1089,15 @@ function renderGatingRules(templates) {
     container.innerHTML = templates.map(t => {
         const style = CATEGORY_STYLES[t.category] || CATEGORY_STYLES['Onboarding'];
         return `
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:#ffffff;border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-sm);">
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--k-surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-sm);">
             <div style="width:34px;height:34px;border-radius:10px;background:${style.bg};color:${style.color};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                 <i data-lucide="${style.lucide}" class="fas ${style.icon}" style="width:16px;height:16px;"></i>
             </div>
-            <span style="flex:1;font-size:0.85rem;font-weight:700;color:#0f172a;">${t.name}</span>
+            <span style="flex:1;font-size:0.85rem;font-weight:700;color:var(--k-text);">${t.name}</span>
             <div style="display:flex;gap:4px;flex-wrap:wrap;">
                 ${(t.permittedModules || []).map(m => `<span class="tag tag-blue" style="font-size:10px;">${MODULE_LABELS[m]?.label || m}</span>`).join('')}
             </div>
-            <i data-lucide="lock" style="width:14px;height:14px;color:#ef4444;" title="Caller permission gating active"></i>
+            <i data-lucide="lock" style="width:14px;height:14px;color:var(--k-danger-text);" title="Caller permission gating active"></i>
         </div>`;
     }).join('');
 
@@ -1158,9 +1158,9 @@ function showToast(type, message, actionText, actionCallback) {
 
     toast.innerHTML = `
         <i data-lucide="${icons[type] || 'info'}" style="color:${colors[type]};width:18px;height:18px;flex-shrink:0;"></i>
-        <span style="flex:1;font-size:0.85rem;font-weight:600;color:#0f172a;">${message}</span>
+        <span style="flex:1;font-size:0.85rem;font-weight:600;color:var(--k-text);">${message}</span>
         ${actionBtnHtml}
-        <button onclick="this.parentElement.remove()" style="background:none;border:none;color:#94a3b8;cursor:pointer;padding:4px;display:flex;align-items:center;">
+        <button onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--k-muted);cursor:pointer;padding:4px;display:flex;align-items:center;">
             <i data-lucide="x" style="width:14px;height:14px;"></i>
         </button>`;
 
@@ -1197,7 +1197,7 @@ async function loadAdminCustomTemplates() {
         filterAdminCustomTemplates();
     } catch (err) {
         const grid = document.getElementById('admin-custom-template-grid');
-        if (grid) grid.innerHTML = `<div style="grid-column:1/-1;padding:2rem;text-align:center;color:#b91c1c;">Could not load module templates: ${escapeHtmlTpl(err.message)}</div>`;
+        if (grid) grid.innerHTML = `<div style="grid-column:1/-1;padding:2rem;text-align:center;color:var(--k-danger-text);">Could not load module templates: ${escapeHtmlTpl(err.message)}</div>`;
     }
 }
 
@@ -1269,8 +1269,8 @@ function renderAdminCustomTemplates(templates) {
 
                     <div style="background: var(--bg-deep); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; margin-bottom: 14px;">
                         <div style="display: flex; justify-content: space-between; font-size: 0.72rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px;">
-                            <span>Permitted Fields: <strong style="color: #2563eb;">${permittedCount} Editable</strong></span>
-                            <span>Locked: <strong style="color: #64748b;">${lockedCount}</strong></span>
+                            <span>Permitted Fields: <strong style="color: var(--k-accent-text);">${permittedCount} Editable</strong></span>
+                            <span>Locked: <strong style="color: var(--k-muted);">${lockedCount}</strong></span>
                         </div>
                         <div style="font-size: 0.72rem; color: var(--text-muted); font-style: italic;">
                             "${escapeHtmlTpl(tpl.instructions || 'Standard instructions for permitted fields.')}"
@@ -1290,11 +1290,11 @@ function renderAdminCustomTemplates(templates) {
 
                     <div style="display: flex; gap: 8px;">
                         ${isDraft ? `
-                            <button class="btn btn-primary btn-sm" style="flex: 1; background: #2563eb;" onclick="publishAdminTemplate('${tpl.id}')">
+                            <button class="btn btn-primary btn-sm" style="flex: 1; background: var(--k-accent);" onclick="publishAdminTemplate('${tpl.id}')">
                                 <i data-lucide="upload-cloud" style="width: 14px; height: 14px;"></i> Publish
                             </button>
                         ` : ''}
-                        <button class="btn btn-outline btn-sm" style="flex: 1; border-color: #dc2626; color: #dc2626;" onclick="openAdminTemplatePermissionsModal('${tpl.id}')">
+                        <button class="btn btn-outline btn-sm" style="flex: 1; border-color: #dc2626; color: var(--k-danger-text);" onclick="openAdminTemplatePermissionsModal('${tpl.id}')">
                             <i data-lucide="shield" style="width: 14px; height: 14px;"></i> Permissions
                         </button>
                     </div>
@@ -1314,8 +1314,8 @@ function openCreateModuleTemplateModal() {
         <div class="modal-card" style="max-width: 600px; text-align: left;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <div>
-                    <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0;">Create New Module Template</h2>
-                    <p style="font-size: 0.78rem; color: #64748b; margin: 2px 0 0 0;">Define module structure, permitted fields, and locked corporate clauses</p>
+                    <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--k-text); margin: 0;">Create New Module Template</h2>
+                    <p style="font-size: 0.78rem; color: var(--k-muted); margin: 2px 0 0 0;">Define module structure, permitted fields, and locked corporate clauses</p>
                 </div>
                 <button class="btn-ghost" onclick="document.getElementById('create-module-template-modal').remove()"><i data-lucide="x"></i></button>
             </div>
@@ -1323,13 +1323,13 @@ function openCreateModuleTemplateModal() {
             <form onsubmit="submitCreateModuleTemplate(event)">
                 <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 1.5rem;">
                     <div>
-                        <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Template Name *</label>
-                        <input type="text" id="adminTplName" required placeholder="e.g. Employee Retention & Merit Increment Template" style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.88rem; outline: none; background: #f8fafc;" />
+                        <label style="font-size: 0.72rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Template Name *</label>
+                        <input type="text" id="adminTplName" required placeholder="e.g. Employee Retention & Merit Increment Template" style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.88rem; outline: none; background: var(--k-subtle);" />
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                         <div>
-                            <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Module *</label>
-                            <select id="adminTplModule" required style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.88rem; outline: none; background: #f8fafc;">
+                            <label style="font-size: 0.72rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Module *</label>
+                            <select id="adminTplModule" required style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.88rem; outline: none; background: var(--k-subtle);">
                                 <option value="goals">Goals & Objectives</option>
                                 <option value="onboarding">Onboarding</option>
                                 <option value="lifecycle">Employee Lifecycle</option>
@@ -1339,28 +1339,28 @@ function openCreateModuleTemplateModal() {
                             </select>
                         </div>
                         <div>
-                            <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Category</label>
-                            <input type="text" id="adminTplCategory" value="Operational Excellence" style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.88rem; outline: none; background: #f8fafc;" />
+                            <label style="font-size: 0.72rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Category</label>
+                            <input type="text" id="adminTplCategory" value="Operational Excellence" style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.88rem; outline: none; background: var(--k-subtle);" />
                         </div>
                     </div>
                     <div>
-                        <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Description</label>
-                        <textarea id="adminTplDesc" rows="2" placeholder="Overview of what this template provides..." style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.85rem; outline: none; background: #f8fafc; font-family: inherit;"></textarea>
+                        <label style="font-size: 0.72rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Description</label>
+                        <textarea id="adminTplDesc" rows="2" placeholder="Overview of what this template provides..." style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.85rem; outline: none; background: var(--k-subtle); font-family: inherit;"></textarea>
                     </div>
                     <div>
-                        <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">User Instructions *</label>
-                        <textarea id="adminTplInstructions" rows="2" required placeholder="Guidelines for permitted users editing fields in this template..." style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.85rem; outline: none; background: #f8fafc; font-family: inherit;">Users can customize permitted fields before saving.</textarea>
+                        <label style="font-size: 0.72rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">User Instructions *</label>
+                        <textarea id="adminTplInstructions" rows="2" required placeholder="Guidelines for permitted users editing fields in this template..." style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.85rem; outline: none; background: var(--k-subtle); font-family: inherit;">Users can customize permitted fields before saving.</textarea>
                     </div>
                     <div>
-                        <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Permitted Fields (Comma separated)</label>
-                        <input type="text" id="adminTplPermitted" value="title, outcome, target, unit, targetCompletionDate" style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.88rem; outline: none; background: #f8fafc;" />
+                        <label style="font-size: 0.72rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Permitted Fields (Comma separated)</label>
+                        <input type="text" id="adminTplPermitted" value="title, outcome, target, unit, targetCompletionDate" style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.88rem; outline: none; background: var(--k-subtle);" />
                     </div>
                     <div>
-                        <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Locked Fields (Comma separated)</label>
-                        <input type="text" id="adminTplLocked" value="corporateEntity, departmentCode" style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.88rem; outline: none; background: #f8fafc;" />
+                        <label style="font-size: 0.72rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Locked Fields (Comma separated)</label>
+                        <input type="text" id="adminTplLocked" value="corporateEntity, departmentCode" style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.88rem; outline: none; background: var(--k-subtle);" />
                     </div>
-                    <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 12px;">
-                        <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 6px;">Initial Publication</label>
+                    <div style="background: var(--k-subtle); border: 1px solid var(--border); border-radius: 10px; padding: 12px;">
+                        <label style="font-size: 0.72rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase; display: block; margin-bottom: 6px;">Initial Publication</label>
                         <div style="display: flex; gap: 20px;">
                             <label style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem; cursor: pointer;">
                                 <input type="radio" name="adminTplStatus" id="adminTplPub" checked />
@@ -1440,39 +1440,39 @@ function openAdminCustomizeTemplateModal(id) {
         <div class="modal-card" style="max-width: 620px; text-align: left; max-height: 85vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <div>
-                    <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0;">Customize Template: ${escapeHtmlTpl(tpl.name)}</h2>
-                    <p style="font-size: 0.78rem; color: #64748b; margin: 2px 0 0 0;">Edit permitted fields &amp; instructions. Locked fields are protected.</p>
+                    <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--k-text); margin: 0;">Customize Template: ${escapeHtmlTpl(tpl.name)}</h2>
+                    <p style="font-size: 0.78rem; color: var(--k-muted); margin: 2px 0 0 0;">Edit permitted fields &amp; instructions. Locked fields are protected.</p>
                 </div>
                 <button class="btn-ghost" onclick="document.getElementById('admin-customize-template-modal').remove()"><i data-lucide="x"></i></button>
             </div>
 
             <div style="margin-bottom: 14px;">
-                <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Instructions to Permitted Users *</label>
-                <textarea id="adminCustInstructions" rows="2" style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.85rem; outline: none; background: #f8fafc; font-family: inherit;">${escapeHtmlTpl(tpl.instructions || '')}</textarea>
+                <label style="font-size: 0.72rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Instructions to Permitted Users *</label>
+                <textarea id="adminCustInstructions" rows="2" style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.85rem; outline: none; background: var(--k-subtle); font-family: inherit;">${escapeHtmlTpl(tpl.instructions || '')}</textarea>
             </div>
 
             <div style="margin-bottom: 14px;">
-                <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Status (Draft / Published)</label>
-                <select id="adminCustStatus" style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.88rem; outline: none; background: #f8fafc;">
+                <label style="font-size: 0.72rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Status (Draft / Published)</label>
+                <select id="adminCustStatus" style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.88rem; outline: none; background: var(--k-subtle);">
                     <option value="published" ${tpl.status === 'published' ? 'selected' : ''}>Published (Active)</option>
                     <option value="draft" ${tpl.status === 'draft' ? 'selected' : ''}>Draft</option>
                 </select>
             </div>
 
             <div style="margin-bottom: 1.5rem;">
-                <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 8px; display: block;">Permitted Field Values</label>
+                <label style="font-size: 0.72rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase; margin-bottom: 8px; display: block;">Permitted Field Values</label>
                 <div id="adminCustFieldsList">
                     ${(tpl.permittedFields || []).map(f => {
                         const isLocked = !f.isPermittedToEdit || (tpl.lockedFields || []).includes(f.fieldKey);
                         return `
-                            <div style="background: ${isLocked ? '#f8fafc' : 'white'}; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px;">
+                            <div style="background: ${isLocked ? 'var(--k-subtle)' : 'white'}; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                                    <span style="font-size: 0.8rem; font-weight: 700; color: #1e293b;">${escapeHtmlTpl(f.label || f.fieldKey)}</span>
-                                    <span style="font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 6px; background: ${isLocked ? '#fee2e2' : '#dcfce7'}; color: ${isLocked ? '#dc2626' : '#15803d'};">
+                                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--k-text);">${escapeHtmlTpl(f.label || f.fieldKey)}</span>
+                                    <span style="font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 6px; background: ${isLocked ? 'var(--k-danger-soft)' : 'var(--k-success-soft)'}; color: ${isLocked ? 'var(--k-danger-text)' : 'var(--k-success-text)'};">
                                         ${isLocked ? 'LOCKED' : 'PERMITTED'}
                                     </span>
                                 </div>
-                                <input type="text" class="admin-cust-val" data-key="${escapeHtmlTpl(f.fieldKey)}" value="${escapeHtmlTpl(String(f.defaultValue || ''))}" ${isLocked ? 'disabled' : ''} style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.82rem; background: ${isLocked ? '#f1f5f9' : 'white'}; outline: none;" />
+                                <input type="text" class="admin-cust-val" data-key="${escapeHtmlTpl(f.fieldKey)}" value="${escapeHtmlTpl(String(f.defaultValue || ''))}" ${isLocked ? 'disabled' : ''} style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.82rem; background: ${isLocked ? 'var(--k-subtle)' : 'white'}; outline: none;" />
                             </div>
                         `;
                     }).join('')}
@@ -1507,8 +1507,8 @@ async function previewAdminCustomTemplate(id) {
             <div class="modal-card" style="max-width: 680px; text-align: left; max-height: 85vh; overflow-y: auto;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
                     <div>
-                        <h2 style="font-weight: 800; font-size: 1.25rem; margin: 0; color: #0f172a;">Pre-Save Template Preview</h2>
-                        <p style="font-size: 0.78rem; color: #64748b; margin: 2px 0 0 0;">Confirm rendered layout and values before saving</p>
+                        <h2 style="font-weight: 800; font-size: 1.25rem; margin: 0; color: var(--k-text);">Pre-Save Template Preview</h2>
+                        <p style="font-size: 0.78rem; color: var(--k-muted); margin: 2px 0 0 0;">Confirm rendered layout and values before saving</p>
                     </div>
                     <button class="btn-ghost" onclick="document.getElementById('admin-preview-render-modal').remove()"><i data-lucide="x"></i></button>
                 </div>
@@ -1580,20 +1580,20 @@ function openAdminTemplatePermissionsModal(id) {
         <div class="modal-card" style="max-width: 520px; text-align: left;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="width: 40px; height: 40px; border-radius: 12px; background: #fee2e2; color: #dc2626; display: flex; align-items: center; justify-content: center;">
+                    <div style="width: 40px; height: 40px; border-radius: 12px; background: var(--k-danger-soft); color: var(--k-danger-text); display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="shield" style="width: 20px; height: 20px;"></i>
                     </div>
                     <div>
-                        <h2 style="font-weight: 800; font-size: 1.15rem; margin: 0; color: #0f172a;">Manage Template Permissions</h2>
-                        <p style="font-size: 0.75rem; color: #64748b; margin: 2px 0 0 0;">${escapeHtmlTpl(tpl.name)}</p>
+                        <h2 style="font-weight: 800; font-size: 1.15rem; margin: 0; color: var(--k-text);">Manage Template Permissions</h2>
+                        <p style="font-size: 0.75rem; color: var(--k-muted); margin: 2px 0 0 0;">${escapeHtmlTpl(tpl.name)}</p>
                     </div>
                 </div>
                 <button class="btn-ghost" onclick="document.getElementById('admin-permissions-modal').remove()"><i data-lucide="x"></i></button>
             </div>
 
             <div style="margin-bottom: 1.25rem;">
-                <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 8px;">Authorized Roles</label>
-                <div style="display: flex; flex-direction: column; gap: 8px; background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 12px;">
+                <label style="font-size: 0.72rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase; display: block; margin-bottom: 8px;">Authorized Roles</label>
+                <div style="display: flex; flex-direction: column; gap: 8px; background: var(--k-subtle); border: 1px solid var(--border); border-radius: 12px; padding: 12px;">
                     <label style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; cursor: pointer;">
                         <input type="checkbox" id="admRoleAdmin" checked disabled />
                         <span>Super Admin</span>
@@ -1614,8 +1614,8 @@ function openAdminTemplatePermissionsModal(id) {
             </div>
 
             <div style="margin-bottom: 1.5rem;">
-                <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 8px;">Permitted Caller Modules</label>
-                <div style="display: flex; flex-direction: column; gap: 8px; background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 12px;">
+                <label style="font-size: 0.72rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase; display: block; margin-bottom: 8px;">Permitted Caller Modules</label>
+                <div style="display: flex; flex-direction: column; gap: 8px; background: var(--k-subtle); border: 1px solid var(--border); border-radius: 12px; padding: 12px;">
                     <label style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; cursor: pointer;">
                         <input type="checkbox" id="admModGoals" ${(tpl.permissions?.permittedModules || []).includes('goals') ? 'checked' : ''} />
                         <span>Goals &amp; Objectives</span>
@@ -1637,7 +1637,7 @@ function openAdminTemplatePermissionsModal(id) {
 
             <div style="display: flex; gap: 10px;">
                 <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="document.getElementById('admin-permissions-modal').remove()">Cancel</button>
-                <button type="button" class="btn btn-danger" style="flex: 2; background: #dc2626; color: white;" onclick="saveAdminTemplatePermissions('${tpl.id}')">Save Permissions</button>
+                <button type="button" class="btn btn-danger" style="flex: 2; background: var(--k-danger); color: white;" onclick="saveAdminTemplatePermissions('${tpl.id}')">Save Permissions</button>
             </div>
         </div>
     `;

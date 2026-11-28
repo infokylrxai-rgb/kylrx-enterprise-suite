@@ -630,14 +630,14 @@
         const inactiveCount = costCenters.length - activeCount;
 
         container.innerHTML = `
-            <div style="background: white; border-radius: 16px; border: 1px solid var(--border, #e2e8f0); padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+            <div style="background: white; border-radius: 16px; border: 1px solid var(--border, var(--k-border)); padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                     <div>
-                        <h3 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0; display: flex; align-items: center; gap: 8px;">
-                            <i data-lucide="calculator" style="color: #2563eb; width: 22px; height: 22px;"></i>
+                        <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--k-text); margin: 0; display: flex; align-items: center; gap: 8px;">
+                            <i data-lucide="calculator" style="color: var(--k-accent-text); width: 22px; height: 22px;"></i>
                             Cost Center Management Console
                         </h3>
-                        <p style="color: #64748b; font-size: 0.85rem; margin-top: 4px; margin-bottom: 0;">
+                        <p style="color: var(--k-muted); font-size: 0.85rem; margin-top: 4px; margin-bottom: 0;">
                             Configure organizational budget units and payroll attribution matching PRD Sections 1, 10, &amp; 13.
                         </p>
                     </div>
@@ -650,56 +650,56 @@
 
                 <!-- KPI Quick Summary -->
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
-                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1rem;">
-                        <span style="font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Total Cost Centers</span>
-                        <div style="font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-top: 4px;">${costCenters.length}</div>
+                    <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 12px; padding: 1rem;">
+                        <span style="font-size: 0.75rem; font-weight: 700; color: var(--k-muted); text-transform: uppercase;">Total Cost Centers</span>
+                        <div style="font-size: 1.5rem; font-weight: 800; color: var(--k-text); margin-top: 4px;">${costCenters.length}</div>
                     </div>
-                    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 1rem;">
-                        <span style="font-size: 0.75rem; font-weight: 700; color: #166534; text-transform: uppercase;">Active Units</span>
-                        <div style="font-size: 1.5rem; font-weight: 800; color: #15803d; margin-top: 4px;">${activeCount}</div>
+                    <div style="background: var(--k-success-soft); border: 1px solid var(--k-success-border); border-radius: 12px; padding: 1rem;">
+                        <span style="font-size: 0.75rem; font-weight: 700; color: var(--k-success-text); text-transform: uppercase;">Active Units</span>
+                        <div style="font-size: 1.5rem; font-weight: 800; color: var(--k-success-text); margin-top: 4px;">${activeCount}</div>
                     </div>
-                    <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 1rem;">
-                        <span style="font-size: 0.75rem; font-weight: 700; color: #991b1b; text-transform: uppercase;">Inactive Units</span>
-                        <div style="font-size: 1.5rem; font-weight: 800; color: #b91c1c; margin-top: 4px;">${inactiveCount}</div>
+                    <div style="background: var(--k-danger-soft); border: 1px solid var(--k-danger-border); border-radius: 12px; padding: 1rem;">
+                        <span style="font-size: 0.75rem; font-weight: 700; color: var(--k-danger-text); text-transform: uppercase;">Inactive Units</span>
+                        <div style="font-size: 1.5rem; font-weight: 800; color: var(--k-danger-text); margin-top: 4px;">${inactiveCount}</div>
                     </div>
-                    <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 1rem;">
-                        <span style="font-size: 0.75rem; font-weight: 700; color: #1e40af; text-transform: uppercase;">Firestore Collection</span>
-                        <div style="font-size: 0.82rem; font-family: monospace; font-weight: 700; color: #1d4ed8; margin-top: 6px;">cost_centers</div>
+                    <div style="background: var(--k-accent-soft); border: 1px solid var(--k-accent-border); border-radius: 12px; padding: 1rem;">
+                        <span style="font-size: 0.75rem; font-weight: 700; color: var(--k-accent-text); text-transform: uppercase;">Firestore Collection</span>
+                        <div style="font-size: 0.82rem; font-family: monospace; font-weight: 700; color: var(--k-accent-text); margin-top: 6px;">cost_centers</div>
                     </div>
                 </div>
 
                 <!-- Table of Cost Centers -->
-                <div style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 12px;">
+                <div style="overflow-x: auto; border: 1px solid var(--k-border); border-radius: 12px;">
                     <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
-                        <thead style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                        <thead style="background: var(--k-subtle); border-bottom: 2px solid var(--k-border);">
                             <tr>
-                                <th style="padding: 12px 16px; font-weight: 700; color: #475569;">Cost Center Code</th>
-                                <th style="padding: 12px 16px; font-weight: 700; color: #475569;">Cost Center Name</th>
-                                <th style="padding: 12px 16px; font-weight: 700; color: #475569;">Owner Employee ID &amp; Leader</th>
-                                <th style="padding: 12px 16px; font-weight: 700; color: #475569; text-align: center;">Status</th>
-                                <th style="padding: 12px 16px; font-weight: 700; color: #475569; text-align: right;">Actions</th>
+                                <th style="padding: 12px 16px; font-weight: 700; color: var(--k-text-2);">Cost Center Code</th>
+                                <th style="padding: 12px 16px; font-weight: 700; color: var(--k-text-2);">Cost Center Name</th>
+                                <th style="padding: 12px 16px; font-weight: 700; color: var(--k-text-2);">Owner Employee ID &amp; Leader</th>
+                                <th style="padding: 12px 16px; font-weight: 700; color: var(--k-text-2); text-align: center;">Status</th>
+                                <th style="padding: 12px 16px; font-weight: 700; color: var(--k-text-2); text-align: right;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             ${costCenters.map(cc => {
                                 const statusPill = cc.isActive
-                                    ? '<span style="color: #166534; background: #dcfce7; padding: 3px 10px; border-radius: 20px; font-weight: 700; font-size: 0.75rem; border: 1px solid #bbf7d0;">Active (Yes)</span>'
-                                    : '<span style="color: #991b1b; background: #fee2e2; padding: 3px 10px; border-radius: 20px; font-weight: 700; font-size: 0.75rem; border: 1px solid #fecaca;">Inactive (No)</span>';
+                                    ? '<span style="color: var(--k-success-text); background: var(--k-success-soft); padding: 3px 10px; border-radius: 20px; font-weight: 700; font-size: 0.75rem; border: 1px solid var(--k-success-border);">Active (Yes)</span>'
+                                    : '<span style="color: var(--k-danger-text); background: var(--k-danger-soft); padding: 3px 10px; border-radius: 20px; font-weight: 700; font-size: 0.75rem; border: 1px solid var(--k-danger-border);">Inactive (No)</span>';
 
                                 return `
-                                    <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
-                                        <td style="padding: 12px 16px; font-family: monospace; font-weight: 700; color: #2563eb;">
+                                    <tr style="border-bottom: 1px solid var(--k-border); transition: background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                                        <td style="padding: 12px 16px; font-family: monospace; font-weight: 700; color: var(--k-accent-text);">
                                             ${cc.costCenterCode}
                                         </td>
-                                        <td style="padding: 12px 16px; font-weight: 600; color: #0f172a;">
+                                        <td style="padding: 12px 16px; font-weight: 600; color: var(--k-text);">
                                             ${cc.costCenterName}
                                         </td>
                                         <td style="padding: 12px 16px;">
-                                            <span style="font-family: monospace; font-weight: 700; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.78rem;">
+                                            <span style="font-family: monospace; font-weight: 700; background: var(--k-subtle); padding: 2px 6px; border-radius: 4px; font-size: 0.78rem;">
                                                 ${cc.ownerEmployeeId || 'Unassigned'}
                                             </span>
-                                            ${cc.ownerEmployeeName ? `<span style="font-weight: 600; margin-left: 6px; color: #334155;">${cc.ownerEmployeeName}</span>` : ''}
-                                            ${cc.ownerDesignation ? `<div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">${cc.ownerDesignation}</div>` : ''}
+                                            ${cc.ownerEmployeeName ? `<span style="font-weight: 600; margin-left: 6px; color: var(--k-text-2);">${cc.ownerEmployeeName}</span>` : ''}
+                                            ${cc.ownerDesignation ? `<div style="font-size: 0.75rem; color: var(--k-muted); margin-top: 2px;">${cc.ownerDesignation}</div>` : ''}
                                         </td>
                                         <td style="padding: 12px 16px; text-align: center;">
                                             ${statusPill}
@@ -754,59 +754,59 @@
 
         modal.innerHTML = `
             <div style="background: white; width: 100%; max-width: 520px; border-radius: 20px; padding: 2rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); position: relative;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem;">
-                    <h3 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0; display: flex; align-items: center; gap: 8px;">
-                        <i data-lucide="${isEdit ? 'edit' : 'plus-circle'}" style="color: #2563eb; width: 20px; height: 20px;"></i>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--k-border); padding-bottom: 1rem;">
+                    <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--k-text); margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="${isEdit ? 'edit' : 'plus-circle'}" style="color: var(--k-accent-text); width: 20px; height: 20px;"></i>
                         ${isEdit ? 'Edit Cost Center' : 'New Cost Center'}
                     </h3>
-                    <button id="btnCloseCcModal" style="background: none; border: none; cursor: pointer; color: #64748b; font-size: 1.25rem;">✕</button>
+                    <button id="btnCloseCcModal" style="background: none; border: none; cursor: pointer; color: var(--k-muted); font-size: 1.25rem;">✕</button>
                 </div>
 
                 <form id="costCenterForm">
                     <div style="margin-bottom: 1.25rem;">
-                        <label style="display: block; font-weight: 700; font-size: 0.82rem; color: #334155; margin-bottom: 6px;">
+                        <label style="display: block; font-weight: 700; font-size: 0.82rem; color: var(--k-text-2); margin-bottom: 6px;">
                             1. Cost Center Code (Cost_Center_Code) *
                         </label>
                         <input type="text" id="modalCcCode" name="Cost_Center_Code" value="${current ? current.costCenterCode : ''}" 
-                               placeholder="e.g. CC_ENG_DEV or CC-ENG-101" required ${isEdit ? 'readonly style="background: #f1f5f9; cursor: not-allowed;"' : ''}
-                               style="width: 100%; padding: 10px 14px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-family: monospace; font-weight: 700; text-transform: uppercase;">
-                        <span style="font-size: 0.75rem; color: #64748b;">Unique primary key &amp; Firestore document ID</span>
+                               placeholder="e.g. CC_ENG_DEV or CC-ENG-101" required ${isEdit ? 'readonly style="background: var(--k-subtle); cursor: not-allowed;"' : ''}
+                               style="width: 100%; padding: 10px 14px; border: 1.5px solid var(--k-border); border-radius: 8px; font-family: monospace; font-weight: 700; text-transform: uppercase;">
+                        <span style="font-size: 0.75rem; color: var(--k-muted);">Unique primary key &amp; Firestore document ID</span>
                     </div>
 
                     <div style="margin-bottom: 1.25rem;">
-                        <label style="display: block; font-weight: 700; font-size: 0.82rem; color: #334155; margin-bottom: 6px;">
+                        <label style="display: block; font-weight: 700; font-size: 0.82rem; color: var(--k-text-2); margin-bottom: 6px;">
                             2. Cost Center Name (Cost_Center_Name) *
                         </label>
                         <input type="text" id="modalCcName" name="Cost_Center_Name" value="${current ? current.costCenterName : ''}" 
                                placeholder="e.g. Software Engineering &amp; R&amp;D" required
-                               style="width: 100%; padding: 10px 14px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-weight: 600;">
-                        <span style="font-size: 0.75rem; color: #64748b;">Display title for budget and payroll allocation</span>
+                               style="width: 100%; padding: 10px 14px; border: 1.5px solid var(--k-border); border-radius: 8px; font-weight: 600;">
+                        <span style="font-size: 0.75rem; color: var(--k-muted);">Display title for budget and payroll allocation</span>
                     </div>
 
                     <div style="margin-bottom: 1.25rem;">
-                        <label style="display: block; font-weight: 700; font-size: 0.82rem; color: #334155; margin-bottom: 6px;">
+                        <label style="display: block; font-weight: 700; font-size: 0.82rem; color: var(--k-text-2); margin-bottom: 6px;">
                             3. Cost Center Owner (Owner_Employee_ID)
                         </label>
-                        <select id="modalCcOwnerSelect" name="Owner_Employee_ID" style="width: 100%; padding: 10px 14px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-weight: 600;">
+                        <select id="modalCcOwnerSelect" name="Owner_Employee_ID" style="width: 100%; padding: 10px 14px; border: 1.5px solid var(--k-border); border-radius: 8px; font-weight: 600;">
                             <!-- Populated dynamically with active leaders -->
                         </select>
-                        <span style="font-size: 0.75rem; color: #64748b;">Active employee lookup showing ID, Full Name, and Designation</span>
+                        <span style="font-size: 0.75rem; color: var(--k-muted);">Active employee lookup showing ID, Full Name, and Designation</span>
                     </div>
 
-                    <div style="margin-bottom: 1.5rem; background: #f8fafc; padding: 12px; border-radius: 10px; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
+                    <div style="margin-bottom: 1.5rem; background: var(--k-subtle); padding: 12px; border-radius: 10px; border: 1px solid var(--k-border); display: flex; align-items: center; justify-content: space-between;">
                         <div>
-                            <span style="display: block; font-weight: 700; font-size: 0.85rem; color: #1e293b;">4. Active Status (Active)</span>
-                            <span style="font-size: 0.75rem; color: #64748b;">When active, units appear in onboarding and profile dropdowns</span>
+                            <span style="display: block; font-weight: 700; font-size: 0.85rem; color: var(--k-text);">4. Active Status (Active)</span>
+                            <span style="font-size: 0.75rem; color: var(--k-muted);">When active, units appear in onboarding and profile dropdowns</span>
                         </div>
                         <label style="position: relative; display: inline-block; width: 44px; height: 24px;">
                             <input type="checkbox" id="modalCcActive" ${!current || current.isActive ? 'checked' : ''} style="opacity: 0; width: 0; height: 0;">
-                            <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: ${!current || current.isActive ? '#16a34a' : '#cbd5e1'}; transition: .3s; border-radius: 24px;" id="toggleSliderBg"></span>
+                            <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: ${!current || current.isActive ? 'var(--k-success)' : '#cbd5e1'}; transition: .3s; border-radius: 24px;" id="toggleSliderBg"></span>
                         </label>
                     </div>
 
                     <div style="display: flex; justify-content: flex-end; gap: 10px;">
                         <button type="button" id="btnCancelCcModal" class="btn btn-outline" style="font-weight: 600;">Cancel</button>
-                        <button type="submit" class="btn btn-primary" style="font-weight: 700; background: #2563eb;">
+                        <button type="submit" class="btn btn-primary" style="font-weight: 700; background: var(--k-accent);">
                             <i data-lucide="check"></i> ${isEdit ? 'Update Cost Center' : 'Save Cost Center'}
                         </button>
                     </div>

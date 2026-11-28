@@ -89,7 +89,7 @@ function copyExcelHeaders() {
         const btn = document.getElementById('btnCopyHeaders');
         if (btn) {
             const originalHtml = btn.innerHTML;
-            btn.innerHTML = '<i data-lucide="check" style="color:#10b981;width:14px;height:14px;"></i> Copied!';
+            btn.innerHTML = '<i data-lucide="check" style="color:var(--k-success-text);width:14px;height:14px;"></i> Copied!';
             btn.style.borderColor = '#10b981';
             btn.style.color = '#10b981';
             if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
@@ -308,7 +308,7 @@ function renderSchemaMapping() {
         globalAlert.className = "anomaly-alert danger";
         alertTitle.innerText = "Critical Schema Error";
         alertDesc.innerHTML = `Your sheet is missing required columns: <strong>${check.missingRequired.join(', ')}</strong>. Please map them below or upload a compliant sheet to proceed.`;
-        alertIcon.innerHTML = `<i data-lucide="alert-octagon" style="color: #ef4444;"></i>`;
+        alertIcon.innerHTML = `<i data-lucide="alert-octagon" style="color: var(--k-danger-text);"></i>`;
         btnConfirm.disabled = true;
     } else if (check.duplicateMappings.length > 0) {
         healthBadge.className = "health-badge health-danger";
@@ -318,7 +318,7 @@ function renderSchemaMapping() {
         globalAlert.className = "anomaly-alert danger";
         alertTitle.innerText = "Mapping Conflict";
         alertDesc.innerHTML = `Multiple fields are mapped to the same Excel column: <strong>${check.duplicateMappings.join(', ')}</strong>. Each column must be mapped uniquely.`;
-        alertIcon.innerHTML = `<i data-lucide="alert-triangle" style="color: #ef4444;"></i>`;
+        alertIcon.innerHTML = `<i data-lucide="alert-triangle" style="color: var(--k-danger-text);"></i>`;
         btnConfirm.disabled = true;
     } else if (check.missingOptional.length > 0 || check.autoMapped.length > 0) {
         healthBadge.className = "health-badge health-warning";
@@ -336,7 +336,7 @@ function renderSchemaMapping() {
             descParts.push(`Missing <strong>${check.missingOptional.length}</strong> optional fields. These will fall back to their system defaults (e.g., 0, 'Standard', 'None').`);
         }
         alertDesc.innerHTML = descParts.join(' ');
-        alertIcon.innerHTML = `<i data-lucide="sparkles" style="color: #f59e0b;"></i>`;
+        alertIcon.innerHTML = `<i data-lucide="sparkles" style="color: var(--k-warning-text);"></i>`;
         btnConfirm.disabled = false;
     } else {
         healthBadge.className = "health-badge health-success";
@@ -346,7 +346,7 @@ function renderSchemaMapping() {
         globalAlert.className = "anomaly-alert success";
         alertTitle.innerText = "Column Verification Perfect";
         alertDesc.innerText = "All required and optional columns have been successfully verified and matched exactly.";
-        alertIcon.innerHTML = `<i data-lucide="shield-check" style="color: #10b981;"></i>`;
+        alertIcon.innerHTML = `<i data-lucide="shield-check" style="color: var(--k-success-text);"></i>`;
         btnConfirm.disabled = false;
     }
 
@@ -527,7 +527,7 @@ function renderResults() {
             <td>₹${Number(r.data["PF Contribution"] || 0).toLocaleString()}</td>
             <td>${r.data["Variable Pay %"] || 0}% / ${r.data["Bonus Structure"] || 'Standard'}</td>
             <td>${r.data["ESOPs Grant"] || 'None'}</td>
-            <td style="font-weight: 800; color: #10b981;">₹${r.net.toLocaleString()}</td>
+            <td style="font-weight: 800; color: var(--k-success-text);">₹${r.net.toLocaleString()}</td>
         </tr>
     `).join('');
     if (window.lucide) lucide.createIcons();

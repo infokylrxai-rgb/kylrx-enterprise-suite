@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="kylrx-theme-init.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enterprise Analytics | HRFlow</title>
@@ -29,8 +30,8 @@
         .stat-card h3 { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem; font-weight: 800; letter-spacing: 0.05em; }
         .stat-val { font-size: 1.875rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.25rem; }
         .stat-trend { font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 4px; }
-        .trend-up { color: #10b981; }
-        .trend-down { color: #ef4444; }
+        .trend-up { color: var(--k-success-text); }
+        .trend-down { color: var(--k-danger-text); }
 
         .chart-grid {
             display: grid;
@@ -57,6 +58,10 @@
             .chart-card { page-break-inside: avoid !important; border: 1px solid #ccc !important; box-shadow: none !important; }
         }
     </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="kylrx-theme.css">
 </head>
 <body class="admin-dashboard">
     <div class="dashboard-container">
@@ -204,15 +209,15 @@
                 <div class="chart-card" style="position: relative;">
                     <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center;">
                         <div class="chart-title"><i data-lucide="pie-chart" class="chart-icon"></i> Payroll Impact Analysis</div>
-                        <span id="payrollLiveBadge" style="font-size: 0.7rem; font-weight: 700; color: #10b981; background: rgba(16, 185, 129, 0.1); padding: 3px 8px; border-radius: 12px; display: inline-flex; align-items: center; gap: 4px;">
-                            <span style="width: 6px; height: 6px; background: #10b981; border-radius: 50%; display: inline-block;"></span> Loading…
+                        <span id="payrollLiveBadge" style="font-size: 0.7rem; font-weight: 700; color: var(--k-success-text); background: rgba(16, 185, 129, 0.1); padding: 3px 8px; border-radius: 12px; display: inline-flex; align-items: center; gap: 4px;">
+                            <span style="width: 6px; height: 6px; background: var(--k-success); border-radius: 50%; display: inline-block;"></span> Loading…
                         </span>
                     </div>
                     <div style="position: relative; width: 100%; height: 260px; display: flex; align-items: center; justify-content: center;">
                         <canvas id="payrollChart"></canvas>
                         <div id="payrollCenterOverlay" style="position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; text-align: center;">
-                            <span id="payrollCenterAmount" style="font-size: 1.25rem; font-weight: 800; color: #0f172a; line-height: 1.2;">₹0</span>
-                            <span id="payrollCenterSubtitle" style="font-size: 0.7rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Loading…</span>
+                            <span id="payrollCenterAmount" style="font-size: 1.25rem; font-weight: 800; color: var(--k-text); line-height: 1.2;">₹0</span>
+                            <span id="payrollCenterSubtitle" style="font-size: 0.7rem; color: var(--k-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Loading…</span>
                         </div>
                     </div>
                     <p id="payrollNote" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.75rem;"></p>
@@ -223,7 +228,7 @@
                     </div>
                     <canvas id="predChart"></canvas>
                     <p id="forecastNote" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.75rem;"></p>
-                    <div class="slider-container" style="margin-top: 2rem; padding: 1.5rem; background: #f8fafc; border-radius: 16px; border: 1px dashed var(--border);">
+                    <div class="slider-container" style="margin-top: 2rem; padding: 1.5rem; background: var(--k-subtle); border-radius: 16px; border: 1px dashed var(--border);">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
                             <span style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Prediction Horizon</span>
                             <span id="sliderVal" style="font-size: 0.875rem; font-weight: 800; color: var(--primary);">3 Months</span>
@@ -267,13 +272,13 @@
     </div>
 
     <!-- Success Toast -->
-    <div id="successToast" style="display:none; position:fixed; bottom:24px; right:24px; background:#10b981; color:white; padding:12px 24px; border-radius:12px; box-shadow:0 10px 15px -3px rgba(0,0,0,0.1); font-weight:700; z-index:99999; align-items:center; gap:8px;">
+    <div id="successToast" style="display:none; position:fixed; bottom:24px; right:24px; background:var(--k-success); color:white; padding:12px 24px; border-radius:12px; box-shadow:0 10px 15px -3px rgba(0,0,0,0.1); font-weight:700; z-index:99999; align-items:center; gap:8px;">
         <i data-lucide="check-circle" style="width:18px; height:18px;"></i>
         <span>Action completed successfully</span>
     </div>
 
     <!-- Error Toast -->
-    <div id="errorToast" style="display:none; position:fixed; bottom:24px; right:24px; background:#ef4444; color:white; padding:12px 24px; border-radius:12px; box-shadow:0 10px 15px -3px rgba(0,0,0,0.1); font-weight:700; z-index:99999; align-items:center; gap:8px;">
+    <div id="errorToast" style="display:none; position:fixed; bottom:24px; right:24px; background:var(--k-danger); color:white; padding:12px 24px; border-radius:12px; box-shadow:0 10px 15px -3px rgba(0,0,0,0.1); font-weight:700; z-index:99999; align-items:center; gap:8px;">
         <i data-lucide="alert-triangle" style="width:18px; height:18px;"></i>
         <span>An error occurred</span>
     </div>
@@ -286,7 +291,7 @@
                     <div style="background: var(--primary-glow); color: var(--primary); padding: 8px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="megaphone" style="width: 20px; height: 20px;"></i>
                     </div>
-                    <h3 style="font-weight:800; font-size: 1.25rem; margin: 0; color: #1e293b;">Analytics Broadcast</h3>
+                    <h3 style="font-weight:800; font-size: 1.25rem; margin: 0; color: var(--k-text);">Analytics Broadcast</h3>
                 </div>
                 <button id="btnCloseBroadcastModal" style="background:none; border:none; cursor:pointer; color:var(--text-muted); padding: 4px; display: flex; align-items: center;"><i data-lucide="x"></i></button>
             </div>
@@ -297,7 +302,7 @@
                 <div>
                     <label style="font-size: 0.75rem; font-weight:800; color:var(--text-muted); margin-bottom:6px; display:block; text-transform: uppercase; letter-spacing: 0.5px;">Message Text</label>
                     <textarea id="broadcastText" rows="4" maxlength="1000" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size: 0.875rem; font-family: inherit; font-weight: 500; resize: none;" placeholder="e.g., Weekly average productivity reached 87%. Great job team!"></textarea>
-                    <div id="broadcastNotice" style="display:none; margin-top: 8px; font-size: 0.75rem; color: #92400e; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 8px 10px;"></div>
+                    <div id="broadcastNotice" style="display:none; margin-top: 8px; font-size: 0.75rem; color: var(--k-warning-text); background: var(--k-warning-soft); border: 1px solid var(--k-warning-border); border-radius: 8px; padding: 8px 10px;"></div>
                 </div>
                 
                 <div>
@@ -369,10 +374,10 @@
                 renderAudit();
                 renderAudiences();
                 const status = await getWriteStatus();
-                if (badge) badge.innerHTML = `<span style="width:6px;height:6px;background:#10b981;border-radius:50%;display:inline-block;"></span> ${status.localTestDatabase ? 'Local test DB' : 'Firebase'} · ${esc(new Date(data.generatedAt).toLocaleTimeString())}`;
+                if (badge) badge.innerHTML = `<span style="width:6px;height:6px;background:var(--k-success);border-radius:50%;display:inline-block;"></span> ${status.localTestDatabase ? 'Local test DB' : 'Firebase'} · ${esc(new Date(data.generatedAt).toLocaleTimeString())}`;
             } catch (err) {
                 console.error('Analytics load failed:', err);
-                if (badge) badge.innerHTML = '<span style="color:#ef4444;">Not connected</span>';
+                if (badge) badge.innerHTML = '<span style="color:var(--k-danger-text);">Not connected</span>';
                 showToast(`Could not load analytics: ${err.message}`, true);
                 const tbody = document.getElementById('auditTrailList');
                 if (tbody && !data) tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding: 2rem;color:var(--danger);">Could not load the audit trail: ${esc(err.message)}</td></tr>`;
@@ -622,27 +627,27 @@
                 justify-content: center;
             }
             #customAppsModal .modal {
-                background: #ffffff !important;
-                color: #0f172a !important;
+                background: var(--k-surface) !important;
+                color: var(--k-text) !important;
                 padding: 2rem;
                 border-radius: 24px;
                 width: 90%;
                 max-width: 500px;
                 box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-                border: 1px solid #e2e8f0;
+                border: 1px solid var(--k-border);
                 position: relative;
                 text-align: left;
             }
             #customAppsModal .modal h2 {
                 font-weight: 800;
                 font-size: 1.25rem;
-                color: #0f172a !important;
+                color: var(--k-text) !important;
                 margin-bottom: 4px;
                 margin-top: 0;
             }
             #customAppsModal .modal p {
                 font-size: 0.75rem;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 margin: 0;
             }
             #customAppsModal .modal .form-group {
@@ -654,7 +659,7 @@
             #customAppsModal .modal label {
                 font-size: 0.7rem;
                 font-weight: 800;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 text-transform: uppercase;
                 display: block;
                 margin-bottom: 4px;
@@ -663,9 +668,9 @@
                 width: 100%;
                 padding: 12px 16px;
                 border-radius: 12px;
-                border: 1px solid #cbd5e1 !important;
-                background: #ffffff !important;
-                color: #0f172a !important;
+                border: 1px solid var(--k-border) !important;
+                background: var(--k-surface) !important;
+                color: var(--k-text) !important;
                 outline: none;
                 margin-top: 4px;
                 font-family: inherit;
@@ -673,15 +678,15 @@
                 transition: border-color 0.2s, box-shadow 0.2s;
             }
             #customAppsModal .modal input:focus {
-                border-color: #3b82f6 !important;
+                border-color: var(--k-accent) !important;
                 box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
             }
             #customAppsModal .modal input::placeholder {
-                color: #94a3b8 !important;
+                color: var(--k-muted) !important;
                 opacity: 0.8;
             }
             #customAppsModal .modal button.map-btn {
-                background: #3b82f6;
+                background: var(--k-accent);
                 color: white !important;
                 border: none;
                 border-radius: 12px;
@@ -695,13 +700,13 @@
                 margin-top: 0.5rem;
             }
             #customAppsModal .modal button.map-btn:hover {
-                background: #2563eb;
+                background: var(--k-accent);
                 transform: translateY(-1px);
             }
             #customAppsModal .modal h3 {
                 font-size: 0.7rem;
                 font-weight: 800;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 text-transform: uppercase;
                 margin-bottom: 10px;
                 margin-top: 0;
@@ -713,8 +718,8 @@
                 width: 36px;
                 height: 36px;
                 border-radius: 10px;
-                background: #f8fafc;
-                color: #64748b !important;
+                background: var(--k-subtle);
+                color: var(--k-muted) !important;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -723,8 +728,8 @@
                 border: none;
             }
             #customAppsModal .close-modal:hover {
-                color: #ef4444 !important;
-                background: #fee2e2;
+                color: var(--k-danger-text) !important;
+                background: var(--k-danger-soft);
             }
         </style>
         <div class="modal">
@@ -748,7 +753,7 @@
                 <button class="map-btn" onclick="addCustomApp()">Map Tool Link</button>
             </div>
 
-            <div style="border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
+            <div style="border-top: 1px solid var(--k-border); padding-top: 1.25rem;">
                 <h3>Mapped Connections</h3>
                 <div id="registryAppsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;">
                     <!-- Mapped apps inside the registry panel -->

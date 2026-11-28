@@ -14,24 +14,24 @@
         modal.id = 'aiBuildModal';
         modal.style.cssText = 'display:none;position:fixed;inset:0;z-index:10000;background:rgba(15,23,42,0.45);align-items:center;justify-content:center;padding:16px;';
         modal.innerHTML = `
-            <div style="background:#fff;border-radius:16px;width:100%;max-width:640px;max-height:90vh;overflow:auto;box-shadow:0 20px 50px rgba(15,23,42,0.25);font-family:inherit;">
-                <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid #e2e8f0;">
+            <div style="background:var(--k-surface);border-radius:16px;width:100%;max-width:640px;max-height:90vh;overflow:auto;box-shadow:0 20px 50px rgba(15,23,42,0.25);font-family:inherit;">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--k-border);">
                     <div style="display:flex;align-items:center;gap:10px;">
                         <i data-lucide="sparkles" style="color:#7c3aed;width:20px;height:20px;"></i>
                         <div>
-                            <div style="font-weight:800;font-size:1.05rem;color:#0f172a;">AI Workflow Builder</div>
-                            <div id="aiBuildSource" style="font-size:0.75rem;color:#64748b;">Describe the automation in plain English</div>
+                            <div style="font-weight:800;font-size:1.05rem;color:var(--k-text);">AI Workflow Builder</div>
+                            <div id="aiBuildSource" style="font-size:0.75rem;color:var(--k-muted);">Describe the automation in plain English</div>
                         </div>
                     </div>
-                    <button type="button" onclick="closeAiBuildModal()" style="background:none;border:none;cursor:pointer;color:#64748b;font-size:1.3rem;line-height:1;" aria-label="Close">&times;</button>
+                    <button type="button" onclick="closeAiBuildModal()" style="background:none;border:none;cursor:pointer;color:var(--k-muted);font-size:1.3rem;line-height:1;" aria-label="Close">&times;</button>
                 </div>
                 <div style="padding:18px 22px;">
                     <textarea id="aiBuildPrompt" rows="4" maxlength="2000" placeholder="e.g. When an employee resigns, ask the direct manager to approve within 48 hours, escalate to Head of HR if not approved, wait 2 days, start full and final settlement and notify HR and the employee."
-                        style="width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:10px;padding:12px;font-family:inherit;font-size:0.9rem;resize:vertical;"></textarea>
-                    <div id="aiBuildStatus" style="font-size:0.82rem;color:#64748b;margin-top:8px;min-height:1.2em;"></div>
+                        style="width:100%;box-sizing:border-box;border:1px solid var(--k-border);border-radius:10px;padding:12px;font-family:inherit;font-size:0.9rem;resize:vertical;"></textarea>
+                    <div id="aiBuildStatus" style="font-size:0.82rem;color:var(--k-muted);margin-top:8px;min-height:1.2em;"></div>
                     <div id="aiBuildPreview" style="margin-top:10px;"></div>
                 </div>
-                <div style="display:flex;justify-content:flex-end;gap:10px;padding:14px 22px;border-top:1px solid #e2e8f0;">
+                <div style="display:flex;justify-content:flex-end;gap:10px;padding:14px 22px;border-top:1px solid var(--k-border);">
                     <button type="button" class="btn-builder" onclick="closeAiBuildModal()">Cancel</button>
                     <button type="button" class="btn-builder btn-builder-simulate" id="aiBuildGenerateBtn" onclick="generateAiWorkflow()">
                         <i data-lucide="sparkles" size="16"></i><span>Generate</span>
@@ -93,9 +93,9 @@
             generated = await postJson('generate', { prompt });
             status.textContent = sourceLabel(generated.source);
             document.getElementById('aiBuildPreview').innerHTML = `
-                <div style="font-weight:800;color:#0f172a;margin-bottom:4px;">${escapeHtml(generated.name)}</div>
-                ${generated.explanation ? `<div style="font-size:0.82rem;color:#475569;margin-bottom:10px;">${escapeHtml(generated.explanation)}</div>` : ''}
-                <ol style="margin:0;padding-left:20px;font-size:0.85rem;color:#334155;line-height:1.7;">
+                <div style="font-weight:800;color:var(--k-text);margin-bottom:4px;">${escapeHtml(generated.name)}</div>
+                ${generated.explanation ? `<div style="font-size:0.82rem;color:var(--k-text-2);margin-bottom:10px;">${escapeHtml(generated.explanation)}</div>` : ''}
+                <ol style="margin:0;padding-left:20px;font-size:0.85rem;color:var(--k-text-2);line-height:1.7;">
                     ${generated.steps.map(s => `<li><strong>${escapeHtml((ELEMENT_SPECS[s.type] || {}).label || s.type)}:</strong> ${escapeHtml(s.title)}</li>`).join('')}
                 </ol>`;
             document.getElementById('aiBuildApplyBtn').style.display = 'inline-flex';
@@ -142,7 +142,7 @@
             const title = res.step.title && res.step.title !== res.step.type ? res.step.title : (spec.defaultTitle || res.step.type);
             const ok = await showConfirmModal({
                 title: 'AI Suggested Step',
-                message: `<strong>${escapeHtml(spec.label || res.step.type)}: ${escapeHtml(title)}</strong><br><br>${escapeHtml(res.reason || '')}<br><br><span style="font-size:0.8rem;color:#64748b;">${escapeHtml(sourceLabel(res.source))}</span>`,
+                message: `<strong>${escapeHtml(spec.label || res.step.type)}: ${escapeHtml(title)}</strong><br><br>${escapeHtml(res.reason || '')}<br><br><span style="font-size:0.8rem;color:var(--k-muted);">${escapeHtml(sourceLabel(res.source))}</span>`,
                 confirmText: 'Add Step',
                 danger: false,
                 icon: 'sparkles'

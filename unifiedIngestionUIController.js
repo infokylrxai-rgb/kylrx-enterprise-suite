@@ -256,19 +256,19 @@
         const rows = result.data || [];
         tbody.innerHTML = rows.map((r) => {
             const statusBadge = r.isValid 
-                ? `<span style="background: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 9999px; font-size: 0.72rem; font-weight: 700; border: 1px solid #bbf7d0;">✓ Valid</span>`
-                : `<span style="background: #fee2e2; color: #991b1b; padding: 4px 10px; border-radius: 9999px; font-size: 0.72rem; font-weight: 700; border: 1px solid #fecaca;" title="${r.errors.join('; ')}">✕ ${r.errors[0] || 'Error'}</span>`;
+                ? `<span style="background: var(--k-success-soft); color: var(--k-success-text); padding: 4px 10px; border-radius: 9999px; font-size: 0.72rem; font-weight: 700; border: 1px solid var(--k-success-border);">✓ Valid</span>`
+                : `<span style="background: var(--k-danger-soft); color: var(--k-danger-text); padding: 4px 10px; border-radius: 9999px; font-size: 0.72rem; font-weight: 700; border: 1px solid var(--k-danger-border);" title="${r.errors.join('; ')}">✕ ${r.errors[0] || 'Error'}</span>`;
 
             return `
                 <tr style="${!r.isValid ? 'background-color: #fff5f5;' : ''}">
                     <td style="font-weight: 700;">${r.rowIndex}</td>
-                    <td style="font-weight: 700; font-family: monospace; color: #1d4ed8;">${r.Employee_ID || '—'}</td>
+                    <td style="font-weight: 700; font-family: monospace; color: var(--k-accent-text);">${r.Employee_ID || '—'}</td>
                     <td><span class="schema-pill">${r.Department_Code || '—'}</span></td>
                     <td>${r.Designation_Title || '—'}</td>
-                    <td style="font-weight: 700; color: #0f172a;">₹${Number(r.Annual_CTC || 0).toLocaleString('en-IN')}</td>
-                    <td><span style="font-family: monospace; font-size: 0.75rem; background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">${r.Shift_Roster_Code || '—'}</span></td>
-                    <td><span style="font-size: 0.75rem; color: #475569;">${r.Week_Off_Pattern}</span></td>
-                    <td style="font-size: 0.75rem; color: #64748b;">${r.Custom_Week_Off_Days || '—'}</td>
+                    <td style="font-weight: 700; color: var(--k-text);">₹${Number(r.Annual_CTC || 0).toLocaleString('en-IN')}</td>
+                    <td><span style="font-family: monospace; font-size: 0.75rem; background: var(--k-subtle); padding: 2px 6px; border-radius: 4px;">${r.Shift_Roster_Code || '—'}</span></td>
+                    <td><span style="font-size: 0.75rem; color: var(--k-text-2);">${r.Week_Off_Pattern}</span></td>
+                    <td style="font-size: 0.75rem; color: var(--k-muted);">${r.Custom_Week_Off_Days || '—'}</td>
                     <td style="font-size: 0.75rem;">${r.Reason_For_Update}</td>
                     <td style="text-align: center;">${statusBadge}</td>
                 </tr>
@@ -295,26 +295,26 @@
         const rows = result.data || [];
         tbody.innerHTML = rows.map((r) => {
             const statusBadge = r.isValid 
-                ? `<span style="background: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 9999px; font-size: 0.72rem; font-weight: 700; border: 1px solid #bbf7d0;">✓ Valid</span>`
-                : `<span style="background: #fee2e2; color: #991b1b; padding: 4px 10px; border-radius: 9999px; font-size: 0.72rem; font-weight: 700; border: 1px solid #fecaca;" title="${r.errors.join('; ')}">✕ ${r.errors[0] || 'Error'}</span>`;
+                ? `<span style="background: var(--k-success-soft); color: var(--k-success-text); padding: 4px 10px; border-radius: 9999px; font-size: 0.72rem; font-weight: 700; border: 1px solid var(--k-success-border);">✓ Valid</span>`
+                : `<span style="background: var(--k-danger-soft); color: var(--k-danger-text); padding: 4px 10px; border-radius: 9999px; font-size: 0.72rem; font-weight: 700; border: 1px solid var(--k-danger-border);" title="${r.errors.join('; ')}">✕ ${r.errors[0] || 'Error'}</span>`;
 
             const pennyDropBadge = r.Requires_Penny_Drop
-                ? `<span style="background: #eff6ff; color: #1d4ed8; padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; border: 1px solid #bfdbfe;"><i data-lucide="zap" style="width: 12px; height: 12px; display: inline-block; vertical-align: -2px;"></i> Decentro Auto</span>`
-                : `<span style="color: #64748b; font-size: 0.72rem;">${r.Verification_Status}</span>`;
+                ? `<span style="background: var(--k-accent-soft); color: var(--k-accent-text); padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; border: 1px solid var(--k-accent-border);"><i data-lucide="zap" style="width: 12px; height: 12px; display: inline-block; vertical-align: -2px;"></i> Decentro Auto</span>`
+                : `<span style="color: var(--k-muted); font-size: 0.72rem;">${r.Verification_Status}</span>`;
 
             return `
                 <tr style="${!r.isValid ? 'background-color: #fff5f5;' : ''}">
                     <td style="font-weight: 700;">${r.rowIndex}</td>
-                    <td style="font-weight: 700; font-family: monospace; color: #1d4ed8;">${r.Employee_ID || '—'}</td>
+                    <td style="font-weight: 700; font-family: monospace; color: var(--k-accent-text);">${r.Employee_ID || '—'}</td>
                     <td>
                         <div style="font-weight: 700; font-size: 0.85rem;">${r.Account_Holder_Name || '—'}</div>
-                        <div style="font-size: 0.72rem; color: #64748b;">${r.Bank_Name} • ${r.Masked_Account_Number}</div>
+                        <div style="font-size: 0.72rem; color: var(--k-muted);">${r.Bank_Name} • ${r.Masked_Account_Number}</div>
                     </td>
-                    <td><span style="font-family: monospace; font-size: 0.75rem; background: #f8fafc; padding: 2px 6px; border-radius: 4px; border: 1px solid #e2e8f0;">${r.Bank_IFSC_Code}</span></td>
+                    <td><span style="font-family: monospace; font-size: 0.75rem; background: var(--k-subtle); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--k-border);">${r.Bank_IFSC_Code}</span></td>
                     <td style="font-family: monospace; font-size: 0.75rem; font-weight: 700;">${r.Masked_PAN}</td>
-                    <td style="font-family: monospace; font-size: 0.75rem; color: #475569;">${r.UAN || '—'}</td>
-                    <td style="font-family: monospace; font-size: 0.75rem; color: #475569;">${r.ESIC_IP_Number || '—'}</td>
-                    <td style="font-family: monospace; font-size: 0.75rem; color: #475569;">${r.PRAN || '—'}</td>
+                    <td style="font-family: monospace; font-size: 0.75rem; color: var(--k-text-2);">${r.UAN || '—'}</td>
+                    <td style="font-family: monospace; font-size: 0.75rem; color: var(--k-text-2);">${r.ESIC_IP_Number || '—'}</td>
+                    <td style="font-family: monospace; font-size: 0.75rem; color: var(--k-text-2);">${r.PRAN || '—'}</td>
                     <td><span style="font-size: 0.72rem; font-weight: 600;">${r.Primary_Disbursement_Method}</span></td>
                     <td>${pennyDropBadge}</td>
                     <td style="text-align: center;">${statusBadge}</td>
@@ -342,16 +342,16 @@
         const rows = result.data || [];
         tbody.innerHTML = rows.map((r) => {
             const statusBadge = r.isValid 
-                ? `<span style="background: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 9999px; font-size: 0.72rem; font-weight: 700; border: 1px solid #bbf7d0;">✓ Valid</span>`
-                : `<span style="background: #fee2e2; color: #991b1b; padding: 4px 10px; border-radius: 9999px; font-size: 0.72rem; font-weight: 700; border: 1px solid #fecaca;" title="${r.errors.join('; ')}">✕ ${r.errors[0] || 'Error'}</span>`;
+                ? `<span style="background: var(--k-success-soft); color: var(--k-success-text); padding: 4px 10px; border-radius: 9999px; font-size: 0.72rem; font-weight: 700; border: 1px solid var(--k-success-border);">✓ Valid</span>`
+                : `<span style="background: var(--k-danger-soft); color: var(--k-danger-text); padding: 4px 10px; border-radius: 9999px; font-size: 0.72rem; font-weight: 700; border: 1px solid var(--k-danger-border);" title="${r.errors.join('; ')}">✕ ${r.errors[0] || 'Error'}</span>`;
 
             return `
                 <tr style="${!r.isValid ? 'background-color: #fff5f5;' : ''}">
                     <td style="font-weight: 700;">${r.rowIndex}</td>
-                    <td style="font-weight: 700; font-family: monospace; color: #1d4ed8;">${r.Organization_ID || '—'}</td>
+                    <td style="font-weight: 700; font-family: monospace; color: var(--k-accent-text);">${r.Organization_ID || '—'}</td>
                     <td style="font-weight: 700;">${r.Legal_Entity_Name || '—'}</td>
-                    <td><span style="font-family: monospace; font-size: 0.75rem; background: #eff6ff; color: #1e40af; padding: 2px 6px; border-radius: 4px;">${r.EPFO_Establishment_Code}</span></td>
-                    <td><span style="font-family: monospace; font-size: 0.75rem; background: #fef2f2; color: #991b1b; padding: 2px 6px; border-radius: 4px;">${r.ESIC_Employer_Code}</span></td>
+                    <td><span style="font-family: monospace; font-size: 0.75rem; background: var(--k-accent-soft); color: var(--k-accent-text); padding: 2px 6px; border-radius: 4px;">${r.EPFO_Establishment_Code}</span></td>
+                    <td><span style="font-family: monospace; font-size: 0.75rem; background: var(--k-danger-soft); color: var(--k-danger-text); padding: 2px 6px; border-radius: 4px;">${r.ESIC_Employer_Code}</span></td>
                     <td style="font-size: 0.72rem; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${r.State_PT_Registrations}">${r.State_PT_Registrations || '—'}</td>
                     <td style="font-size: 0.72rem; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${r.State_LWF_Registrations}">${r.State_LWF_Registrations || '—'}</td>
                     <td style="font-family: monospace; font-size: 0.75rem; font-weight: 700;">${r.Authorized_Signatory_PAN}</td>

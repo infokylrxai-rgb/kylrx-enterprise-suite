@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+    <script src="kylrx-theme-init.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alert Builder | Kylrx Common Automation Engine</title>
@@ -53,8 +54,8 @@
         .sidebar {
             width: 260px;
             height: 100vh;
-            background: #ffffff;
-            border-right: 1px solid #e2e8f0;
+            background: var(--k-surface);
+            border-right: 1px solid var(--k-border);
             padding: 1.5rem 1rem 1rem;
             display: flex;
             flex-direction: column;
@@ -87,11 +88,11 @@
             font-size: 1.25rem;
             font-weight: 800;
             letter-spacing: -0.5px;
-            color: #0f172a;
+            color: var(--k-text);
         }
 
         .sidebar .logo-text span {
-            color: #3b82f6;
+            color: var(--k-accent-text);
         }
 
         .nav-menu {
@@ -135,7 +136,7 @@
         .nav-label {
             font-size: 0.7rem;
             font-weight: 800;
-            color: #94a3b8;
+            color: var(--k-muted);
             text-transform: uppercase;
             letter-spacing: 0.8px;
             margin: 1.25rem 0 0.5rem 0.5rem;
@@ -154,7 +155,7 @@
             align-items: center;
             gap: 12px;
             padding: 0.75rem 1rem;
-            color: #475569 !important;
+            color: var(--k-text-2) !important;
             text-decoration: none;
             border-radius: 10px;
             font-weight: 500;
@@ -166,14 +167,14 @@
         }
 
         .nav-link:hover {
-            color: #2563eb !important;
-            background: #eff6ff !important;
+            color: var(--k-accent-text) !important;
+            background: var(--k-accent-soft) !important;
             transform: none !important;
         }
 
         .nav-link.active {
-            color: #2563eb !important;
-            background: #eff6ff !important;
+            color: var(--k-accent-text) !important;
+            background: var(--k-accent-soft) !important;
             font-weight: 700;
             box-shadow: none !important;
         }
@@ -185,7 +186,7 @@
             top: 20%;
             bottom: 20%;
             width: 3.5px;
-            background: #2563eb;
+            background: var(--k-accent);
             border-radius: 0 4px 4px 0;
         }
 
@@ -198,19 +199,19 @@
             justify-content: center;
             flex-shrink: 0;
             font-size: 14px;
-            color: #64748b;
+            color: var(--k-muted);
         }
 
         .nav-link:hover i,
         .nav-link:hover svg,
         .nav-link.active i,
         .nav-link.active svg {
-            color: #2563eb !important;
+            color: var(--k-accent-text) !important;
         }
 
         .sidebar-bottom {
             padding-top: 0.5rem;
-            border-top: 1px solid #f1f5f9;
+            border-top: 1px solid var(--k-border);
         }
 
         .hub-container {
@@ -220,12 +221,12 @@
             display: flex;
             flex-direction: column;
             overflow-y: auto;
-            background: #f8fafc;
+            background: var(--k-subtle);
         }
 
         /* Top Bar */
         .hub-header {
-            background: #ffffff;
+            background: var(--k-surface);
             border-bottom: 1px solid var(--border-card);
             padding: 1.25rem 2rem;
             display: flex;
@@ -266,15 +267,15 @@
             font-weight: 700;
             border-radius: 8px;
             border: 1px solid var(--border-card);
-            background: #ffffff;
+            background: var(--k-surface);
             color: var(--text-main);
             cursor: pointer;
             transition: all 0.2s;
         }
 
         .btn-hub:hover {
-            background: #f8fafc;
-            border-color: #cbd5e1;
+            background: var(--k-subtle);
+            border-color: var(--k-border);
         }
 
         .btn-hub-primary {
@@ -289,13 +290,13 @@
         }
 
         .btn-hub-accent {
-            background: #eff6ff;
+            background: var(--k-accent-soft);
             color: var(--info);
-            border-color: #bfdbfe;
+            border-color: var(--k-accent-border);
         }
 
         .btn-hub-accent:hover {
-            background: #dbeafe;
+            background: var(--k-accent-soft);
         }
 
         /* Stats Strip */
@@ -307,7 +308,7 @@
         }
 
         .stat-card {
-            background: #ffffff;
+            background: var(--k-surface);
             border-radius: 12px;
             border: 1px solid var(--border-card);
             padding: 1rem 1.25rem;
@@ -375,7 +376,7 @@
         }
 
         .alert-card {
-            background: #ffffff;
+            background: var(--k-surface);
             border-radius: 12px;
             border: 1px solid var(--border-card);
             box-shadow: var(--card-shadow);
@@ -390,7 +391,7 @@
         .alert-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
-            border-color: #cbd5e1;
+            border-color: var(--k-border);
         }
 
         .alert-card.critical {
@@ -424,12 +425,12 @@
             letter-spacing: 0.5px;
         }
 
-        .badge-attendance { background: #fee2e2; color: #b91c1c; }
-        .badge-payroll { background: #fef3c7; color: #b45309; }
+        .badge-attendance { background: var(--k-danger-soft); color: var(--k-danger-text); }
+        .badge-payroll { background: var(--k-warning-soft); color: var(--k-warning-text); }
         .badge-policies { background: #e0e7ff; color: #4338ca; }
         .badge-pms { background: #f3e8ff; color: #7e22ce; }
         .badge-exit { background: #ffedd5; color: #c2410c; }
-        .badge-general { background: #e2e8f0; color: #475569; }
+        .badge-general { background: var(--k-border); color: var(--k-text-2); }
 
         .card-title {
             font-size: 1rem;
@@ -447,8 +448,8 @@
         }
 
         .condition-block {
-            background: #f8fafc;
-            border: 1px dashed #cbd5e1;
+            background: var(--k-subtle);
+            border: 1px dashed var(--k-border);
             border-radius: 8px;
             padding: 0.5rem 0.75rem;
             margin-bottom: 0.75rem;
@@ -471,8 +472,8 @@
         }
 
         .condition-val {
-            background: #ffffff;
-            border: 1px solid #cbd5e1;
+            background: var(--k-surface);
+            border: 1px solid var(--k-border);
             padding: 2px 6px;
             border-radius: 4px;
             font-weight: 700;
@@ -490,8 +491,8 @@
             align-items: center;
             gap: 8px;
             font-size: 0.75rem;
-            color: #334155;
-            background: #f1f5f9;
+            color: var(--k-text-2);
+            background: var(--k-subtle);
             padding: 5px 8px;
             border-radius: 6px;
         }
@@ -504,12 +505,12 @@
         .pipe-arrow {
             text-align: center;
             font-size: 0.7rem;
-            color: #94a3b8;
+            color: var(--k-muted);
             margin: -2px 0;
         }
 
         .card-footer {
-            border-top: 1px solid #f1f5f9;
+            border-top: 1px solid var(--k-border);
             padding-top: 0.75rem;
             display: flex;
             justify-content: space-between;
@@ -569,22 +570,22 @@
             font-size: 0.75rem;
             font-weight: 700;
             border-radius: 6px;
-            border: 1px solid #cbd5e1;
-            background: #ffffff;
-            color: #334155;
+            border: 1px solid var(--k-border);
+            background: var(--k-surface);
+            color: var(--k-text-2);
             cursor: pointer;
             transition: all 0.15s;
         }
 
         .btn-test-fire:hover {
-            background: #f1f5f9;
+            background: var(--k-subtle);
             border-color: var(--primary);
             color: var(--primary);
         }
 
         /* Live Simulation Console Dock */
         .simulation-console {
-            background: #ffffff;
+            background: var(--k-surface);
             border-radius: 12px;
             border: 1px solid var(--border-card);
             box-shadow: var(--card-shadow);
@@ -634,10 +635,10 @@
             padding: 0.5rem 0.75rem;
             font-size: 0.875rem;
             font-family: inherit;
-            border: 1px solid #cbd5e1;
+            border: 1px solid var(--k-border);
             border-radius: 8px;
             outline: none;
-            background: #ffffff;
+            background: var(--k-surface);
             min-width: 0;
             transition: border-color 0.2s, box-shadow 0.2s;
         }
@@ -669,7 +670,7 @@
         }
 
         .log-ts {
-            color: #64748b;
+            color: var(--k-muted);
             flex-shrink: 0;
         }
 
@@ -695,7 +696,7 @@
         }
 
         .modal-box {
-            background: #ffffff;
+            background: var(--k-surface);
             border-radius: 16px;
             width: 90%;
             max-width: 580px;
@@ -727,7 +728,7 @@
             background: none;
             border: none;
             cursor: pointer;
-            color: #64748b;
+            color: var(--k-muted);
         }
 
         .toast-popup {
@@ -752,24 +753,24 @@
             font-size: 0.75rem;
             font-weight: 700;
             border-radius: 20px;
-            border: 1px solid #cbd5e1;
-            background: #ffffff;
-            color: #475569;
+            border: 1px solid var(--k-border);
+            background: var(--k-surface);
+            color: var(--k-text-2);
             cursor: pointer;
             transition: all 0.15s ease;
             white-space: nowrap;
         }
 
         .filter-pill:hover {
-            border-color: #93c5fd;
-            background: #eff6ff;
-            color: #1d4ed8;
+            border-color: var(--k-accent-border);
+            background: var(--k-accent-soft);
+            color: var(--k-accent-text);
         }
 
         .filter-pill.active {
-            background: #2563eb;
-            color: #ffffff;
-            border-color: #2563eb;
+            background: var(--k-accent);
+            color: var(--k-on-accent);
+            border-color: var(--k-accent);
             box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
         }
 
@@ -780,7 +781,7 @@
             border: none;
             border-radius: 8px;
             background: transparent;
-            color: #64748b;
+            color: var(--k-muted);
             cursor: pointer;
             display: inline-flex;
             align-items: center;
@@ -789,8 +790,8 @@
         }
 
         .view-tab-btn.active {
-            background: #ffffff;
-            color: #1e40af;
+            background: var(--k-surface);
+            color: var(--k-accent-text);
             font-weight: 800;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
@@ -799,6 +800,10 @@
             transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
     </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="kylrx-theme.css">
 </head>
 
 <body>
@@ -903,8 +908,8 @@
                             Alert Builder
                         </h1>
                         <!-- Firebase Backend Status Badge -->
-                        <div class="firebase-status-badge" id="firebaseLiveBadge" onclick="toggleFirebaseDetailsModal()" style="cursor: pointer; display: flex; align-items: center; gap: 7px; background: #ecfdf5; border: 1.5px solid #a7f3d0; border-radius: 20px; padding: 5px 12px; font-size: 0.8rem; font-weight: 700; color: #065f46; transition: all 0.2s;" title="Click to inspect live Firebase connection">
-                            <span class="pulse-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);"></span>
+                        <div class="firebase-status-badge" id="firebaseLiveBadge" onclick="toggleFirebaseDetailsModal()" style="cursor: pointer; display: flex; align-items: center; gap: 7px; background: var(--k-success-soft); border: 1.5px solid var(--k-success-border); border-radius: 20px; padding: 5px 12px; font-size: 0.8rem; font-weight: 700; color: var(--k-success-text); transition: all 0.2s;" title="Click to inspect live Firebase connection">
+                            <span class="pulse-dot" style="width: 8px; height: 8px; border-radius: 50%; background: var(--k-success); display: inline-block; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);"></span>
                             <span id="firebaseStatusText">Firebase: Connected • Slate Zeroed</span>
                         </div>
                     </div>
@@ -915,14 +920,14 @@
                         <i data-lucide="sparkles" style="width:15px; height:15px;"></i>
                         <span>Make All 0</span>
                     </button>
-                    <button class="btn-hub" id="btn-restore-alerts" onclick="restoreAlerts()" style="color:#2563eb; background:#eff6ff; border-color:#bfdbfe; font-weight:700;" title="Restore threshold monitors">
+                    <button class="btn-hub" id="btn-restore-alerts" onclick="restoreAlerts()" style="color:var(--k-accent-text); background:var(--k-accent-soft); border-color:var(--k-accent-border); font-weight:700;" title="Restore threshold monitors">
                         <i data-lucide="rotate-ccw" style="width:15px; height:15px;"></i>
                         <span>Restore Monitors</span>
                     </button>
-                    <button class="btn-hub" onclick="if (window.KylrxAlertRegistry) window.KylrxAlertRegistry.openSetupGuide();" style="background:#f0fdf4; color:#166534; border-color:#bbf7d0; font-weight:700;" title="Administrator Setup Guide for Triggers, Webhooks & Escalations">
+                    <button class="btn-hub" onclick="if (window.KylrxAlertRegistry) window.KylrxAlertRegistry.openSetupGuide();" style="background:var(--k-success-soft); color:var(--k-success-text); border-color:var(--k-success-border); font-weight:700;" title="Administrator Setup Guide for Triggers, Webhooks & Escalations">
                         <i data-lucide="book-open"></i> Setup Guide
                     </button>
-                    <button class="btn-hub" onclick="if (window.KylrxAlertRegistry) window.KylrxAlertRegistry.openAiSimulation();" style="background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe; font-weight:700;" title="Safe AI Simulation Testing Sandbox with 0 Side-Effects">
+                    <button class="btn-hub" onclick="if (window.KylrxAlertRegistry) window.KylrxAlertRegistry.openAiSimulation();" style="background:var(--k-accent-soft); color:var(--k-accent-text); border-color:var(--k-accent-border); font-weight:700;" title="Safe AI Simulation Testing Sandbox with 0 Side-Effects">
                         <i data-lucide="sparkles"></i> AI Simulation Sandbox
                     </button>
                     <a href="bulk-trigger-dashboard.html?tab=ai_builder" class="btn-hub" style="background:#fdf4ff; color:#7e22ce; border-color:#e9d5ff; font-weight:700; text-decoration:none;" title="AI-Assisted Alert Builder (PRD §2.4)">
@@ -947,7 +952,7 @@
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon-wrap" style="background: #fee2e2; color: var(--danger);">
+                    <div class="stat-icon-wrap" style="background: var(--k-danger-soft); color: var(--danger);">
                         <i data-lucide="alert-octagon" size="22"></i>
                     </div>
                     <div class="stat-content">
@@ -957,7 +962,7 @@
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon-wrap" style="background: #fef3c7; color: var(--warning);">
+                    <div class="stat-icon-wrap" style="background: var(--k-warning-soft); color: var(--warning);">
                         <i data-lucide="bell" size="22"></i>
                     </div>
                     <div class="stat-content">
@@ -967,7 +972,7 @@
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon-wrap" style="background: #dcfce7; color: var(--success);">
+                    <div class="stat-icon-wrap" style="background: var(--k-success-soft); color: var(--success);">
                         <i data-lucide="cpu" size="22"></i>
                     </div>
                     <div class="stat-content">
@@ -983,7 +988,7 @@
                 <div>
                     <div class="section-header" style="flex-wrap: wrap; gap: 10px; margin-bottom: 0.75rem;">
                         <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                            <div style="display: inline-flex; background: #e2e8f0; padding: 3px; border-radius: 10px;">
+                            <div style="display: inline-flex; background: var(--k-border); padding: 3px; border-radius: 10px;">
                                 <button id="viewTabRegistry" class="view-tab-btn active" onclick="switchAlertView('registry')">
                                     <i data-lucide="shield-alert" style="width: 15px; height: 15px;"></i>
                                     <span>Alert Monitor Registry (PRD §11)</span>
@@ -1054,7 +1059,7 @@
                         <div>
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
                                 <span class="control-label">Stage 1 - 8 Execution Trace & Logs</span>
-                                <span style="font-size: 0.7rem; color: #94a3b8; cursor: pointer;" onclick="clearSimLogs()">Clear Log</span>
+                                <span style="font-size: 0.7rem; color: var(--k-muted); cursor: pointer;" onclick="clearSimLogs()">Clear Log</span>
                             </div>
                             <div class="sim-output" id="simLogTerminal">
                                 <div class="log-entry">
@@ -1160,39 +1165,39 @@
             </div>
             
             <div class="modal-body" style="padding: 1.5rem;">
-                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem; margin-bottom: 1.25rem;">
+                <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 10px; padding: 1rem; margin-bottom: 1.25rem;">
                     <div style="display: grid; grid-template-columns: 140px 1fr; row-gap: 8px; font-size: 0.8rem;">
-                        <span style="color: #64748b; font-weight: 700;">Project ID:</span>
-                        <span style="font-weight: 800; color: #0f172a; font-family: monospace;" id="fbModalProject" data-firebase-project>—</span>
+                        <span style="color: var(--k-muted); font-weight: 700;">Project ID:</span>
+                        <span style="font-weight: 800; color: var(--k-text); font-family: monospace;" id="fbModalProject" data-firebase-project>—</span>
 
-                        <span style="color: #64748b; font-weight: 700;">Backend Status:</span>
-                        <span style="color: #059669; font-weight: 800; display: flex; align-items: center; gap: 6px;" id="fbModalStatus">
-                            <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+                        <span style="color: var(--k-muted); font-weight: 700;">Backend Status:</span>
+                        <span style="color: var(--k-success-text); font-weight: 800; display: flex; align-items: center; gap: 6px;" id="fbModalStatus">
+                            <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--k-success); display: inline-block;"></span>
                             Active &amp; Initialized
                         </span>
 
-                        <span style="color: #64748b; font-weight: 700;">Client Firestore:</span>
-                        <span style="font-weight: 800; color: #0f172a;" id="fbModalClient">Firebase JS SDK v12.12.1 (Online)</span>
+                        <span style="color: var(--k-muted); font-weight: 700;">Client Firestore:</span>
+                        <span style="font-weight: 800; color: var(--k-text);" id="fbModalClient">Firebase JS SDK v12.12.1 (Online)</span>
 
-                        <span style="color: #64748b; font-weight: 700;">Admin Service:</span>
-                        <span style="font-size: 0.75rem; color: #475569; word-break: break-all;" id="fbModalEmail">the server's service account</span>
+                        <span style="color: var(--k-muted); font-weight: 700;">Admin Service:</span>
+                        <span style="font-size: 0.75rem; color: var(--k-text-2); word-break: break-all;" id="fbModalEmail">the server's service account</span>
 
-                        <span style="color: #64748b; font-weight: 700;">Storage Bucket:</span>
-                        <span style="color: #0f172a; font-family: monospace;" data-firebase-bucket>—</span>
+                        <span style="color: var(--k-muted); font-weight: 700;">Storage Bucket:</span>
+                        <span style="color: var(--k-text); font-family: monospace;" data-firebase-bucket>—</span>
 
-                        <span style="color: #64748b; font-weight: 700;">Live Collections:</span>
-                        <span style="color: #1d4ed8; font-weight: 700;" id="fbModalCollections">alert_rules (5), alert_breaches, activities</span>
+                        <span style="color: var(--k-muted); font-weight: 700;">Live Collections:</span>
+                        <span style="color: var(--k-accent-text); font-weight: 700;" id="fbModalCollections">alert_rules (5), alert_breaches, activities</span>
                     </div>
                 </div>
 
-                <div style="background: #eff6ff; border-left: 4px solid #3b82f6; padding: 10px 14px; border-radius: 4px; margin-bottom: 1.25rem;">
-                    <p style="margin: 0; font-size: 0.75rem; color: #1e40af; line-height: 1.4;">
+                <div style="background: var(--k-accent-soft); border-left: 4px solid var(--k-accent); padding: 10px 14px; border-radius: 4px; margin-bottom: 1.25rem;">
+                    <p style="margin: 0; font-size: 0.75rem; color: var(--k-accent-text); line-height: 1.4;">
                         ⚡ <strong>Realtime Cloud Sync:</strong> All Alert Threshold Monitors, condition rules, active toggles, and breach incidents are synchronized directly with Google Cloud Firestore.
                     </p>
                 </div>
 
                 <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                    <button class="btn-hub" onclick="testFirebaseSync()" style="background: #f1f5f9; color: #334155; font-size: 0.8rem; font-weight: 700;">
+                    <button class="btn-hub" onclick="testFirebaseSync()" style="background: var(--k-subtle); color: var(--k-text-2); font-size: 0.8rem; font-weight: 700;">
                         <i data-lucide="send" size="14"></i> Test Firebase Sync Ping
                     </button>
                     <button class="btn-hub btn-hub-primary" onclick="toggleFirebaseDetailsModal()" style="font-size: 0.8rem; font-weight: 700;">
@@ -1205,18 +1210,18 @@
 
     <!-- ─── PRD §11: ADMINISTRATOR SETUP GUIDE DRAWER ─── -->
     <div id="alertSetupGuideOverlay" style="display:none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(4px); z-index: 3100;" onclick="closeSetupGuideDrawer()"></div>
-    <div id="alertSetupGuideDrawer" class="setup-guide-drawer" style="display:none; position: fixed; top: 0; right: 0; width: 100%; max-width: min(620px, 95vw); height: 100vh; background: #ffffff; box-shadow: -10px 0 30px rgba(15, 23, 42, 0.15); z-index: 3110; flex-direction: column; overflow: hidden;">
-        <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; background: #f8fafc;">
+    <div id="alertSetupGuideDrawer" class="setup-guide-drawer" style="display:none; position: fixed; top: 0; right: 0; width: 100%; max-width: min(620px, 95vw); height: 100vh; background: var(--k-surface); box-shadow: -10px 0 30px rgba(15, 23, 42, 0.15); z-index: 3110; flex-direction: column; overflow: hidden;">
+        <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--k-border); display: flex; justify-content: space-between; align-items: center; background: var(--k-subtle);">
             <div style="display: flex; align-items: center; gap: 10px;">
-                <div style="width: 36px; height: 36px; border-radius: 10px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                <div style="width: 36px; height: 36px; border-radius: 10px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center;">
                     <i data-lucide="book-open" style="width: 20px; height: 20px;"></i>
                 </div>
                 <div>
-                    <h3 style="margin: 0; font-size: 1.125rem; font-weight: 800; color: #0f172a;">Administrator Setup Guide</h3>
-                    <p style="margin: 2px 0 0 0; font-size: 0.75rem; color: #64748b;">Event triggering, condition thresholds, and notification routing pipeline</p>
+                    <h3 style="margin: 0; font-size: 1.125rem; font-weight: 800; color: var(--k-text);">Administrator Setup Guide</h3>
+                    <p style="margin: 2px 0 0 0; font-size: 0.75rem; color: var(--k-muted);">Event triggering, condition thresholds, and notification routing pipeline</p>
                 </div>
             </div>
-            <button onclick="closeSetupGuideDrawer()" style="background: none; border: none; font-size: 1.5rem; color: #64748b; cursor: pointer; padding: 4px 8px; border-radius: 6px;">&times;</button>
+            <button onclick="closeSetupGuideDrawer()" style="background: none; border: none; font-size: 1.5rem; color: var(--k-muted); cursor: pointer; padding: 4px 8px; border-radius: 6px;">&times;</button>
         </div>
         <div id="setupGuideContent" style="flex: 1; overflow-y: auto; padding: 1.5rem;">
             <!-- Rendered dynamically by KylrxAlertRegistry.openSetupGuide(eventKey) -->
@@ -1225,7 +1230,7 @@
 
     <!-- ─── PRD §11: SAFE AI SIMULATION TESTING SANDBOX MODAL ─── -->
     <div id="aiSimulationSandboxModal" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 3200; align-items: center; justify-content: center; padding: 1.5rem;">
-        <div class="modal-box" style="width: 95%; max-width: 980px; max-height: 92vh; background: #ffffff; border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25); border: 1px solid #e2e8f0; padding: 0;">
+        <div class="modal-box" style="width: 95%; max-width: 980px; max-height: 92vh; background: var(--k-surface); border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25); border: 1px solid var(--k-border); padding: 0;">
             <!-- Modal Header -->
             <div style="background: linear-gradient(135deg, #1e3a8a, #2563eb); color: #ffffff; padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center;">
                 <div style="display: flex; align-items: center; gap: 12px;">
@@ -1235,7 +1240,7 @@
                     <div>
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <h3 style="margin: 0; font-size: 1.125rem; font-weight: 800; color: #ffffff;">Safe AI Simulation Testing Sandbox</h3>
-                            <span style="font-size: 0.7rem; font-weight: 800; background: #10b981; color: #ffffff; padding: 2px 8px; border-radius: 12px; letter-spacing: 0.3px;">
+                            <span style="font-size: 0.7rem; font-weight: 800; background: var(--k-success); color: var(--k-on-success); padding: 2px 8px; border-radius: 12px; letter-spacing: 0.3px;">
                                 🔒 100% DRY-RUN GUARANTEE
                             </span>
                         </div>
@@ -1250,33 +1255,33 @@
                 <!-- Left: Controls & Payload Editor -->
                 <div style="display: flex; flex-direction: column; gap: 1rem;">
                     <div>
-                        <label style="font-size: 0.7rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.3px; display: block; margin-bottom: 6px;">Select Technical Trigger Event</label>
-                        <select id="simModalTriggerSelect" onchange="window.KylrxAlertRegistry.onSimTriggerChanged()" style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: monospace; font-size: 0.875rem; font-weight: 700; background: #ffffff; color: #1e40af;">
+                        <label style="font-size: 0.7rem; font-weight: 800; color: var(--k-text-2); text-transform: uppercase; letter-spacing: 0.3px; display: block; margin-bottom: 6px;">Select Technical Trigger Event</label>
+                        <select id="simModalTriggerSelect" onchange="window.KylrxAlertRegistry.onSimTriggerChanged()" style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--k-border); font-family: monospace; font-size: 0.875rem; font-weight: 700; background: var(--k-surface); color: var(--k-accent-text);">
                             <!-- Populated dynamically -->
                         </select>
                     </div>
 
                     <!-- Trigger Description Pill -->
-                    <div id="simModalTriggerDesc" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 12px;"></div>
+                    <div id="simModalTriggerDesc" style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 10px; padding: 10px 12px;"></div>
 
                     <!-- Payload Presets & Editor -->
                     <div>
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <label style="font-size: 0.7rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.3px;">Mock Event Payload (JSON)</label>
+                            <label style="font-size: 0.7rem; font-weight: 800; color: var(--k-text-2); text-transform: uppercase; letter-spacing: 0.3px;">Mock Event Payload (JSON)</label>
                             <div style="display: flex; gap: 6px;">
-                                <button type="button" onclick="window.KylrxAlertRegistry.loadSimPreset('breach')" style="font-size: 0.7rem; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; cursor: pointer;">
+                                <button type="button" onclick="window.KylrxAlertRegistry.loadSimPreset('breach')" style="font-size: 0.7rem; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: var(--k-danger-soft); color: var(--k-danger-text); border: 1px solid var(--k-danger-border); cursor: pointer;">
                                     Preset: Threshold Breach
                                 </button>
-                                <button type="button" onclick="window.KylrxAlertRegistry.loadSimPreset('denial')" style="font-size: 0.7rem; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; cursor: pointer;">
+                                <button type="button" onclick="window.KylrxAlertRegistry.loadSimPreset('denial')" style="font-size: 0.7rem; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: var(--k-success-soft); color: var(--k-success-text); border: 1px solid var(--k-success-border); cursor: pointer;">
                                     Preset: Condition Safe
                                 </button>
                             </div>
                         </div>
-                        <textarea id="simModalPayloadInput" rows="9" style="width: 100%; font-family: 'Consolas', monospace; font-size: 0.8rem; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; background: #f8fafc; color: #0f172a; resize: vertical; box-sizing: border-box;"></textarea>
+                        <textarea id="simModalPayloadInput" rows="9" style="width: 100%; font-family: 'Consolas', monospace; font-size: 0.8rem; padding: 10px 12px; border: 1px solid var(--k-border-strong); border-radius: 8px; background: var(--k-subtle); color: var(--k-text); resize: vertical; box-sizing: border-box;"></textarea>
                     </div>
 
                     <!-- Action Button -->
-                    <button type="button" id="btnRunSim" onclick="window.KylrxAlertRegistry.executeSimulation()" style="width: 100%; padding: 12px; font-weight: 800; font-size: 0.875rem; background: #2563eb; color: #ffffff; border: none; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);">
+                    <button type="button" id="btnRunSim" onclick="window.KylrxAlertRegistry.executeSimulation()" style="width: 100%; padding: 12px; font-weight: 800; font-size: 0.875rem; background: var(--k-accent); color: var(--k-on-accent); border: none; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);">
                         <i data-lucide="play" style="width: 16px; height: 16px;"></i> Run Sandboxed Simulation
                     </button>
                 </div>
@@ -1284,8 +1289,8 @@
                 <!-- Right: Interactive Console Trace -->
                 <div style="display: flex; flex-direction: column;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                        <span style="font-size: 0.7rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.3px;">Stage-By-Stage Diagnostic Trace</span>
-                        <button type="button" onclick="window.KylrxAlertRegistry.clearSimulationTraceTerminal()" style="background: none; border: none; font-size: 0.7rem; color: #64748b; cursor: pointer; text-decoration: underline;">Clear</button>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-text-2); text-transform: uppercase; letter-spacing: 0.3px;">Stage-By-Stage Diagnostic Trace</span>
+                        <button type="button" onclick="window.KylrxAlertRegistry.clearSimulationTraceTerminal()" style="background: none; border: none; font-size: 0.7rem; color: var(--k-muted); cursor: pointer; text-decoration: underline;">Clear</button>
                     </div>
                     <div id="simTraceTerminal" style="flex: 1; min-height: 380px; max-height: 480px; background: #0f172a; border-radius: 12px; padding: 1.25rem; overflow-y: auto; border: 1px solid #1e293b;">
                         <!-- Diagnostic trace entries rendered here -->
@@ -1294,12 +1299,12 @@
             </div>
 
             <!-- Modal Footer -->
-            <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 0.75rem 1.5rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: #64748b;">
+            <div style="background: var(--k-subtle); border-top: 1px solid var(--k-border); padding: 0.75rem 1.5rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: var(--k-muted);">
                 <div style="display: flex; align-items: center; gap: 6px;">
-                    <i data-lucide="shield-check" style="width: 15px; height: 15px; color: #10b981;"></i>
+                    <i data-lucide="shield-check" style="width: 15px; height: 15px; color: var(--k-success-text);"></i>
                     <span><strong>Dry-Run Guarantee:</strong> 0 Firestore writes &bull; 0 status mutations &bull; 0 webhooks fired</span>
                 </div>
-                <button type="button" onclick="closeAiSimulationModal()" style="padding: 6px 16px; border-radius: 6px; font-weight: 700; background: #e2e8f0; color: #334155; border: none; cursor: pointer;">Close Sandbox</button>
+                <button type="button" onclick="closeAiSimulationModal()" style="padding: 6px 16px; border-radius: 6px; font-weight: 700; background: var(--k-border); color: var(--k-text-2); border: none; cursor: pointer;">Close Sandbox</button>
             </div>
         </div>
     </div>
@@ -1328,27 +1333,27 @@
                 justify-content: center;
             }
             #customAppsModal .modal {
-                background: #ffffff !important;
-                color: #0f172a !important;
+                background: var(--k-surface) !important;
+                color: var(--k-text) !important;
                 padding: 2rem;
                 border-radius: 24px;
                 width: 90%;
                 max-width: 500px;
                 box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-                border: 1px solid #e2e8f0;
+                border: 1px solid var(--k-border);
                 position: relative;
                 text-align: left;
             }
             #customAppsModal .modal h2 {
                 font-weight: 800;
                 font-size: 1.25rem;
-                color: #0f172a !important;
+                color: var(--k-text) !important;
                 margin-bottom: 4px;
                 margin-top: 0;
             }
             #customAppsModal .modal p {
                 font-size: 0.75rem;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 margin: 0;
             }
             #customAppsModal .modal .form-group {
@@ -1360,7 +1365,7 @@
             #customAppsModal .modal label {
                 font-size: 0.7rem;
                 font-weight: 800;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 text-transform: uppercase;
                 display: block;
                 margin-bottom: 4px;
@@ -1369,9 +1374,9 @@
                 width: 100%;
                 padding: 12px 16px;
                 border-radius: 12px;
-                border: 1px solid #cbd5e1 !important;
-                background: #ffffff !important;
-                color: #0f172a !important;
+                border: 1px solid var(--k-border) !important;
+                background: var(--k-surface) !important;
+                color: var(--k-text) !important;
                 outline: none;
                 margin-top: 4px;
                 font-family: inherit;
@@ -1379,15 +1384,15 @@
                 transition: border-color 0.2s, box-shadow 0.2s;
             }
             #customAppsModal .modal input:focus {
-                border-color: #3b82f6 !important;
+                border-color: var(--k-accent) !important;
                 box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
             }
             #customAppsModal .modal input::placeholder {
-                color: #94a3b8 !important;
+                color: var(--k-muted) !important;
                 opacity: 0.8;
             }
             #customAppsModal .modal button.map-btn {
-                background: #3b82f6;
+                background: var(--k-accent);
                 color: white !important;
                 border: none;
                 border-radius: 12px;
@@ -1401,13 +1406,13 @@
                 margin-top: 0.5rem;
             }
             #customAppsModal .modal button.map-btn:hover {
-                background: #2563eb;
+                background: var(--k-accent);
                 transform: translateY(-1px);
             }
             #customAppsModal .modal h3 {
                 font-size: 0.7rem;
                 font-weight: 800;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 text-transform: uppercase;
                 margin-bottom: 10px;
                 margin-top: 0;
@@ -1419,8 +1424,8 @@
                 width: 36px;
                 height: 36px;
                 border-radius: 10px;
-                background: #f8fafc;
-                color: #64748b !important;
+                background: var(--k-subtle);
+                color: var(--k-muted) !important;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -1429,8 +1434,8 @@
                 border: none;
             }
             #customAppsModal .close-modal:hover {
-                color: #ef4444 !important;
-                background: #fee2e2;
+                color: var(--k-danger-text) !important;
+                background: var(--k-danger-soft);
             }
         </style>
         <div class="modal">
@@ -1454,7 +1459,7 @@
                 <button class="map-btn" onclick="addCustomApp()">Map Tool Link</button>
             </div>
 
-            <div style="border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
+            <div style="border-top: 1px solid var(--k-border); padding-top: 1.25rem;">
                 <h3>Mapped Connections</h3>
                 <div id="registryAppsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;">
                     <!-- Mapped apps inside the registry panel -->

@@ -56,9 +56,9 @@
 
         if (steps.length === 0) {
             el.innerHTML = `
-                <div style="text-align: center; padding: 2.5rem; color: #64748b; background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 18px;">
+                <div style="text-align: center; padding: 2.5rem; color: var(--k-muted); background: var(--k-subtle); border: 2px dashed var(--k-border); border-radius: 18px;">
                     <div style="font-size: 2rem; margin-bottom: 0.5rem;">⛓️</div>
-                    <h4 style="font-size: 1rem; font-weight: 700; color: #1e293b; margin-bottom: 4px;">No Steps Defined</h4>
+                    <h4 style="font-size: 1rem; font-weight: 700; color: var(--k-text); margin-bottom: 4px;">No Steps Defined</h4>
                     <p style="font-size: 0.82rem; margin-bottom: 1rem;">This workflow does not contain any approval steps yet.</p>
                     <button type="button" class="btn btn-primary" onclick="KylrxWorkflowFlowDesigner.addStep('${workflow.workflowCode || ''}')" style="padding: 6px 14px; font-size: 0.8rem; border-radius: 8px;">
                         <i data-lucide="plus" style="width: 14px; height: 14px;"></i> Add Step 1
@@ -78,30 +78,30 @@
             
             let targetDetail = '';
             if (step.approverType === 'Specific_Employee') {
-                targetDetail = `<span style="font-size: 0.72rem; font-weight: 700; color: #b45309; background: #fef3c7; padding: 2px 8px; border-radius: 6px;">ID: ${step.approverEmployeeId || 'Unassigned'}</span>`;
+                targetDetail = `<span style="font-size: 0.72rem; font-weight: 700; color: var(--k-warning-text); background: var(--k-warning-soft); padding: 2px 8px; border-radius: 6px;">ID: ${step.approverEmployeeId || 'Unassigned'}</span>`;
             } else if (step.approverType === 'Role_Based') {
                 targetDetail = `<span style="font-size: 0.72rem; font-weight: 700; color: #4338ca; background: #e0e7ff; padding: 2px 8px; border-radius: 6px;">Role: ${step.approverRoleCode || 'Unassigned'}</span>`;
             } else {
-                targetDetail = `<span style="font-size: 0.72rem; color: #64748b;">Dynamic Hierarchy</span>`;
+                targetDetail = `<span style="font-size: 0.72rem; color: var(--k-muted);">Dynamic Hierarchy</span>`;
             }
 
             nodesHtml += `
                 <div class="workflow-flow-node" data-step-no="${step.stepNo}" style="display: flex; align-items: stretch; margin-bottom: 1rem; position: relative;">
                     <!-- Step Sequence Number & Connector -->
                     <div style="display: flex; flex-direction: column; align-items: center; margin-right: 1.25rem; width: 36px;">
-                        <div style="width: 36px; height: 36px; border-radius: 50%; background: #2563eb; color: #ffffff; font-weight: 800; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(37,99,235,0.25); z-index: 2;">
+                        <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--k-accent); color: var(--k-on-accent); font-weight: 800; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(37,99,235,0.25); z-index: 2;">
                             ${step.stepNo}
                         </div>
                         ${!isLast ? `<div style="flex: 1; width: 3px; background: #cbd5e1; margin: 6px 0;"></div>` : ''}
                     </div>
 
                     <!-- Step Node Card -->
-                    <div class="node-card" style="flex: 1; background: #ffffff; border: 1.5px solid ${theme.border}; border-radius: 16px; padding: 1.25rem; box-shadow: 0 4px 14px rgba(15,23,42,0.04); transition: transform 0.2s, box-shadow 0.2s;">
+                    <div class="node-card" style="flex: 1; background: var(--k-surface); border: 1.5px solid ${theme.border}; border-radius: 16px; padding: 1.25rem; box-shadow: 0 4px 14px rgba(15,23,42,0.04); transition: transform 0.2s, box-shadow 0.2s;">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
                             <!-- Header & Pill -->
                             <div>
                                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                                    <span style="font-size: 0.82rem; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.05em;">Step ${step.stepNo}</span>
+                                    <span style="font-size: 0.82rem; font-weight: 800; color: var(--k-text); text-transform: uppercase; letter-spacing: 0.05em;">Step ${step.stepNo}</span>
                                     
                                     <!-- Approver Type Pill -->
                                     <span class="approver-type-pill" style="display: inline-flex; align-items: center; gap: 5px; background: ${theme.bg}; color: ${theme.text}; border: 1px solid ${theme.border}; padding: 3px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">
@@ -109,13 +109,13 @@
                                     </span>
 
                                     <!-- Mandatory / Optional Flag -->
-                                    <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 6px; font-size: 0.68rem; font-weight: 700; ${step.isMandatory ? 'background: #fee2e2; color: #b91c1c;' : 'background: #f1f5f9; color: #64748b;'}">
+                                    <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 6px; font-size: 0.68rem; font-weight: 700; ${step.isMandatory ? 'background: #fee2e2; color: var(--k-danger-text);' : 'background: #f1f5f9; color: var(--k-muted);'}">
                                         ${step.isMandatory ? 'Mandatory' : 'Optional'}
                                     </span>
                                 </div>
                                 <div style="display: flex; align-items: center; gap: 10px; margin-top: 4px;">
                                     ${targetDetail}
-                                    <span style="font-size: 0.72rem; color: #64748b; display: inline-flex; align-items: center; gap: 4px;">
+                                    <span style="font-size: 0.72rem; color: var(--k-muted); display: inline-flex; align-items: center; gap: 4px;">
                                         <i data-lucide="clock" style="width: 12px; height: 12px;"></i>
                                         SLA: <strong>${step.slaHours} hours</strong>
                                     </span>
@@ -128,8 +128,8 @@
                                 <button type="button" class="btn btn-outline node-automation-btn" 
                                     onclick="KylrxWorkflowFlowDesigner.triggerStepAutomation('${workflow.workflowCode}', ${step.stepNo})"
                                     title="Configure step webhooks, alerts, and automated escalations"
-                                    style="background: #f0fdf4; border: 1.5px solid #86efac; color: #15803d; font-size: 0.72rem; font-weight: 800; padding: 5px 10px; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer;">
-                                    <i data-lucide="zap" style="width: 13px; height: 13px; color: #16a34a;"></i> Automation
+                                    style="background: var(--k-success-soft); border: 1.5px solid var(--k-success-border); color: var(--k-success-text); font-size: 0.72rem; font-weight: 800; padding: 5px 10px; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer;">
+                                    <i data-lucide="zap" style="width: 13px; height: 13px; color: var(--k-success-text);"></i> Automation
                                 </button>
 
                                 ${!options.isReadOnly ? `
@@ -142,7 +142,7 @@
                                     <button type="button" class="btn btn-outline" onclick="KylrxWorkflowFlowDesigner.openEditStepModal('${workflow.workflowCode}', ${step.stepNo})" title="Edit Step" style="padding: 5px 8px; font-size: 0.7rem; border-radius: 6px;">
                                         <i data-lucide="edit-3" style="width: 13px; height: 13px;"></i>
                                     </button>
-                                    <button type="button" class="btn btn-danger" onclick="KylrxWorkflowFlowDesigner.deleteStep('${workflow.workflowCode}', ${step.stepNo})" title="Delete Step" style="padding: 5px 8px; font-size: 0.7rem; border-radius: 6px; background: #fee2e2; border-color: #fca5a5; color: #dc2626;">
+                                    <button type="button" class="btn btn-danger" onclick="KylrxWorkflowFlowDesigner.deleteStep('${workflow.workflowCode}', ${step.stepNo})" title="Delete Step" style="padding: 5px 8px; font-size: 0.7rem; border-radius: 6px; background: var(--k-danger-soft); border-color: var(--k-danger-border); color: var(--k-danger-text);">
                                         <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
                                     </button>
                                 ` : ''}
@@ -154,10 +154,10 @@
         });
 
         const headerHtml = `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid #e2e8f0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--k-border);">
                 <div>
-                    <h4 style="font-size: 1rem; font-weight: 800; color: #0f172a; margin: 0;">${workflow.workflowCode || 'Workflow Chain'}</h4>
-                    <p style="font-size: 0.75rem; color: #64748b; margin: 2px 0 0 0;">Module: <strong>${workflow.module}</strong> • Transaction: <strong>${workflow.transactionType}</strong> • Total Steps: <strong>${steps.length}</strong></p>
+                    <h4 style="font-size: 1rem; font-weight: 800; color: var(--k-text); margin: 0;">${workflow.workflowCode || 'Workflow Chain'}</h4>
+                    <p style="font-size: 0.75rem; color: var(--k-muted); margin: 2px 0 0 0;">Module: <strong>${workflow.module}</strong> • Transaction: <strong>${workflow.transactionType}</strong> • Total Steps: <strong>${steps.length}</strong></p>
                 </div>
                 <div>
                     ${!options.isReadOnly ? `
@@ -200,38 +200,38 @@
         }
 
         modal.innerHTML = `
-            <div style="background: #ffffff; border-radius: 20px; width: 90%; max-width: 540px; padding: 2rem; box-shadow: 0 20px 40px rgba(0,0,0,0.2); border: 1px solid #e2e8f0; position: relative;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 1rem;">
+            <div style="background: var(--k-surface); border-radius: 20px; width: 90%; max-width: 540px; padding: 2rem; box-shadow: 0 20px 40px rgba(0,0,0,0.2); border: 1px solid var(--k-border); position: relative;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--k-border); padding-bottom: 1rem;">
                     <div style="display: flex; align-items: center; gap: 10px;">
-                        <div style="width: 40px; height: 40px; border-radius: 12px; background: #f0fdf4; color: #16a34a; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                        <div style="width: 40px; height: 40px; border-radius: 12px; background: var(--k-success-soft); color: var(--k-success-text); display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
                             <i data-lucide="zap" style="width: 22px; height: 22px;"></i>
                         </div>
                         <div>
-                            <h3 style="font-size: 1.05rem; font-weight: 800; color: #0f172a; margin: 0;">Step ${stepNo} Automation Actions</h3>
-                            <p style="font-size: 0.75rem; color: #64748b; margin: 2px 0 0 0;">Workflow: ${workflowCode}</p>
+                            <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--k-text); margin: 0;">Step ${stepNo} Automation Actions</h3>
+                            <p style="font-size: 0.75rem; color: var(--k-muted); margin: 2px 0 0 0;">Workflow: ${workflowCode}</p>
                         </div>
                     </div>
-                    <button type="button" onclick="document.getElementById('stepAutomationModal').style.display='none'" style="border: none; background: #f1f5f9; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #64748b;">
+                    <button type="button" onclick="document.getElementById('stepAutomationModal').style.display='none'" style="border: none; background: var(--k-subtle); width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--k-muted);">
                         <i data-lucide="x" style="width: 16px; height: 16px;"></i>
                     </button>
                 </div>
 
                 <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
                     <div>
-                        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #334155; margin-bottom: 4px;">Trigger Webhook URL</label>
-                        <input type="text" id="autoWebhookUrl" placeholder="https://api.kylrx.ai/v1/integrations/approvals" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.82rem;" />
+                        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 4px;">Trigger Webhook URL</label>
+                        <input type="text" id="autoWebhookUrl" placeholder="https://api.kylrx.ai/v1/integrations/approvals" style="width: 100%; padding: 8px 12px; border: 1px solid var(--k-border); border-radius: 8px; font-size: 0.82rem;" />
                     </div>
                     <div>
-                        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #334155; margin-bottom: 4px;">Dispatch Channel Alert</label>
-                        <select id="autoChannelSelect" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.82rem;">
+                        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 4px;">Dispatch Channel Alert</label>
+                        <select id="autoChannelSelect" style="width: 100%; padding: 8px 12px; border: 1px solid var(--k-border); border-radius: 8px; font-size: 0.82rem;">
                             <option value="SLACK_AND_EMAIL">Email + Slack Channel Alert</option>
                             <option value="EMAIL_ONLY">Email Notification Only</option>
                             <option value="SMS_PRIORITY">SMS Priority Dispatch</option>
                         </select>
                     </div>
                     <div>
-                        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #334155; margin-bottom: 4px;">Escalation Rule on SLA Expiry</label>
-                        <select id="autoEscalateRule" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.82rem;">
+                        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 4px;">Escalation Rule on SLA Expiry</label>
+                        <select id="autoEscalateRule" style="width: 100%; padding: 8px 12px; border: 1px solid var(--k-border); border-radius: 8px; font-size: 0.82rem;">
                             <option value="AUTO_ESCALATE_TO_L2">Auto-Escalate to Secondary Manager (L2)</option>
                             <option value="AUTO_ESCALATE_TO_SUPER_ADMIN">Escalate to Super Admin Queue</option>
                             <option value="WARN_MANAGER_REPEATED">Send Repeat Warning Reminders</option>
@@ -240,8 +240,8 @@
                 </div>
 
                 <div style="display: flex; justify-content: flex-end; gap: 8px;">
-                    <button type="button" class="btn btn-outline" onclick="document.getElementById('stepAutomationModal').style.display='none'" style="padding: 8px 16px; font-size: 0.8rem; border-radius: 8px; border: 1px solid #cbd5e1; background: #fff; cursor: pointer;">Cancel</button>
-                    <button type="button" class="btn btn-success" onclick="KylrxWorkflowFlowDesigner.saveStepAutomation('${workflowCode}', ${stepNo})" style="padding: 8px 16px; font-size: 0.8rem; border-radius: 8px; background: #10b981; color: #fff; border: none; cursor: pointer; font-weight: 700;">Save Automation</button>
+                    <button type="button" class="btn btn-outline" onclick="document.getElementById('stepAutomationModal').style.display='none'" style="padding: 8px 16px; font-size: 0.8rem; border-radius: 8px; border: 1px solid var(--k-border); background: var(--k-surface); cursor: pointer;">Cancel</button>
+                    <button type="button" class="btn btn-success" onclick="KylrxWorkflowFlowDesigner.saveStepAutomation('${workflowCode}', ${stepNo})" style="padding: 8px 16px; font-size: 0.8rem; border-radius: 8px; background: var(--k-success); color: var(--k-on-success); border: none; cursor: pointer; font-weight: 700;">Save Automation</button>
                 </div>
             </div>
         `;

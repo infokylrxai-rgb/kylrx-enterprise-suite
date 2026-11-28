@@ -77,7 +77,7 @@
         const isEdli = pfDetails.isEdliApplicable !== false;
 
         return `
-        <div id="epfoStatutoryMasterCard" class="modal-section-card" style="margin-bottom: 1.25rem; border: 1.5px solid #6366f1; border-radius: 16px; background: #ffffff; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.08); overflow: hidden;">
+        <div id="epfoStatutoryMasterCard" class="modal-section-card" style="margin-bottom: 1.25rem; border: 1.5px solid #6366f1; border-radius: 16px; background: var(--k-surface); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.08); overflow: hidden;">
             <!-- Header Section -->
             <div style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); padding: 1.1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; color: white;">
                 <div style="display: flex; align-items: center; gap: 12px;">
@@ -94,7 +94,7 @@
                         <i data-lucide="${kycBadge.icon || 'check-circle'}" style="width: 12px; height: 12px;"></i>
                         <span id="epfoOverallKycText">KYC: ${kycBadge.label}</span>
                     </span>
-                    <button type="button" id="btnVerifyDecentroEpfo" class="btn" style="background: #ffffff; color: #4338ca; font-size: 0.76rem; font-weight: 800; padding: 6px 14px; border-radius: 8px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.2s ease;">
+                    <button type="button" id="btnVerifyDecentroEpfo" class="btn" style="background: var(--k-surface); color: #4338ca; font-size: 0.76rem; font-weight: 800; padding: 6px 14px; border-radius: 8px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.2s ease;">
                         <i data-lucide="refresh-cw" id="epfoVerifyIcon" style="width: 13px; height: 13px;"></i>
                         <span id="epfoVerifyBtnText">Verify via Decentro/EPFO</span>
                     </button>
@@ -105,14 +105,14 @@
             <div style="padding: 1.25rem;">
                 <!-- Live Verification Pills Matrix (PRD Section 13) -->
                 <div style="margin-bottom: 1.25rem;">
-                    <div style="font-size: 0.72rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                    <div style="font-size: 0.72rem; font-weight: 800; color: var(--k-text-2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
                         <i data-lucide="badge-check" style="width: 14px; height: 14px; color: #6366f1;"></i>
                         Live Seeded KYC Verification Badges
                     </div>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
                         <!-- Aadhaar KYC Pill -->
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
-                            <span style="font-size: 0.68rem; color: #64748b; font-weight: 700;">Aadhaar KYC</span>
+                        <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
+                            <span style="font-size: 0.68rem; color: var(--k-muted); font-weight: 700;">Aadhaar KYC</span>
                             <span id="pillAadhaarKyc" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.72rem; font-weight: 800; color: ${aadhaarBadge.color}; background: ${aadhaarBadge.bg}; border: 1px solid ${aadhaarBadge.border}; padding: 2px 8px; border-radius: 6px; width: fit-content;">
                                 <i data-lucide="${aadhaarBadge.icon || 'check-circle'}" style="width: 11px; height: 11px;"></i>
                                 <span id="textAadhaarKyc">${aadhaarBadge.label}</span>
@@ -120,8 +120,8 @@
                         </div>
 
                         <!-- PAN KYC Pill -->
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
-                            <span style="font-size: 0.68rem; color: #64748b; font-weight: 700;">PAN KYC</span>
+                        <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
+                            <span style="font-size: 0.68rem; color: var(--k-muted); font-weight: 700;">PAN KYC</span>
                             <span id="pillPanKyc" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.72rem; font-weight: 800; color: ${panBadge.color}; background: ${panBadge.bg}; border: 1px solid ${panBadge.border}; padding: 2px 8px; border-radius: 6px; width: fit-content;">
                                 <i data-lucide="${panBadge.icon || 'check-circle'}" style="width: 11px; height: 11px;"></i>
                                 <span id="textPanKyc">${panBadge.label}</span>
@@ -129,8 +129,8 @@
                         </div>
 
                         <!-- Bank KYC Pill -->
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
-                            <span style="font-size: 0.68rem; color: #64748b; font-weight: 700;">Bank KYC</span>
+                        <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
+                            <span style="font-size: 0.68rem; color: var(--k-muted); font-weight: 700;">Bank KYC</span>
                             <span id="pillBankKyc" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.72rem; font-weight: 800; color: ${bankBadge.color}; background: ${bankBadge.bg}; border: 1px solid ${bankBadge.border}; padding: 2px 8px; border-radius: 6px; width: fit-content;">
                                 <i data-lucide="${bankBadge.icon || 'check-circle'}" style="width: 11px; height: 11px;"></i>
                                 <span id="textBankKyc">${bankBadge.label}</span>
@@ -138,16 +138,16 @@
                         </div>
 
                         <!-- UAN Status Pill -->
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
-                            <span style="font-size: 0.68rem; color: #64748b; font-weight: 700;">UAN Status</span>
+                        <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
+                            <span style="font-size: 0.68rem; color: var(--k-muted); font-weight: 700;">UAN Status</span>
                             <span id="pillUanStatus" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.72rem; font-weight: 800; color: ${uanBadge.color}; background: ${uanBadge.bg}; border: 1px solid ${uanBadge.border}; padding: 2px 8px; border-radius: 6px; width: fit-content;">
                                 <span id="textUanStatus">${uanBadge.label}</span>
                             </span>
                         </div>
 
                         <!-- Verification Status Pill -->
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
-                            <span style="font-size: 0.68rem; color: #64748b; font-weight: 700;">EPFO Verification</span>
+                        <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
+                            <span style="font-size: 0.68rem; color: var(--k-muted); font-weight: 700;">EPFO Verification</span>
                             <span id="pillUanVerification" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.72rem; font-weight: 800; color: ${verifyBadge.color}; background: ${verifyBadge.bg}; border: 1px solid ${verifyBadge.border}; padding: 2px 8px; border-radius: 6px; width: fit-content;">
                                 <i data-lucide="${verifyBadge.icon || 'shield-check'}" style="width: 11px; height: 11px;"></i>
                                 <span id="textUanVerification">${verifyBadge.label}</span>
@@ -157,64 +157,64 @@
                 </div>
 
                 <!-- Current vs. Previous Lineage (PRD Section 13) -->
-                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1rem; margin-bottom: 1.25rem;">
+                <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 14px; padding: 1rem; margin-bottom: 1.25rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                        <span style="font-size: 0.74rem; font-weight: 800; color: #334155; text-transform: uppercase;">
+                        <span style="font-size: 0.74rem; font-weight: 800; color: var(--k-text-2); text-transform: uppercase;">
                             <i data-lucide="git-commit" style="width: 13px; height: 13px; display: inline-block; vertical-align: text-bottom; margin-right: 4px;"></i>
                             UAN &amp; Member ID Historical Lineage
                         </span>
-                        <span style="font-size: 0.72rem; color: #64748b; font-weight: 600;">Est: <code style="color: #4f46e5; font-weight: 700;">${escapeHtml(estId)}</code></span>
+                        <span style="font-size: 0.72rem; color: var(--k-muted); font-weight: 600;">Est: <code style="color: #4f46e5; font-weight: 700;">${escapeHtml(estId)}</code></span>
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
                         <!-- Current Establishment PF Profile -->
-                        <div style="background: #ffffff; border: 1px solid #c7d2fe; border-radius: 10px; padding: 10px 12px;">
+                        <div style="background: var(--k-surface); border: 1px solid #c7d2fe; border-radius: 10px; padding: 10px 12px;">
                             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
                                 <span style="font-size: 0.7rem; font-weight: 800; color: #4338ca; text-transform: uppercase;">Current Active Profile</span>
                                 <span style="font-size: 0.65rem; background: #e0e7ff; color: #3730a3; padding: 1px 6px; border-radius: 4px; font-weight: 700;">Active</span>
                             </div>
-                            <div style="font-size: 0.78rem; color: #1e293b; margin-bottom: 3px;">
-                                <span style="color: #64748b;">UAN:</span>
-                                <code id="epfoDisplayCurrentUan" style="font-weight: 800; color: #1e293b; font-size: 0.82rem; margin-left: 4px;">${escapeHtml(currentUan)}</code>
+                            <div style="font-size: 0.78rem; color: var(--k-text); margin-bottom: 3px;">
+                                <span style="color: var(--k-muted);">UAN:</span>
+                                <code id="epfoDisplayCurrentUan" style="font-weight: 800; color: var(--k-text); font-size: 0.82rem; margin-left: 4px;">${escapeHtml(currentUan)}</code>
                             </div>
-                            <div style="font-size: 0.78rem; color: #1e293b;">
-                                <span style="color: #64748b;">Member ID:</span>
+                            <div style="font-size: 0.78rem; color: var(--k-text);">
+                                <span style="color: var(--k-muted);">Member ID:</span>
                                 <code id="epfoDisplayCurrentMemberId" style="font-weight: 700; color: #4f46e5; font-size: 0.78rem; margin-left: 4px;">${escapeHtml(currentMemberId)}</code>
                             </div>
                         </div>
 
                         <!-- Previous Historical Profile -->
-                        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 12px;">
+                        <div style="background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 10px; padding: 10px 12px;">
                             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                                <span style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Previous Account Lineage</span>
-                                <span style="font-size: 0.65rem; background: #f1f5f9; color: #64748b; padding: 1px 6px; border-radius: 4px; font-weight: 700;">Historical</span>
+                                <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Previous Account Lineage</span>
+                                <span style="font-size: 0.65rem; background: var(--k-subtle); color: var(--k-muted); padding: 1px 6px; border-radius: 4px; font-weight: 700;">Historical</span>
                             </div>
-                            <div style="font-size: 0.78rem; color: #1e293b; margin-bottom: 3px;">
-                                <span style="color: #64748b;">Previous UAN:</span>
-                                <code id="epfoDisplayPrevUan" style="font-weight: 700; color: #334155; font-size: 0.8rem; margin-left: 4px;">${escapeHtml(prevUan)}</code>
+                            <div style="font-size: 0.78rem; color: var(--k-text); margin-bottom: 3px;">
+                                <span style="color: var(--k-muted);">Previous UAN:</span>
+                                <code id="epfoDisplayPrevUan" style="font-weight: 700; color: var(--k-text-2); font-size: 0.8rem; margin-left: 4px;">${escapeHtml(prevUan)}</code>
                             </div>
-                            <div style="font-size: 0.78rem; color: #1e293b;">
-                                <span style="color: #64748b;">Previous Member ID:</span>
-                                <code id="epfoDisplayPrevMemberId" style="font-weight: 600; color: #64748b; font-size: 0.75rem; margin-left: 4px;">${escapeHtml(prevMemberId)}</code>
+                            <div style="font-size: 0.78rem; color: var(--k-text);">
+                                <span style="color: var(--k-muted);">Previous Member ID:</span>
+                                <code id="epfoDisplayPrevMemberId" style="font-weight: 600; color: var(--k-muted); font-size: 0.75rem; margin-left: 4px;">${escapeHtml(prevMemberId)}</code>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Statutory Dates & Scheme Applicability Badges -->
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; border-top: 1px solid #f1f5f9; padding-top: 10px;">
-                    <div style="display: flex; align-items: center; gap: 14px; font-size: 0.75rem; color: #475569;">
-                        <div><strong style="color: #0f172a;">PF DOJ:</strong> <span id="epfoDisplayDoj">${escapeHtml(pfDoj)}</span></div>
-                        <div><strong style="color: #0f172a;">PF DOE:</strong> <span id="epfoDisplayDoe">${escapeHtml(pfDoe)}</span></div>
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; border-top: 1px solid var(--k-border); padding-top: 10px;">
+                    <div style="display: flex; align-items: center; gap: 14px; font-size: 0.75rem; color: var(--k-text-2);">
+                        <div><strong style="color: var(--k-text);">PF DOJ:</strong> <span id="epfoDisplayDoj">${escapeHtml(pfDoj)}</span></div>
+                        <div><strong style="color: var(--k-text);">PF DOE:</strong> <span id="epfoDisplayDoe">${escapeHtml(pfDoe)}</span></div>
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: ${isEps ? '#eff6ff' : '#f1f5f9'}; color: ${isEps ? '#1d4ed8' : '#64748b'}; border: 1px solid ${isEps ? '#bfdbfe' : '#e2e8f0'};">
+                        <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: ${isEps ? 'var(--k-accent-soft)' : 'var(--k-subtle)'}; color: ${isEps ? 'var(--k-accent-text)' : 'var(--k-muted)'}; border: 1px solid ${isEps ? 'var(--k-accent-border)' : 'var(--k-border)'};">
                             EPS (Pension): ${isEps ? 'Yes (8.33%)' : 'No'}
                         </span>
-                        <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: ${isEdli ? '#f0fdf4' : '#f1f5f9'}; color: ${isEdli ? '#15803d' : '#64748b'}; border: 1px solid ${isEdli ? '#bbf7d0' : '#e2e8f0'};">
+                        <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: ${isEdli ? 'var(--k-success-soft)' : 'var(--k-subtle)'}; color: ${isEdli ? 'var(--k-success-text)' : 'var(--k-muted)'}; border: 1px solid ${isEdli ? 'var(--k-success-border)' : 'var(--k-border)'};">
                             EDLI (Insurance): ${isEdli ? 'Yes (0.50%)' : 'No'}
                         </span>
-                        <span style="font-size: 0.68rem; color: #64748b; background: #f8fafc; padding: 2px 6px; border-radius: 4px; border: 1px dashed #cbd5e1;">
+                        <span style="font-size: 0.68rem; color: var(--k-muted); background: var(--k-subtle); padding: 2px 6px; border-radius: 4px; border: 1px dashed var(--k-border);">
                             Src: <span id="epfoDisplaySource">${escapeHtml(source)}</span>
                         </span>
                     </div>
@@ -395,7 +395,7 @@
         if (!container) return;
 
         const orgId = options.orgId || (typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null);
-        if (!orgId) { container.innerHTML = '<div style="padding: 1rem; color: #ef4444;">No organization found for the signed-in user. Sign in again.</div>'; return; }
+        if (!orgId) { container.innerHTML = '<div style="padding: 1rem; color: var(--k-danger-text);">No organization found for the signed-in user. Sign in again.</div>'; return; }
         let pfDetails = null;
 
         if (window.KylrxPfDetailsService && typeof window.KylrxPfDetailsService.getEmployeePfDetails === 'function') {
@@ -403,7 +403,7 @@
         }
 
         if (!pfDetails) {
-            container.innerHTML = '<div style="padding: 1rem; color: #64748b;">No details added yet</div>';
+            container.innerHTML = '<div style="padding: 1rem; color: var(--k-muted);">No details added yet</div>';
             return;
         }
 

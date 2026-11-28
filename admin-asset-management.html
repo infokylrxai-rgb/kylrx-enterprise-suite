@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="kylrx-theme-init.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enterprise Asset Management | Kylrx AI</title>
@@ -42,7 +43,7 @@
         }
 
         .asset-type-badge {
-            background: #f1f5f9; color: #475569; padding: 4px 8px; border-radius: 6px;
+            background: var(--k-subtle); color: var(--k-text-2); padding: 4px 8px; border-radius: 6px;
             font-size: 0.7rem; font-weight: 700; display: inline-block; margin-bottom: 8px;
         }
 
@@ -59,15 +60,19 @@
         .history-item:last-child { border-bottom: none; }
 
         .qr-placeholder {
-            width: 40px; height: 40px; background: #f8fafc; border: 1px solid var(--border);
+            width: 40px; height: 40px; background: var(--k-subtle); border: 1px solid var(--border);
             border-radius: 10px; display: flex; align-items: center; justify-content: center;
             color: var(--text-muted); cursor: pointer; transition: all 0.2s ease;
         }
         .qr-placeholder:hover {
-            border-color: var(--primary); color: var(--primary); background: #eff6ff;
+            border-color: var(--primary); color: var(--primary); background: var(--k-accent-soft);
             transform: scale(1.05);
         }
     </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="kylrx-theme.css">
 </head>
 <body class="admin-dashboard">
     <div class="dashboard-container">
@@ -170,11 +175,11 @@
 
             <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
                 <div class="asset-stat-card">
-                    <div class="asset-stat-icon" style="background: #eff6ff; color: #3b82f6;"><i data-lucide="cpu"></i></div>
+                    <div class="asset-stat-icon" style="background: var(--k-accent-soft); color: var(--k-accent-text);"><i data-lucide="cpu"></i></div>
                     <div><p style="font-size: 0.75rem; color: var(--text-muted);">Total Assets</p><h3 style="font-weight: 800;" id="statTotal">...</h3></div>
                 </div>
                 <div class="asset-stat-card">
-                    <div class="asset-stat-icon" style="background: #f0fdf4; color: #22c55e;"><i data-lucide="user-check"></i></div>
+                    <div class="asset-stat-icon" style="background: var(--k-success-soft); color: #22c55e;"><i data-lucide="user-check"></i></div>
                     <div><p style="font-size: 0.75rem; color: var(--text-muted);">Allocated</p><h3 style="font-weight: 800;" id="statAllocated">...</h3></div>
                 </div>
                 <div class="asset-stat-card">
@@ -182,7 +187,7 @@
                     <div><p style="font-size: 0.75rem; color: var(--text-muted);">In Repair</p><h3 style="font-weight: 800;" id="statRepair">...</h3></div>
                 </div>
                 <div class="asset-stat-card">
-                    <div class="asset-stat-icon" style="background: #fef2f2; color: #ef4444;"><i data-lucide="alert-triangle"></i></div>
+                    <div class="asset-stat-icon" style="background: var(--k-danger-soft); color: var(--k-danger-text);"><i data-lucide="alert-triangle"></i></div>
                     <div><p style="font-size: 0.75rem; color: var(--text-muted);">Missing/Lost</p><h3 style="font-weight: 800;" id="statMissing">...</h3></div>
                 </div>
             </div>
@@ -309,7 +314,7 @@
                 <h3 style="font-weight: 800; font-size: 1.25rem; margin: 0; text-align: left;" id="qrModalTitle">Asset QR Code</h3>
                 <button class="action-icon" onclick="toggleQrModal(false)"><i data-lucide="x"></i></button>
             </div>
-            <div style="background: #f8fafc; padding: 2rem; border-radius: 20px; border: 1px solid var(--border); display: inline-block; margin-bottom: 1.5rem;">
+            <div style="background: var(--k-subtle); padding: 2rem; border-radius: 20px; border: 1px solid var(--border); display: inline-block; margin-bottom: 1.5rem;">
                 <img id="qrModalImage" src="" alt="Asset QR Code" style="width: 200px; height: 200px; display: block; border-radius: 8px; margin: 0 auto;">
             </div>
             <p id="qrModalTag" style="font-weight: 800; font-size: 1.125rem; color: var(--text-main); margin-bottom: 4px;">HRF-LP-2026-108</p>
@@ -320,15 +325,15 @@
     <!-- Delete Confirm Modal -->
     <div class="modal-overlay" id="deleteConfirmModal">
         <div class="modal-card" style="max-width: 400px; text-align: center;">
-            <div style="background: #fef2f2; color: #ef4444; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem auto; font-size: 1.5rem;">
-                <i data-lucide="alert-triangle" style="width: 28px; height: 28px; color: #ef4444;"></i>
+            <div style="background: var(--k-danger-soft); color: var(--k-danger-text); width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem auto; font-size: 1.5rem;">
+                <i data-lucide="alert-triangle" style="width: 28px; height: 28px; color: var(--k-danger-text);"></i>
             </div>
-            <h3 style="font-weight: 800; font-size: 1.25rem; margin-bottom: 0.5rem; color: #1e293b;">Deprovision Asset?</h3>
+            <h3 style="font-weight: 800; font-size: 1.25rem; margin-bottom: 0.5rem; color: var(--k-text);">Deprovision Asset?</h3>
             <p id="deleteConfirmMsg" style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 2rem;">Are you sure you want to permanently remove this asset from the organization database? This action cannot be undone.</p>
             
             <div style="display: flex; gap: 12px;">
                 <button class="btn btn-outline" style="flex: 1; justify-content: center;" onclick="toggleDeleteModal(false)">Cancel</button>
-                <button class="btn btn-primary" id="btnConfirmDeleteAsset" style="flex: 1; justify-content: center; background: #ef4444; border-color: #ef4444;">Delete</button>
+                <button class="btn btn-primary" id="btnConfirmDeleteAsset" style="flex: 1; justify-content: center; background: var(--k-danger); border-color: #ef4444;">Delete</button>
             </div>
         </div>
     </div>
@@ -380,15 +385,15 @@
             display: flex; align-items: center; justify-content: center;
             transition: 0.2s ease;
         }
-        .status-modal-icon.warning { background: #fffbeb; color: #f59e0b; border: 1px solid #fef3c7; }
-        .status-modal-icon.error { background: #fef2f2; color: #ef4444; border: 1px solid #fee2e2; }
-        .status-modal-icon.success { background: #f0fdf4; color: #10b981; border: 1px solid #dcfce7; }
-        .status-modal-icon.info { background: #eff6ff; color: #3b82f6; border: 1px solid #dbeafe; }
+        .status-modal-icon.warning { background: var(--k-warning-soft); color: var(--k-warning-text); border: 1px solid #fef3c7; }
+        .status-modal-icon.error { background: var(--k-danger-soft); color: var(--k-danger-text); border: 1px solid #fee2e2; }
+        .status-modal-icon.success { background: var(--k-success-soft); color: var(--k-success-text); border: 1px solid #dcfce7; }
+        .status-modal-icon.info { background: var(--k-accent-soft); color: var(--k-accent-text); border: 1px solid var(--k-accent-border); }
         .status-modal-title {
-            font-size: 1.25rem; font-weight: 800; color: #0f172a; margin-bottom: 0.5rem; letter-spacing: -0.02em;
+            font-size: 1.25rem; font-weight: 800; color: var(--k-text); margin-bottom: 0.5rem; letter-spacing: -0.02em;
         }
         .status-modal-desc {
-            font-size: 0.875rem; color: #64748b; line-height: 1.5; margin-bottom: 1.5rem;
+            font-size: 0.875rem; color: var(--k-muted); line-height: 1.5; margin-bottom: 1.5rem;
         }
 
         .toast-notification {
@@ -399,8 +404,8 @@
             border: 1px solid var(--border); animation: toastIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         .toast-notification.active { display: flex; }
-        .toast-notification i { color: #10b981; width: 24px; height: 24px; }
-        .toast-notification span { font-weight: 700; color: #1e293b; font-size: 1rem; }
+        .toast-notification i { color: var(--k-success-text); width: 24px; height: 24px; }
+        .toast-notification span { font-weight: 700; color: var(--k-text); font-size: 1rem; }
         @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -40%) scale(0.9); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
         
         .modal-overlay {
@@ -416,18 +421,18 @@
         }
         @keyframes modalSlide { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
         .input-box {
-            background: #f8fafc; border: 1px solid var(--border);
+            background: var(--k-subtle); border: 1px solid var(--border);
             border-radius: 12px; padding: 0.75rem 1rem; font-family: inherit;
-            font-weight: 600; font-size: 0.875rem; color: #1e293b; outline: none;
+            font-weight: 600; font-size: 0.875rem; color: var(--k-text); outline: none;
             transition: 0.2s;
         }
         .input-box:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.05); }
         .action-icon {
-            background: #f1f5f9; border: none; width: 32px; height: 32px;
+            background: var(--k-subtle); border: none; width: 32px; height: 32px;
             border-radius: 10px; display: flex; align-items: center; justify-content: center;
-            color: #64748b; cursor: pointer; transition: 0.2s;
+            color: var(--k-muted); cursor: pointer; transition: 0.2s;
         }
-        .action-icon:hover { background: #e2e8f0; color: #1e293b; }
+        .action-icon:hover { background: var(--k-border); color: var(--k-text); }
     </style>
 
     <script type="module">
@@ -563,7 +568,7 @@
                             <p style="font-size: 0.75rem; color: var(--text-muted);">Tag: ${esc(a.tag)}</p>
                             
                             <div style="margin-top: 1.5rem; display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 32px; height: 32px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; color: var(--text-muted);">
+                                <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--k-subtle); display: flex; align-items: center; justify-content: center; color: var(--text-muted);">
                                     <i data-lucide="${a.assignedTo ? 'user' : 'package'}" size="16"></i>
                                 </div>
                                 <div style="flex: 1;">
@@ -576,9 +581,9 @@
                             <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; gap: 10px;">
                                 ${a.status === 'In Stock' ? 
                                     `<button class="btn btn-primary" style="flex: 1; font-size: 0.7rem; padding: 8px;" data-action="allocate" data-id="${esc(a.id)}">Assign to Employee</button>
-                                     <button class="btn btn-outline" style="font-size: 0.7rem; padding: 8px; color: #ef4444; border-color: #fca5a5; display: flex; align-items: center; justify-content: center;" data-action="delete" data-id="${esc(a.id)}" title="Delete Asset"><i data-lucide="trash-2" size="14"></i></button>` :
+                                     <button class="btn btn-outline" style="font-size: 0.7rem; padding: 8px; color: var(--k-danger-text); border-color: var(--k-danger-border); display: flex; align-items: center; justify-content: center;" data-action="delete" data-id="${esc(a.id)}" title="Delete Asset"><i data-lucide="trash-2" size="14"></i></button>` :
                                     `<button class="btn btn-outline" style="flex: 1; font-size: 0.7rem; padding: 8px;" data-action="allocate" data-id="${esc(a.id)}">Re-Allocate</button>
-                                     <button class="btn btn-outline" style="flex: 1; font-size: 0.7rem; padding: 8px; color: #ef4444;" data-action="delete" data-id="${esc(a.id)}">Retire</button>`
+                                     <button class="btn btn-outline" style="flex: 1; font-size: 0.7rem; padding: 8px; color: var(--k-danger-text);" data-action="delete" data-id="${esc(a.id)}">Retire</button>`
                                 }
                             </div>
                         </div>
@@ -587,7 +592,7 @@
                 lucide.createIcons();
             } catch (err) {
                 console.error("Error rendering assets:", err);
-                grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: #ef4444;">Could not load assets from Firebase: ${esc(err.message)}</div>`;
+                grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--k-danger-text);">Could not load assets from Firebase: ${esc(err.message)}</div>`;
             }
         }
 
@@ -628,7 +633,7 @@
                     <div class="history-item">
                         <div><p style="font-weight: 700; font-size: 0.875rem;">${esc(l.action)}</p><p style="font-size: 0.75rem; color: var(--text-muted);">Asset: ${esc(assetName(l.assetId))}</p></div>
                         <div style="text-align: right;">
-                            <p style="font-weight: 800; color: #3b82f6;">PROCESSED</p>
+                            <p style="font-weight: 800; color: var(--k-accent-text);">PROCESSED</p>
                             <p style="font-size: 0.7rem; color: var(--text-muted);">${formattedDate}</p>
                         </div>
                     </div>
@@ -636,7 +641,7 @@
                 }).join('');
             } catch (err) {
                 console.error("Error loading history:", err);
-                hist.innerHTML = `<div style="text-align: center; padding: 2rem; color: #ef4444; font-size: 0.8rem;">Could not load transactions: ${esc(err.message)}</div>`;
+                hist.innerHTML = `<div style="text-align: center; padding: 2rem; color: var(--k-danger-text); font-size: 0.8rem;">Could not load transactions: ${esc(err.message)}</div>`;
             }
         }
 
@@ -669,7 +674,7 @@
                 }
 
                 grid.innerHTML = assets.slice(0, 8).map(a => `
-                    <div style="border: 2px dashed var(--border); border-radius: 16px; padding: 1.5rem; text-align: center; background: #f8fafc;">
+                    <div style="border: 2px dashed var(--border); border-radius: 16px; padding: 1.5rem; text-align: center; background: var(--k-subtle);">
                         <i data-lucide="qr-code" size="48" style="margin-bottom: 1rem; color: var(--primary);"></i>
                         <p style="font-weight: 800; font-size: 0.875rem;">${esc(a.tag || 'NO-TAG')}</p>
                         <p style="font-size: 0.7rem; color: var(--text-muted);">${esc(a.name || a.type)}</p>
@@ -678,7 +683,7 @@
                 if (window.lucide) lucide.createIcons();
             } catch (err) {
                 console.error("Error rendering print labels:", err);
-                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: #ef4444; font-size: 0.875rem;">Failed to load asset labels from database.</div>';
+                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--k-danger-text); font-size: 0.875rem;">Failed to load asset labels from database.</div>';
             }
         }
 
@@ -897,27 +902,27 @@
                 justify-content: center;
             }
             #customAppsModal .modal {
-                background: #ffffff !important;
-                color: #0f172a !important;
+                background: var(--k-surface) !important;
+                color: var(--k-text) !important;
                 padding: 2rem;
                 border-radius: 24px;
                 width: 90%;
                 max-width: 500px;
                 box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-                border: 1px solid #e2e8f0;
+                border: 1px solid var(--k-border);
                 position: relative;
                 text-align: left;
             }
             #customAppsModal .modal h2 {
                 font-weight: 800;
                 font-size: 1.25rem;
-                color: #0f172a !important;
+                color: var(--k-text) !important;
                 margin-bottom: 4px;
                 margin-top: 0;
             }
             #customAppsModal .modal p {
                 font-size: 0.75rem;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 margin: 0;
             }
             #customAppsModal .modal .form-group {
@@ -929,7 +934,7 @@
             #customAppsModal .modal label {
                 font-size: 0.7rem;
                 font-weight: 800;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 text-transform: uppercase;
                 display: block;
                 margin-bottom: 4px;
@@ -938,9 +943,9 @@
                 width: 100%;
                 padding: 12px 16px;
                 border-radius: 12px;
-                border: 1px solid #cbd5e1 !important;
-                background: #ffffff !important;
-                color: #0f172a !important;
+                border: 1px solid var(--k-border) !important;
+                background: var(--k-surface) !important;
+                color: var(--k-text) !important;
                 outline: none;
                 margin-top: 4px;
                 font-family: inherit;
@@ -948,15 +953,15 @@
                 transition: border-color 0.2s, box-shadow 0.2s;
             }
             #customAppsModal .modal input:focus {
-                border-color: #3b82f6 !important;
+                border-color: var(--k-accent) !important;
                 box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
             }
             #customAppsModal .modal input::placeholder {
-                color: #94a3b8 !important;
+                color: var(--k-muted) !important;
                 opacity: 0.8;
             }
             #customAppsModal .modal button.map-btn {
-                background: #3b82f6;
+                background: var(--k-accent);
                 color: white !important;
                 border: none;
                 border-radius: 12px;
@@ -970,13 +975,13 @@
                 margin-top: 0.5rem;
             }
             #customAppsModal .modal button.map-btn:hover {
-                background: #2563eb;
+                background: var(--k-accent);
                 transform: translateY(-1px);
             }
             #customAppsModal .modal h3 {
                 font-size: 0.7rem;
                 font-weight: 800;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 text-transform: uppercase;
                 margin-bottom: 10px;
                 margin-top: 0;
@@ -988,8 +993,8 @@
                 width: 36px;
                 height: 36px;
                 border-radius: 10px;
-                background: #f8fafc;
-                color: #64748b !important;
+                background: var(--k-subtle);
+                color: var(--k-muted) !important;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -998,8 +1003,8 @@
                 border: none;
             }
             #customAppsModal .close-modal:hover {
-                color: #ef4444 !important;
-                background: #fee2e2;
+                color: var(--k-danger-text) !important;
+                background: var(--k-danger-soft);
             }
         </style>
         <div class="modal">
@@ -1023,7 +1028,7 @@
                 <button class="map-btn" onclick="addCustomApp()">Map Tool Link</button>
             </div>
 
-            <div style="border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
+            <div style="border-top: 1px solid var(--k-border); padding-top: 1.25rem;">
                 <h3>Mapped Connections</h3>
                 <div id="registryAppsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;">
                     <!-- Mapped apps inside the registry panel -->

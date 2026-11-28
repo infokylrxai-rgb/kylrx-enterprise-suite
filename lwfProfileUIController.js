@@ -90,7 +90,7 @@
             : { label: isLwfApplicable ? `Active (${frequency})` : 'Exempt', bg: isLwfApplicable ? '#eff6ff' : '#f1f5f9', color: isLwfApplicable ? '#1d4ed8' : '#475569', border: isLwfApplicable ? '#bfdbfe' : '#cbd5e1' };
 
         return `
-        <div id="lwfStatutoryMasterCard" class="modal-section-card" style="margin-bottom: 1.25rem; border: 1.5px solid #2563eb; border-radius: 16px; background: #ffffff; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08); overflow: hidden;">
+        <div id="lwfStatutoryMasterCard" class="modal-section-card" style="margin-bottom: 1.25rem; border: 1.5px solid var(--k-accent); border-radius: 16px; background: var(--k-surface); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08); overflow: hidden;">
             <!-- Header Section -->
             <div style="background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%); padding: 1.1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; color: white;">
                 <div style="display: flex; align-items: center; gap: 12px;">
@@ -107,7 +107,7 @@
                         <i data-lucide="${statusBadge.icon || 'shield-check'}" style="width: 12px; height: 12px;"></i>
                         <span id="lwfStatusHeaderText">${statusBadge.label}</span>
                     </span>
-                    <button type="button" id="btnEvaluateLwf" class="btn" style="background: #ffffff; color: #1e40af; font-size: 0.76rem; font-weight: 800; padding: 6px 14px; border-radius: 8px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.2s ease;">
+                    <button type="button" id="btnEvaluateLwf" class="btn" style="background: var(--k-surface); color: var(--k-accent-text); font-size: 0.76rem; font-weight: 800; padding: 6px 14px; border-radius: 8px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.2s ease;">
                         <i data-lucide="calculator" id="lwfCalcIcon" style="width: 13px; height: 13px;"></i>
                         <span id="lwfCalcBtnText">Evaluate Deduction</span>
                     </button>
@@ -118,41 +118,41 @@
             <div style="padding: 1.25rem;">
                 <!-- Live Status & Jurisdiction Matrix (4 Summary Pills) -->
                 <div style="margin-bottom: 1.25rem;">
-                    <div style="font-size: 0.72rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-                        <i data-lucide="landmark" style="width: 14px; height: 14px; color: #2563eb;"></i>
+                    <div style="font-size: 0.72rem; font-weight: 800; color: var(--k-text-2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="landmark" style="width: 14px; height: 14px; color: var(--k-accent-text);"></i>
                         State Jurisdiction &amp; Scheduled Remittance Matrix
                     </div>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px;">
                         <!-- State Jurisdiction Pill -->
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
-                            <span style="font-size: 0.68rem; color: #64748b; font-weight: 700;">State</span>
-                            <span id="pillLwfState" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.74rem; font-weight: 800; color: #0f172a; background: #ffffff; border: 1px solid #cbd5e1; padding: 2px 8px; border-radius: 6px; width: fit-content;">
-                                <i data-lucide="map-pin" style="width: 11px; height: 11px; color: #2563eb;"></i>
+                        <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
+                            <span style="font-size: 0.68rem; color: var(--k-muted); font-weight: 700;">State</span>
+                            <span id="pillLwfState" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.74rem; font-weight: 800; color: var(--k-text); background: var(--k-surface); border: 1px solid var(--k-border); padding: 2px 8px; border-radius: 6px; width: fit-content;">
+                                <i data-lucide="map-pin" style="width: 11px; height: 11px; color: var(--k-accent-text);"></i>
                                 <span id="textLwfState">${escapeHtml(stateName)}</span>
                             </span>
                         </div>
 
                         <!-- Frequency Pill -->
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
-                            <span style="font-size: 0.68rem; color: #64748b; font-weight: 700;">Frequency</span>
-                            <span id="pillLwfFrequency" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.74rem; font-weight: 800; color: #1e40af; background: #eff6ff; border: 1px solid #bfdbfe; padding: 2px 8px; border-radius: 6px; width: fit-content;">
+                        <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
+                            <span style="font-size: 0.68rem; color: var(--k-muted); font-weight: 700;">Frequency</span>
+                            <span id="pillLwfFrequency" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.74rem; font-weight: 800; color: var(--k-accent-text); background: var(--k-accent-soft); border: 1px solid var(--k-accent-border); padding: 2px 8px; border-radius: 6px; width: fit-content;">
                                 <i data-lucide="calendar" style="width: 11px; height: 11px;"></i>
                                 <span id="textLwfFrequency">${escapeHtml(frequency)}</span>
                             </span>
                         </div>
 
                         <!-- Registration No Pill -->
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
-                            <span style="font-size: 0.68rem; color: #64748b; font-weight: 700;">Establishment Reg No</span>
-                            <span id="pillLwfRegNo" style="font-family: monospace; font-size: 0.72rem; font-weight: 700; color: #1e3a8a; background: #dbeafe; border: 1px solid #bfdbfe; padding: 2px 8px; border-radius: 6px; width: fit-content;">
+                        <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
+                            <span style="font-size: 0.68rem; color: var(--k-muted); font-weight: 700;">Establishment Reg No</span>
+                            <span id="pillLwfRegNo" style="font-family: monospace; font-size: 0.72rem; font-weight: 700; color: var(--k-accent-text); background: var(--k-accent-soft); border: 1px solid var(--k-accent-border); padding: 2px 8px; border-radius: 6px; width: fit-content;">
                                 ${escapeHtml(regNo)}
                             </span>
                         </div>
 
                         <!-- Upcoming Deduction Month Pill -->
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
-                            <span style="font-size: 0.68rem; color: #64748b; font-weight: 700;">Next Deduction</span>
-                            <span id="pillLwfNextDeduction" style="font-size: 0.78rem; font-weight: 800; color: #047857; background: #ecfdf5; border: 1px solid #a7f3d0; padding: 2px 8px; border-radius: 6px; width: fit-content;">
+                        <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
+                            <span style="font-size: 0.68rem; color: var(--k-muted); font-weight: 700;">Next Deduction</span>
+                            <span id="pillLwfNextDeduction" style="font-size: 0.78rem; font-weight: 800; color: var(--k-success-text); background: var(--k-success-soft); border: 1px solid var(--k-success-border); padding: 2px 8px; border-radius: 6px; width: fit-content;">
                                 <i data-lucide="clock" style="width: 11px; height: 11px; display: inline-block; vertical-align: middle; margin-right: 2px;"></i>
                                 <span id="textLwfNextDeduction">${escapeHtml(nextDeduction)}</span>
                             </span>
@@ -161,17 +161,17 @@
                 </div>
 
                 <!-- Interactive Statutory Edit & Auto-Fill Form -->
-                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.1rem; margin-bottom: 1.25rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
-                        <span style="font-size: 0.76rem; font-weight: 800; color: #1e293b; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px;">
-                            <i data-lucide="edit-3" style="width: 14px; height: 14px; color: #2563eb;"></i>
+                <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 14px; padding: 1.1rem; margin-bottom: 1.25rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--k-border); padding-bottom: 8px;">
+                        <span style="font-size: 0.76rem; font-weight: 800; color: var(--k-text); text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px;">
+                            <i data-lucide="edit-3" style="width: 14px; height: 14px; color: var(--k-accent-text);"></i>
                             Statutory Master Parameters (All 10 Attributes)
                         </span>
                         <!-- Inline Toggle for LWF Applicable -->
-                        <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.76rem; font-weight: 800; color: #1e293b;">
+                        <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.76rem; font-weight: 800; color: var(--k-text);">
                             <span>LWF Applicable:</span>
                             <input type="checkbox" id="inputLwfApplicable" ${isLwfApplicable ? 'checked' : ''} style="width: 16px; height: 16px; accent-color: #2563eb; cursor: pointer;">
-                            <span id="textLwfApplicableBadge" style="font-size: 0.7rem; padding: 1px 8px; border-radius: 9999px; ${isLwfApplicable ? 'background: #dcfce7; color: #166534;' : 'background: #fee2e2; color: #991b1b;'}">
+                            <span id="textLwfApplicableBadge" style="font-size: 0.7rem; padding: 1px 8px; border-radius: 9999px; ${isLwfApplicable ? 'background: #dcfce7; color: var(--k-success-text);' : 'background: #fee2e2; color: var(--k-danger-text);'}">
                                 ${isLwfApplicable ? 'YES' : 'NO'}
                             </span>
                         </label>
@@ -180,10 +180,10 @@
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px;">
                         <!-- State Jurisdiction with Dynamic Auto-Fill Trigger -->
                         <div>
-                            <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #475569; margin-bottom: 4px;">
+                            <label style="display: block; font-size: 0.7rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 4px;">
                                 State Jurisdiction (Triggers Rate Auto-Fill)
                             </label>
-                            <select id="selectLwfState" class="form-control" style="width: 100%; font-size: 0.78rem; padding: 6px 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff;">
+                            <select id="selectLwfState" class="form-control" style="width: 100%; font-size: 0.78rem; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--k-border); background: var(--k-surface);">
                                 <option value="Karnataka" ${stateName === 'Karnataka' ? 'selected' : ''}>Karnataka (Annual - Dec: EE ₹20 / ER ₹40)</option>
                                 <option value="Maharashtra" ${stateName === 'Maharashtra' ? 'selected' : ''}>Maharashtra (Half-Yearly - Jun/Dec: EE ₹12 / ER ₹36)</option>
                                 <option value="Delhi" ${stateName === 'Delhi' ? 'selected' : ''}>Delhi (Half-Yearly - Jun/Dec: EE ₹0.75 / ER ₹2.25)</option>
@@ -199,8 +199,8 @@
 
                         <!-- Frequency Dropdown -->
                         <div>
-                            <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Deduction Frequency</label>
-                            <select id="selectLwfFrequency" class="form-control" style="width: 100%; font-size: 0.78rem; padding: 6px 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff;">
+                            <label style="display: block; font-size: 0.7rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 4px;">Deduction Frequency</label>
+                            <select id="selectLwfFrequency" class="form-control" style="width: 100%; font-size: 0.78rem; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--k-border); background: var(--k-surface);">
                                 <option value="Annual" ${frequency === 'Annual' ? 'selected' : ''}>Annual (e.g., December)</option>
                                 <option value="Half-Yearly" ${frequency === 'Half-Yearly' ? 'selected' : ''}>Half-Yearly (June &amp; December)</option>
                                 <option value="Quarterly" ${frequency === 'Quarterly' ? 'selected' : ''}>Quarterly (Mar, Jun, Sep, Dec)</option>
@@ -210,41 +210,41 @@
 
                         <!-- Employer Registration No -->
                         <div>
-                            <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Employer LWF Registration No</label>
-                            <input type="text" id="inputLwfRegNo" value="${escapeHtml(regNo)}" placeholder="e.g. LWF/KA/BNG/2026/0912" style="width: 100%; font-family: monospace; font-size: 0.78rem; padding: 6px 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff;">
+                            <label style="display: block; font-size: 0.7rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 4px;">Employer LWF Registration No</label>
+                            <input type="text" id="inputLwfRegNo" value="${escapeHtml(regNo)}" placeholder="e.g. LWF/KA/BNG/2026/0912" style="width: 100%; font-family: monospace; font-size: 0.78rem; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--k-border); background: var(--k-surface);">
                         </div>
 
                         <!-- Employee Contribution -->
                         <div>
-                            <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Employee Contribution (₹ Net Pay Deduction)</label>
-                            <input type="number" step="0.25" min="0" id="inputLwfEeContrib" value="${eeContrib.toFixed(2)}" style="width: 100%; font-size: 0.78rem; font-weight: 700; padding: 6px 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; color: #047857;">
+                            <label style="display: block; font-size: 0.7rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 4px;">Employee Contribution (₹ Net Pay Deduction)</label>
+                            <input type="number" step="0.25" min="0" id="inputLwfEeContrib" value="${eeContrib.toFixed(2)}" style="width: 100%; font-size: 0.78rem; font-weight: 700; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--k-border); background: var(--k-surface); color: var(--k-success-text);">
                         </div>
 
                         <!-- Employer Contribution -->
                         <div>
-                            <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Employer Contribution (₹ Company Liability)</label>
-                            <input type="number" step="0.25" min="0" id="inputLwfErContrib" value="${erContrib.toFixed(2)}" style="width: 100%; font-size: 0.78rem; font-weight: 700; padding: 6px 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; color: #1e40af;">
+                            <label style="display: block; font-size: 0.7rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 4px;">Employer Contribution (₹ Company Liability)</label>
+                            <input type="number" step="0.25" min="0" id="inputLwfErContrib" value="${erContrib.toFixed(2)}" style="width: 100%; font-size: 0.78rem; font-weight: 700; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--k-border); background: var(--k-surface); color: var(--k-accent-text);">
                         </div>
 
                         <!-- Effective Window -->
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                             <div>
-                                <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Effective From</label>
-                                <input type="date" id="inputLwfEffectiveFrom" value="${escapeHtml(effectiveFrom)}" style="width: 100%; font-size: 0.74rem; padding: 5px 8px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff;">
+                                <label style="display: block; font-size: 0.7rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 4px;">Effective From</label>
+                                <input type="date" id="inputLwfEffectiveFrom" value="${escapeHtml(effectiveFrom)}" style="width: 100%; font-size: 0.74rem; padding: 5px 8px; border-radius: 8px; border: 1px solid var(--k-border); background: var(--k-surface);">
                             </div>
                             <div>
-                                <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Effective To</label>
-                                <input type="date" id="inputLwfEffectiveTo" value="${lwfDetails.effectiveTo ? escapeHtml(lwfDetails.effectiveTo) : ''}" placeholder="Open" style="width: 100%; font-size: 0.74rem; padding: 5px 8px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff;">
+                                <label style="display: block; font-size: 0.7rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 4px;">Effective To</label>
+                                <input type="date" id="inputLwfEffectiveTo" value="${lwfDetails.effectiveTo ? escapeHtml(lwfDetails.effectiveTo) : ''}" placeholder="Open" style="width: 100%; font-size: 0.74rem; padding: 5px 8px; border-radius: 8px; border: 1px solid var(--k-border); background: var(--k-surface);">
                             </div>
                         </div>
                     </div>
 
                     <!-- Action Bar -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 12px; border-top: 1px dashed #cbd5e1;">
-                        <span style="font-size: 0.74rem; color: #64748b;">
-                            Total Remittance: <strong id="displayTotalRemittance" style="color: #0f172a;">₹${totalContrib.toFixed(2)}</strong> (EE: ₹<span id="displayEe">${eeContrib.toFixed(2)}</span> + ER: ₹<span id="displayEr">${erContrib.toFixed(2)}</span>)
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--k-border);">
+                        <span style="font-size: 0.74rem; color: var(--k-muted);">
+                            Total Remittance: <strong id="displayTotalRemittance" style="color: var(--k-text);">₹${totalContrib.toFixed(2)}</strong> (EE: ₹<span id="displayEe">${eeContrib.toFixed(2)}</span> + ER: ₹<span id="displayEr">${erContrib.toFixed(2)}</span>)
                         </span>
-                        <button type="button" id="btnSaveLwfDetails" class="btn btn-primary" style="background: #2563eb; color: #ffffff; font-size: 0.76rem; font-weight: 800; padding: 6px 16px; border-radius: 8px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                        <button type="button" id="btnSaveLwfDetails" class="btn btn-primary" style="background: var(--k-accent); color: var(--k-on-accent); font-size: 0.76rem; font-weight: 800; padding: 6px 16px; border-radius: 8px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
                             <i data-lucide="save" id="lwfSaveIcon" style="width: 14px; height: 14px;"></i>
                             <span id="lwfSaveBtnText">Save LWF Profile</span>
                         </button>
@@ -252,17 +252,17 @@
                 </div>
 
                 <!-- Statutory Reference Schedule Callout (PRD §§ 4 & 11) -->
-                <div style="background: #eff6ff; border: 1px dashed #93c5fd; border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;">
+                <div style="background: var(--k-accent-soft); border: 1px dashed var(--k-accent-border); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 0.74rem; font-weight: 800; color: #1e40af; display: flex; align-items: center; gap: 6px;">
-                            <i data-lucide="info" style="width: 14px; height: 14px; color: #2563eb;"></i>
+                        <span style="font-size: 0.74rem; font-weight: 800; color: var(--k-accent-text); display: flex; align-items: center; gap: 6px;">
+                            <i data-lucide="info" style="width: 14px; height: 14px; color: var(--k-accent-text);"></i>
                             PRD §4 &amp; §11 State-Specific LWF Deduction Rules
                         </span>
-                        <span id="calloutActiveRuleBadge" style="font-size: 0.7rem; font-weight: 700; color: #1d4ed8; background: #dbeafe; padding: 2px 8px; border-radius: 6px;">
+                        <span id="calloutActiveRuleBadge" style="font-size: 0.7rem; font-weight: 700; color: var(--k-accent-text); background: var(--k-accent-soft); padding: 2px 8px; border-radius: 6px;">
                             Scheduled Months: ${deductionMonths.map(m => ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][m-1]).join(', ')}
                         </span>
                     </div>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; font-size: 0.72rem; color: #1e3a8a; margin-top: 4px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; font-size: 0.72rem; color: var(--k-accent-text); margin-top: 4px;">
                         <div>
                             <strong>Karnataka (Annual):</strong><br>
                             Dec pay run • EE: ₹20, ER: ₹40
@@ -283,9 +283,9 @@
                 </div>
 
                 <!-- Footer Meta -->
-                <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem; color: #94a3b8;">
-                    <span>Act: <strong id="lwfDisplayActName" style="color: #64748b;">${stateName} Labour Welfare Fund Act</strong></span>
-                    <span>Remittance Schedule: <strong id="lwfDisplayScheduleDesc" style="color: #64748b;">${frequency} Filing &amp; Remittance</strong></span>
+                <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem; color: var(--k-muted);">
+                    <span>Act: <strong id="lwfDisplayActName" style="color: var(--k-muted);">${stateName} Labour Welfare Fund Act</strong></span>
+                    <span>Remittance Schedule: <strong id="lwfDisplayScheduleDesc" style="color: var(--k-muted);">${frequency} Filing &amp; Remittance</strong></span>
                 </div>
             </div>
         </div>
@@ -501,7 +501,7 @@
         if (!container) return;
 
         const orgId = options.orgId || (typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null);
-        if (!orgId) { container.innerHTML = '<div style="padding: 1rem; color: #ef4444;">No organization found for the signed-in user. Sign in again.</div>'; return; }
+        if (!orgId) { container.innerHTML = '<div style="padding: 1rem; color: var(--k-danger-text);">No organization found for the signed-in user. Sign in again.</div>'; return; }
         let lwfDetails = null;
 
         let service = (typeof window !== 'undefined' && window.KylrxLwfDetailsService) ? window.KylrxLwfDetailsService : null;
@@ -518,7 +518,7 @@
         }
 
         if (!lwfDetails) {
-            container.innerHTML = '<div style="padding: 1rem; color: #64748b;">No details added yet</div>';
+            container.innerHTML = '<div style="padding: 1rem; color: var(--k-muted);">No details added yet</div>';
             return;
         }
 

@@ -349,9 +349,9 @@
 
         if (filtered.length === 0) {
             container.innerHTML = `
-                <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; background: white; border-radius: 16px; border: 1px dashed #cbd5e1;">
-                    <i data-lucide="inbox" style="width: 40px; height: 40px; color: #94a3b8; margin-bottom: 8px;"></i>
-                    <p style="color: #64748b; font-weight: 600;">No alert triggers match your current filter.</p>
+                <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; background: white; border-radius: 16px; border: 1px dashed var(--k-border);">
+                    <i data-lucide="inbox" style="width: 40px; height: 40px; color: var(--k-muted); margin-bottom: 8px;"></i>
+                    <p style="color: var(--k-muted); font-weight: 600;">No alert triggers match your current filter.</p>
                 </div>
             `;
             if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
@@ -363,14 +363,14 @@
             const severityBg = trigger.severity === 'critical' ? '#fee2e2' : (trigger.severity === 'warning' ? '#fef3c7' : '#eff6ff');
 
             const paramPills = (trigger.parameters || []).map(p => `
-                <span style="display: inline-block; padding: 2px 8px; border-radius: 6px; font-family: monospace; font-size: 0.72rem; background: #f1f5f9; color: #334155; border: 1px solid #e2e8f0;">
+                <span style="display: inline-block; padding: 2px 8px; border-radius: 6px; font-family: monospace; font-size: 0.72rem; background: var(--k-subtle); color: var(--k-text-2); border: 1px solid var(--k-border);">
                     ${p}
                 </span>
             `).join(' ');
 
             return `
                 <div class="alert-monitor-card" style="
-                    background: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; padding: 1.4rem;
+                    background: var(--k-surface); border-radius: 16px; border: 1px solid var(--k-border); padding: 1.4rem;
                     box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.05); display: flex; flex-direction: column; justify-content: space-between;
                     transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s; position: relative; border-left: 4px solid ${severityColor};
                 " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 10px 20px -4px rgba(15, 23, 42, 0.08)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 12px -2px rgba(15, 23, 42, 0.05)';">
@@ -380,43 +380,43 @@
                             <span style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; background: ${severityBg}; color: ${severityColor}; letter-spacing: 0.4px;">
                                 ${trigger.category}
                             </span>
-                            <span style="font-size: 0.7rem; font-weight: 700; color: #64748b; background: #f8fafc; border: 1px solid #e2e8f0; padding: 2px 8px; border-radius: 6px;">
+                            <span style="font-size: 0.7rem; font-weight: 700; color: var(--k-muted); background: var(--k-subtle); border: 1px solid var(--k-border); padding: 2px 8px; border-radius: 6px;">
                                 ${trigger.module.toUpperCase()}
                             </span>
                         </div>
 
                         <!-- Technical Event Key Badge -->
-                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 0.5rem; background: #f8fafc; padding: 6px 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                            <span style="font-family: 'Consolas', monospace; font-size: 0.8rem; font-weight: 800; color: #1e40af; letter-spacing: 0.3px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 0.5rem; background: var(--k-subtle); padding: 6px 10px; border-radius: 8px; border: 1px solid var(--k-border);">
+                            <span style="font-family: 'Consolas', monospace; font-size: 0.8rem; font-weight: 800; color: var(--k-accent-text); letter-spacing: 0.3px;">
                                 <i data-lucide="tag" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i>
                                 ${trigger.eventKey}
                             </span>
-                            <button type="button" onclick="navigator.clipboard.writeText('${trigger.eventKey}'); if (window.showToast) window.showToast('Copied event key: ${trigger.eventKey}');" style="background: none; border: none; color: #64748b; cursor: pointer; padding: 2px 4px; font-size: 0.72rem;" title="Copy Event Key">
+                            <button type="button" onclick="navigator.clipboard.writeText('${trigger.eventKey}'); if (window.showToast) window.showToast('Copied event key: ${trigger.eventKey}');" style="background: none; border: none; color: var(--k-muted); cursor: pointer; padding: 2px 4px; font-size: 0.72rem;" title="Copy Event Key">
                                 <i data-lucide="copy" style="width: 13px; height: 13px;"></i>
                             </button>
                         </div>
 
                         <!-- Display Name -->
-                        <h3 style="font-size: 1.05rem; font-weight: 800; color: #0f172a; margin: 0.35rem 0 0.5rem 0; line-height: 1.35;">
+                        <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--k-text); margin: 0.35rem 0 0.5rem 0; line-height: 1.35;">
                             ${trigger.displayName}
                         </h3>
 
                         <!-- Human-Readable Description -->
-                        <p style="font-size: 0.82rem; color: #64748b; line-height: 1.5; margin: 0 0 1rem 0;">
+                        <p style="font-size: 0.82rem; color: var(--k-muted); line-height: 1.5; margin: 0 0 1rem 0;">
                             ${trigger.description}
                         </p>
 
                         <!-- Threshold & Condition Pill -->
-                        <div style="background: #f1f5f9; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 8px 12px; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem;">
-                            <span style="color: #475569; font-weight: 600;">Condition Threshold:</span>
-                            <span style="font-family: monospace; font-weight: 800; color: #0f172a;">
-                                ${trigger.metric} <span style="color: #dc2626;">${trigger.comparator}</span> ${trigger.thresholdValue}
+                        <div style="background: var(--k-subtle); border: 1px dashed var(--k-border); border-radius: 8px; padding: 8px 12px; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem;">
+                            <span style="color: var(--k-text-2); font-weight: 600;">Condition Threshold:</span>
+                            <span style="font-family: monospace; font-weight: 800; color: var(--k-text);">
+                                ${trigger.metric} <span style="color: var(--k-danger-text);">${trigger.comparator}</span> ${trigger.thresholdValue}
                             </span>
                         </div>
 
                         <!-- Parameters Preview -->
                         <div style="margin-bottom: 1rem;">
-                            <div style="font-size: 0.7rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.3px;">
+                            <div style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.3px;">
                                 Expected Payload Parameters
                             </div>
                             <div style="display: flex; flex-wrap: wrap; gap: 4px;">
@@ -426,14 +426,14 @@
                     </div>
 
                     <!-- Bottom Action Controls -->
-                    <div style="border-top: 1px solid #f1f5f9; padding-top: 1rem; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                    <div style="border-top: 1px solid var(--k-border); padding-top: 1rem; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
                         <button type="button" class="btn btn-secondary" onclick="window.KylrxAlertRegistry.openSetupGuide('${trigger.eventKey}')" style="
-                            padding: 6px 12px; font-size: 0.78rem; font-weight: 700; border-radius: 8px; background: #f8fafc; color: #475569; border: 1px solid #cbd5e1; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;
+                            padding: 6px 12px; font-size: 0.78rem; font-weight: 700; border-radius: 8px; background: var(--k-subtle); color: var(--k-text-2); border: 1px solid var(--k-border); cursor: pointer; display: inline-flex; align-items: center; gap: 5px;
                         ">
                             <i data-lucide="book-open" style="width: 14px; height: 14px;"></i> Setup Guide
                         </button>
                         <button type="button" class="btn btn-primary" onclick="window.KylrxAlertRegistry.openAiSimulation('${trigger.eventKey}')" style="
-                            padding: 6px 14px; font-size: 0.78rem; font-weight: 700; border-radius: 8px; background: #2563eb; color: #ffffff; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+                            padding: 6px 14px; font-size: 0.78rem; font-weight: 700; border-radius: 8px; background: var(--k-accent); color: var(--k-on-accent); border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
                         ">
                             <i data-lucide="play" style="width: 13px; height: 13px;"></i> Safe AI Simulation
                         </button>
@@ -469,13 +469,13 @@
                     </div>
 
                     <!-- Step 1: Event Dispatch & Integration -->
-                    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.25rem;">
+                    <div style="background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 12px; padding: 1.25rem;">
                         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                            <span style="width: 24px; height: 24px; border-radius: 50%; background: #dbeafe; color: #1d4ed8; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.8rem;">1</span>
-                            <h4 style="margin: 0; font-size: 0.95rem; font-weight: 800; color: #0f172a;">How This Trigger Event Is Emitted</h4>
+                            <span style="width: 24px; height: 24px; border-radius: 50%; background: var(--k-accent-soft); color: var(--k-accent-text); display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.8rem;">1</span>
+                            <h4 style="margin: 0; font-size: 0.95rem; font-weight: 800; color: var(--k-text);">How This Trigger Event Is Emitted</h4>
                         </div>
-                        <p style="font-size: 0.82rem; color: #64748b; line-height: 1.5; margin: 0 0 10px 0;">
-                            Emitted via the Kylrx Automation EventBus during automated cron calculations or realtime user mutations. When firing, dispatch an event with key <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-weight: bold; color: #1d4ed8;">${trigger.eventKey}</code>.
+                        <p style="font-size: 0.82rem; color: var(--k-muted); line-height: 1.5; margin: 0 0 10px 0;">
+                            Emitted via the Kylrx Automation EventBus during automated cron calculations or realtime user mutations. When firing, dispatch an event with key <code style="background: var(--k-subtle); padding: 2px 6px; border-radius: 4px; font-weight: bold; color: var(--k-accent-text);">${trigger.eventKey}</code>.
                         </p>
                         <div style="background: #0f172a; color: #e2e8f0; border-radius: 8px; padding: 12px; font-family: monospace; font-size: 0.78rem; overflow-x: auto;">
 // Sample EventBus Dispatch<br/>
@@ -487,23 +487,23 @@ await eventBus.emit('${trigger.eventKey}', {<br/>
                     </div>
 
                     <!-- Step 2: Evaluation Rules & Thresholds -->
-                    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.25rem;">
+                    <div style="background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 12px; padding: 1.25rem;">
                         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                            <span style="width: 24px; height: 24px; border-radius: 50%; background: #dbeafe; color: #1d4ed8; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.8rem;">2</span>
-                            <h4 style="margin: 0; font-size: 0.95rem; font-weight: 800; color: #0f172a;">Condition & Threshold Evaluation</h4>
+                            <span style="width: 24px; height: 24px; border-radius: 50%; background: var(--k-accent-soft); color: var(--k-accent-text); display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.8rem;">2</span>
+                            <h4 style="margin: 0; font-size: 0.95rem; font-weight: 800; color: var(--k-text);">Condition & Threshold Evaluation</h4>
                         </div>
-                        <p style="font-size: 0.82rem; color: #64748b; line-height: 1.5; margin: 0 0 8px 0;">
-                            The common evaluation engine monitors <strong>${trigger.metric}</strong>. If the extracted payload value satisfies <code style="font-weight: bold; color: #dc2626;">${trigger.comparator} ${trigger.thresholdValue}</code> over the window (<em>${trigger.timeWindow}</em>), the alert executes.
+                        <p style="font-size: 0.82rem; color: var(--k-muted); line-height: 1.5; margin: 0 0 8px 0;">
+                            The common evaluation engine monitors <strong>${trigger.metric}</strong>. If the extracted payload value satisfies <code style="font-weight: bold; color: var(--k-danger-text);">${trigger.comparator} ${trigger.thresholdValue}</code> over the window (<em>${trigger.timeWindow}</em>), the alert executes.
                         </p>
                     </div>
 
                     <!-- Step 3: Notification & Action Routing -->
-                    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.25rem;">
+                    <div style="background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 12px; padding: 1.25rem;">
                         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                            <span style="width: 24px; height: 24px; border-radius: 50%; background: #dbeafe; color: #1d4ed8; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.8rem;">3</span>
-                            <h4 style="margin: 0; font-size: 0.95rem; font-weight: 800; color: #0f172a;">Channels, Webhooks & Automated Escalation</h4>
+                            <span style="width: 24px; height: 24px; border-radius: 50%; background: var(--k-accent-soft); color: var(--k-accent-text); display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.8rem;">3</span>
+                            <h4 style="margin: 0; font-size: 0.95rem; font-weight: 800; color: var(--k-text);">Channels, Webhooks & Automated Escalation</h4>
                         </div>
-                        <ul style="font-size: 0.82rem; color: #475569; padding-left: 20px; margin: 0; line-height: 1.6;">
+                        <ul style="font-size: 0.82rem; color: var(--k-text-2); padding-left: 20px; margin: 0; line-height: 1.6;">
                             <li><strong>Recipients:</strong> ${trigger.routing.primaryRecipients.join(', ')}</li>
                             <li><strong>Dispatch Channels:</strong> ${trigger.routing.channels.join(', ')}</li>
                             <li><strong>Escalation Target:</strong> ${trigger.routing.escalationTarget} (${trigger.routing.escalationTimeoutHours}h SLA timeout)</li>
@@ -512,10 +512,10 @@ await eventBus.emit('${trigger.eventKey}', {<br/>
                     </div>
 
                     <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('alertSetupGuideDrawer').style.display='none';" style="padding: 10px 18px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; border: 1px solid #cbd5e1; background: white; cursor: pointer;">
+                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('alertSetupGuideDrawer').style.display='none';" style="padding: 10px 18px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; border: 1px solid var(--k-border); background: white; cursor: pointer;">
                             Close Guide
                         </button>
-                        <button type="button" class="btn btn-primary" onclick="document.getElementById('alertSetupGuideDrawer').style.display='none'; window.KylrxAlertRegistry.openAiSimulation('${trigger.eventKey}');" style="padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; background: #2563eb; color: white; border: none; cursor: pointer;">
+                        <button type="button" class="btn btn-primary" onclick="document.getElementById('alertSetupGuideDrawer').style.display='none'; window.KylrxAlertRegistry.openAiSimulation('${trigger.eventKey}');" style="padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; background: var(--k-accent); color: white; border: none; cursor: pointer;">
                             Launch Simulation Sandbox
                         </button>
                     </div>
@@ -590,8 +590,8 @@ await eventBus.emit('${trigger.eventKey}', {<br/>
             descEl.innerHTML = `
                 <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
                     <div>
-                        <strong style="color: #0f172a;">${trigger.displayName}</strong>
-                        <div style="font-size: 0.78rem; color: #64748b; margin-top: 2px;">${trigger.description}</div>
+                        <strong style="color: var(--k-text);">${trigger.displayName}</strong>
+                        <div style="font-size: 0.78rem; color: var(--k-muted); margin-top: 2px;">${trigger.description}</div>
                     </div>
                     <div style="font-family: monospace; font-size: 0.78rem; font-weight: 800; background: #e0e7ff; color: #1e40af; padding: 4px 10px; border-radius: 6px;">
                         Rule: ${trigger.metric} ${trigger.comparator} ${trigger.thresholdValue}
@@ -627,7 +627,7 @@ await eventBus.emit('${trigger.eventKey}', {<br/>
         const terminal = document.getElementById('simTraceTerminal');
         if (!terminal) return;
         terminal.innerHTML = `
-            <div style="color: #64748b; font-style: italic; font-size: 0.8rem; padding: 8px 0;">
+            <div style="color: var(--k-muted); font-style: italic; font-size: 0.8rem; padding: 8px 0;">
                 [Ready] Click 'Run Sandboxed Simulation' to evaluate mock payload against real evaluation rules with zero side-effects.
             </div>
         `;
@@ -838,7 +838,7 @@ await eventBus.emit('${trigger.eventKey}', {<br/>
 
             html += `
                 <div style="margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 6px;">
-                    <div style="display: flex; justify-content: space-between; color: #94a3b8; font-size: 0.72rem;">
+                    <div style="display: flex; justify-content: space-between; color: var(--k-muted); font-size: 0.72rem;">
                         <span style="font-weight: 800; color: ${statusColor};">${step.stage}</span>
                         <span>[${step.status}]</span>
                     </div>

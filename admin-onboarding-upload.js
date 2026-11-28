@@ -2174,23 +2174,23 @@ function renderParsedBuPreview(fileName, sheetName, records, errors = []) {
     if (parsedBuTableBody) {
         parsedBuTableBody.innerHTML = records.map((bu, idx) => {
             const activeBadge = bu.isActive
-                ? `<span style="color: #166534; background: #dcfce7; font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid #bbf7d0;">Yes (Active)</span>`
-                : `<span style="color: #991b1b; background: #fee2e2; font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid #fecaca;">No (Inactive)</span>`;
+                ? `<span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">Yes (Active)</span>`
+                : `<span style="color: var(--k-danger-text); background: var(--k-danger-soft); font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid var(--k-danger-border);">No (Inactive)</span>`;
 
             return `
                 <tr>
                     <td style="font-weight: 700; color: var(--text-muted);">${idx + 1}</td>
-                    <td style="font-family: monospace; font-weight: 800; color: #2563eb;">${escapeHtml(bu.Business_Unit_Code)}</td>
-                    <td style="font-weight: 600; color: #0f172a;">${escapeHtml(bu.Business_Unit_Name)}</td>
+                    <td style="font-family: monospace; font-weight: 800; color: var(--k-accent-text);">${escapeHtml(bu.Business_Unit_Code)}</td>
+                    <td style="font-weight: 600; color: var(--k-text);">${escapeHtml(bu.Business_Unit_Name)}</td>
                     <td>
-                        <span style="font-family: monospace; font-weight: 700; font-size: 0.78rem; background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">
+                        <span style="font-family: monospace; font-weight: 700; font-size: 0.78rem; background: var(--k-subtle); padding: 2px 6px; border-radius: 4px;">
                             ${escapeHtml(bu.Head_Employee_ID || 'None')}
                         </span>
-                        ${bu.headEmployeeName ? `<span style="font-size: 0.78rem; color: #64748b; margin-left: 4px;">(${escapeHtml(bu.headEmployeeName)})</span>` : ''}
+                        ${bu.headEmployeeName ? `<span style="font-size: 0.78rem; color: var(--k-muted); margin-left: 4px;">(${escapeHtml(bu.headEmployeeName)})</span>` : ''}
                     </td>
                     <td style="text-align: center;">${activeBadge}</td>
                     <td style="text-align: center;">
-                        <span style="color: #166534; background: #dcfce7; font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid #bbf7d0;">
+                        <span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">
                             Valid
                         </span>
                     </td>
@@ -2401,24 +2401,24 @@ function renderParsedCcPreview(fileName, sheetName, records, errors = []) {
     if (parsedCcTableBody) {
         parsedCcTableBody.innerHTML = records.map((cc, idx) => {
             const activeBadge = cc.isActive
-                ? `<span style="color: #166534; background: #dcfce7; font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid #bbf7d0;">Yes (Active)</span>`
-                : `<span style="color: #991b1b; background: #fee2e2; font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid #fecaca;">No (Inactive)</span>`;
+                ? `<span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">Yes (Active)</span>`
+                : `<span style="color: var(--k-danger-text); background: var(--k-danger-soft); font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid var(--k-danger-border);">No (Inactive)</span>`;
 
             return `
                 <tr>
-                    <td style="font-weight: 700; color: #64748b;">${idx + 1}</td>
-                    <td style="font-family: monospace; font-weight: 700; color: #2563eb;">${escapeHtml(cc.Cost_Center_Code)}</td>
-                    <td style="font-weight: 600; color: #0f172a;">${escapeHtml(cc.Cost_Center_Name)}</td>
+                    <td style="font-weight: 700; color: var(--k-muted);">${idx + 1}</td>
+                    <td style="font-family: monospace; font-weight: 700; color: var(--k-accent-text);">${escapeHtml(cc.Cost_Center_Code)}</td>
+                    <td style="font-weight: 600; color: var(--k-text);">${escapeHtml(cc.Cost_Center_Name)}</td>
                     <td>
-                        <span style="font-family: monospace; font-weight: 700; font-size: 0.78rem; background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">
+                        <span style="font-family: monospace; font-weight: 700; font-size: 0.78rem; background: var(--k-subtle); padding: 2px 6px; border-radius: 4px;">
                             ${escapeHtml(cc.Owner_Employee_ID || 'None')}
                         </span>
-                        ${cc.ownerEmployeeName ? `<span style="font-size: 0.78rem; color: #334155; font-weight: 600; margin-left: 4px;">${escapeHtml(cc.ownerEmployeeName)}</span>` : ''}
-                        ${cc.ownerDesignation ? `<span style="font-size: 0.72rem; color: #64748b; margin-left: 4px;">(${escapeHtml(cc.ownerDesignation)})</span>` : ''}
+                        ${cc.ownerEmployeeName ? `<span style="font-size: 0.78rem; color: var(--k-text-2); font-weight: 600; margin-left: 4px;">${escapeHtml(cc.ownerEmployeeName)}</span>` : ''}
+                        ${cc.ownerDesignation ? `<span style="font-size: 0.72rem; color: var(--k-muted); margin-left: 4px;">(${escapeHtml(cc.ownerDesignation)})</span>` : ''}
                     </td>
                     <td style="text-align: center;">${activeBadge}</td>
                     <td style="text-align: center;">
-                        <span style="color: #166534; background: #dcfce7; font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid #bbf7d0;">
+                        <span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">
                             Valid
                         </span>
                     </td>
@@ -2693,8 +2693,8 @@ function renderParsedSubDeptPreview(fileName, sheetName, records, errors = []) {
     if (parsedSubDeptTableBody) {
         parsedSubDeptTableBody.innerHTML = records.map((sub, idx) => {
             const activeBadge = sub.isActive
-                ? `<span style="color: #166534; background: #dcfce7; font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid #bbf7d0;">Yes (Active)</span>`
-                : `<span style="color: #991b1b; background: #fee2e2; font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid #fecaca;">No (Inactive)</span>`;
+                ? `<span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">Yes (Active)</span>`
+                : `<span style="color: var(--k-danger-text); background: var(--k-danger-soft); font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid var(--k-danger-border);">No (Inactive)</span>`;
 
             const inheritedTag = (sub.sameAsDeptHead || sub.inheritedFromDeptHead)
                 ? `<span style="background: #e0e7ff; color: #3730a3; padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; margin-left: 4px;">Inherited</span>`
@@ -2702,24 +2702,24 @@ function renderParsedSubDeptPreview(fileName, sheetName, records, errors = []) {
 
             return `
                 <tr>
-                    <td style="font-weight: 700; color: #64748b;">${idx + 1}</td>
+                    <td style="font-weight: 700; color: var(--k-muted);">${idx + 1}</td>
                     <td style="font-family: monospace; font-weight: 700; color: #7e22ce;">${escapeHtml(sub['Sub-Department_Code'] || sub.subDepartmentCode)}</td>
-                    <td style="font-weight: 600; color: #0f172a;">${escapeHtml(sub['Sub-Department_Name'] || sub.subDepartmentName)}</td>
+                    <td style="font-weight: 600; color: var(--k-text);">${escapeHtml(sub['Sub-Department_Name'] || sub.subDepartmentName)}</td>
                     <td>
-                        <span style="font-family: monospace; font-weight: 700; font-size: 0.78rem; background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">
+                        <span style="font-family: monospace; font-weight: 700; font-size: 0.78rem; background: var(--k-subtle); padding: 2px 6px; border-radius: 4px;">
                             ${escapeHtml(sub.subDepartmentHeadEmployeeId || sub.headEmployeeId || sub['Sub-Department_Head_Employee_ID'] || 'None')}
                         </span>
                         ${inheritedTag}
-                        ${sub.subDepartmentHeadName || sub.headEmployeeName ? `<span style="font-size: 0.78rem; color: #334155; font-weight: 600; margin-left: 4px;">(${escapeHtml(sub.subDepartmentHeadName || sub.headEmployeeName)})</span>` : ''}
+                        ${sub.subDepartmentHeadName || sub.headEmployeeName ? `<span style="font-size: 0.78rem; color: var(--k-text-2); font-weight: 600; margin-left: 4px;">(${escapeHtml(sub.subDepartmentHeadName || sub.headEmployeeName)})</span>` : ''}
                     </td>
                     <td>
-                        <span style="font-family: monospace; font-weight: 700; font-size: 0.78rem; background: #eff6ff; color: #1d4ed8; padding: 2px 6px; border-radius: 4px;">
+                        <span style="font-family: monospace; font-weight: 700; font-size: 0.78rem; background: var(--k-accent-soft); color: var(--k-accent-text); padding: 2px 6px; border-radius: 4px;">
                             ${escapeHtml(sub['Cost_Center_Code'] || sub.costCenterCode)}
                         </span>
                     </td>
                     <td style="text-align: center;">${activeBadge}</td>
                     <td style="text-align: center;">
-                        <span style="color: #166534; background: #dcfce7; font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid #bbf7d0;">
+                        <span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">
                             Valid
                         </span>
                     </td>
@@ -2982,40 +2982,40 @@ function renderParsedShiftPreview(fileName, sheetName, records, errors = []) {
     if (parsedShiftTableBody) {
         parsedShiftTableBody.innerHTML = records.map((s, idx) => {
             const activeBadge = s.isActive
-                ? `<span style="color: #166534; background: #dcfce7; font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid #bbf7d0;">Yes</span>`
-                : `<span style="color: #991b1b; background: #fee2e2; font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid #fecaca;">No</span>`;
+                ? `<span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">Yes</span>`
+                : `<span style="color: var(--k-danger-text); background: var(--k-danger-soft); font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid var(--k-danger-border);">No</span>`;
 
             const nightBadge = (s.isNightShift === true || s.nightShift === true || s['Night_Shift'] === 'Yes')
                 ? `<span style="background: #312e81; color: #e0e7ff; padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; font-weight: 700;">Night</span>`
-                : `<span style="background: #f1f5f9; color: #475569; padding: 2px 6px; border-radius: 4px; font-size: 0.68rem;">Day</span>`;
+                : `<span style="background: var(--k-subtle); color: var(--k-text-2); padding: 2px 6px; border-radius: 4px; font-size: 0.68rem;">Day</span>`;
 
             const otBadge = (s.isOvertimeEligible !== false && s['Overtime_Eligible'] !== 'No')
-                ? `<span style="background: #eff6ff; color: #1d4ed8; padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; margin-left: 2px;">OT</span>`
+                ? `<span style="background: var(--k-accent-soft); color: var(--k-accent-text); padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; margin-left: 2px;">OT</span>`
                 : '';
 
             return `
                 <tr>
-                    <td style="font-weight: 700; color: #64748b;">${idx + 1}</td>
-                    <td style="font-family: monospace; font-weight: 700; color: #2563eb;">${escapeHtml(s['Shift_Code'] || s.shiftCode)}</td>
-                    <td style="font-weight: 600; color: #0f172a;">${escapeHtml(s['Shift_Name'] || s.shiftName)}</td>
-                    <td style="font-family: monospace; font-size: 0.8rem; font-weight: 700; color: #1e293b;">
+                    <td style="font-weight: 700; color: var(--k-muted);">${idx + 1}</td>
+                    <td style="font-family: monospace; font-weight: 700; color: var(--k-accent-text);">${escapeHtml(s['Shift_Code'] || s.shiftCode)}</td>
+                    <td style="font-weight: 600; color: var(--k-text);">${escapeHtml(s['Shift_Name'] || s.shiftName)}</td>
+                    <td style="font-family: monospace; font-size: 0.8rem; font-weight: 700; color: var(--k-text);">
                         ${s['Start_Time'] || s.startTime} - ${s['End_Time'] || s.endTime}
                     </td>
-                    <td style="font-size: 0.75rem; color: #64748b;">
+                    <td style="font-size: 0.75rem; color: var(--k-muted);">
                         ${s['Break_Minutes'] || s.breakMinutes}m | +${s['Grace_In_Minutes'] || s.graceInMinutes}/-${s['Grace_Out_Minutes'] || s.graceOutMinutes}m
                     </td>
-                    <td style="font-size: 0.75rem; font-weight: 600; color: #334155;">
+                    <td style="font-size: 0.75rem; font-weight: 600; color: var(--k-text-2);">
                         ${s['Half_Day_Minutes'] || s.halfDayMinutes}m / ${s['Full_Day_Minutes'] || s.fullDayMinutes}m
                     </td>
                     <td>
-                        <span style="font-family: monospace; font-size: 0.75rem; background: #f8fafc; padding: 2px 6px; border-radius: 4px; font-weight: 700;">
+                        <span style="font-family: monospace; font-size: 0.75rem; background: var(--k-subtle); padding: 2px 6px; border-radius: 4px; font-weight: 700;">
                             ${escapeHtml(s['Weekly_Off_Pattern'] || s.weeklyOffPattern)}
                         </span>
                     </td>
                     <td style="text-align: center;">${nightBadge}${otBadge}</td>
                     <td style="text-align: center;">${activeBadge}</td>
                     <td style="text-align: center;">
-                        <span style="color: #166534; background: #dcfce7; font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid #bbf7d0;">
+                        <span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">
                             Valid
                         </span>
                     </td>
@@ -3247,38 +3247,38 @@ function renderParsedPolicyPreview(fileName, sheetName, records, errors = []) {
     if (parsedPolicyTableBody) {
         parsedPolicyTableBody.innerHTML = records.map((p, idx) => {
             const activeBadge = p.isActive
-                ? `<span style="color: #166534; background: #dcfce7; font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid #bbf7d0;">Yes</span>`
-                : `<span style="color: #991b1b; background: #fee2e2; font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid #fecaca;">No</span>`;
+                ? `<span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">Yes</span>`
+                : `<span style="color: var(--k-danger-text); background: var(--k-danger-soft); font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid var(--k-danger-border);">No</span>`;
 
             const geoBadge = p.geoFenceRequired
-                ? `<span style="background: #eff6ff; color: #1d4ed8; padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; margin-right: 2px;">Geo</span>`
+                ? `<span style="background: var(--k-accent-soft); color: var(--k-accent-text); padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; margin-right: 2px;">Geo</span>`
                 : '';
             const ipBadge = p.ipRestricted
-                ? `<span style="background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; margin-right: 2px;">IP</span>`
+                ? `<span style="background: var(--k-warning-soft); color: var(--k-warning-text); padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; margin-right: 2px;">IP</span>`
                 : '';
             const wfhBadge = p.wfhAllowed
-                ? `<span style="background: #dcfce7; color: #166534; padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; font-weight: 700;">WFH</span>`
+                ? `<span style="background: var(--k-success-soft); color: var(--k-success-text); padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; font-weight: 700;">WFH</span>`
                 : '';
 
             return `
                 <tr>
-                    <td style="font-weight: 700; color: #64748b;">${idx + 1}</td>
-                    <td style="font-family: monospace; font-weight: 700; color: #059669;">${escapeHtml(p.attendancePolicyCode || p['Attendance_Policy_Code'])}</td>
-                    <td style="font-weight: 600; color: #0f172a;">${escapeHtml(p.policyName || p['Policy_Name'])}</td>
-                    <td style="font-size: 0.75rem; color: #334155;">
+                    <td style="font-weight: 700; color: var(--k-muted);">${idx + 1}</td>
+                    <td style="font-family: monospace; font-weight: 700; color: var(--k-success-text);">${escapeHtml(p.attendancePolicyCode || p['Attendance_Policy_Code'])}</td>
+                    <td style="font-weight: 600; color: var(--k-text);">${escapeHtml(p.policyName || p['Policy_Name'])}</td>
+                    <td style="font-size: 0.75rem; color: var(--k-text-2);">
                         Late &gt;${p.lateAfterMinutes}m • Early &gt;${p.earlyLeavingGraceMinute}m<br>
-                        <span style="color: #b91c1c; font-weight: 700;">Absent &gt;${p.absentAfterHours}h</span>
+                        <span style="color: var(--k-danger-text); font-weight: 700;">Absent &gt;${p.absentAfterHours}h</span>
                     </td>
-                    <td style="font-size: 0.75rem; color: #334155;">
-                        ${p.regularizationAllowed ? `<span style="color: #166534; font-weight: 700;">Allowed</span> (${p.regularizationWindowDays}d max)` : '<span style="color: #94a3b8;">Disabled</span>'}
+                    <td style="font-size: 0.75rem; color: var(--k-text-2);">
+                        ${p.regularizationAllowed ? `<span style="color: var(--k-success-text); font-weight: 700;">Allowed</span> (${p.regularizationWindowDays}d max)` : '<span style="color: var(--k-muted);">Disabled</span>'}
                     </td>
-                    <td style="font-size: 0.75rem; color: #334155;">
-                        Min ${p.otMinimumMinutes}m • ${p.otApprovalRequired ? '<span style="color: #b45309; font-weight: 700;">L1 Required</span>' : 'Auto'}
+                    <td style="font-size: 0.75rem; color: var(--k-text-2);">
+                        Min ${p.otMinimumMinutes}m • ${p.otApprovalRequired ? '<span style="color: var(--k-warning-text); font-weight: 700;">L1 Required</span>' : 'Auto'}
                     </td>
-                    <td style="text-align: center;">${geoBadge}${ipBadge}${wfhBadge || '<span style="color:#94a3b8; font-size:0.7rem;">None</span>'}</td>
+                    <td style="text-align: center;">${geoBadge}${ipBadge}${wfhBadge || '<span style="color:var(--k-muted); font-size:0.7rem;">None</span>'}</td>
                     <td style="text-align: center;">${activeBadge}</td>
                     <td style="text-align: center;">
-                        <span style="color: #166534; background: #dcfce7; font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid #bbf7d0;">
+                        <span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">
                             Valid
                         </span>
                     </td>
@@ -3421,29 +3421,29 @@ function renderParsedEmployeeTypePreview(fileName, sheetName, records, errors = 
     if (parsedEmployeeTypeTableBody) {
         parsedEmployeeTypeTableBody.innerHTML = records.map((t, idx) => {
             const activeBadge = t.isActive
-                ? `<span style="color: #166534; background: #dcfce7; font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid #bbf7d0;">Yes</span>`
-                : `<span style="color: #991b1b; background: #fee2e2; font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid #fecaca;">No</span>`;
+                ? `<span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">Yes</span>`
+                : `<span style="color: var(--k-danger-text); background: var(--k-danger-soft); font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid var(--k-danger-border);">No</span>`;
 
             return `
                 <tr>
                     <td style="font-weight: 700; color: var(--text-muted);">${idx + 1}</td>
                     <td style="font-family: monospace; font-weight: 800; color: #7c3aed;">${escapeHtml(t.categoryCode)}</td>
-                    <td style="font-weight: 700; color: #1e293b;">${escapeHtml(t.categoryName)}</td>
+                    <td style="font-weight: 700; color: var(--k-text);">${escapeHtml(t.categoryName)}</td>
                     <td>
                         <span style="font-size: 0.75rem; font-weight: 700; background: #ede9fe; color: #6d28d9; padding: 2px 8px; border-radius: 6px;">
                             ${escapeHtml(t.employmentType)}
                         </span>
                     </td>
                     <td>
-                        <span style="font-size: 0.75rem; font-weight: 700; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 6px;">
+                        <span style="font-size: 0.75rem; font-weight: 700; background: var(--k-subtle); color: var(--k-text-2); padding: 2px 8px; border-radius: 6px;">
                             ${escapeHtml(t.workerType)}
                         </span>
                     </td>
-                    <td style="font-weight: 600; color: #334155;">${t.probationDays} days</td>
-                    <td style="font-weight: 600; color: #334155;">${t.noticePeriodDays} days</td>
+                    <td style="font-weight: 600; color: var(--k-text-2);">${t.probationDays} days</td>
+                    <td style="font-weight: 600; color: var(--k-text-2);">${t.noticePeriodDays} days</td>
                     <td style="text-align: center;">${activeBadge}</td>
                     <td style="text-align: center;">
-                        <span style="color: #166534; background: #dcfce7; font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid #bbf7d0;">
+                        <span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">
                             Valid
                         </span>
                     </td>
@@ -3574,14 +3574,14 @@ function renderParsedEmployeeFinancePreview(fileName, sheetName, records, errors
         parsedEmployeeFinanceTableBody.innerHTML = records.map((r, idx) => {
             const isPrimary = r.Is_Primary === 'Yes' || r.isPrimary === true;
             const isPrimaryBadge = isPrimary
-                ? `<span style="color: #166534; background: #dcfce7; font-weight: 800; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem; border: 1px solid #bbf7d0;">Primary</span>`
-                : `<span style="color: #64748b; background: #f1f5f9; font-weight: 600; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem;">Secondary</span>`;
+                ? `<span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 800; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem; border: 1px solid var(--k-success-border);">Primary</span>`
+                : `<span style="color: var(--k-muted); background: var(--k-subtle); font-weight: 600; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem;">Secondary</span>`;
 
             const uanPill = (r.UAN === 'Yes' || r.uanApplicable)
-                ? `<span style="font-size: 0.68rem; font-weight: 700; background: #eff6ff; color: #1d4ed8; padding: 1px 5px; border-radius: 4px; margin-right: 2px;" title="UAN: ${escapeHtml(r['UAN No (If Applicable)'] || '')}">UAN</span>`
+                ? `<span style="font-size: 0.68rem; font-weight: 700; background: var(--k-accent-soft); color: var(--k-accent-text); padding: 1px 5px; border-radius: 4px; margin-right: 2px;" title="UAN: ${escapeHtml(r['UAN No (If Applicable)'] || '')}">UAN</span>`
                 : '';
             const esicPill = (r.ESIC === 'Yes' || r.esicApplicable)
-                ? `<span style="font-size: 0.68rem; font-weight: 700; background: #fef3c7; color: #92400e; padding: 1px 5px; border-radius: 4px; margin-right: 2px;" title="ESIC: ${escapeHtml(r['ESIC No (If Applicable)'] || '')}">ESIC</span>`
+                ? `<span style="font-size: 0.68rem; font-weight: 700; background: var(--k-warning-soft); color: var(--k-warning-text); padding: 1px 5px; border-radius: 4px; margin-right: 2px;" title="ESIC: ${escapeHtml(r['ESIC No (If Applicable)'] || '')}">ESIC</span>`
                 : '';
             const npsPill = (r.NPS === 'Yes' || r.npsApplicable)
                 ? `<span style="font-size: 0.68rem; font-weight: 700; background: #f3e8ff; color: #7e22ce; padding: 1px 5px; border-radius: 4px; margin-right: 2px;" title="NPS: ${escapeHtml(r['NPS No (If Applicable)'] || '')}">NPS</span>`
@@ -3589,7 +3589,7 @@ function renderParsedEmployeeFinancePreview(fileName, sheetName, records, errors
             const gratPill = (r.Gratuity === 'Yes' || r.gratuityApplicable)
                 ? `<span style="font-size: 0.68rem; font-weight: 700; background: #e0e7ff; color: #3730a3; padding: 1px 5px; border-radius: 4px;" title="Gratuity: ${escapeHtml(r['Gratuity No (If Applicable)'] || '')}">Grat</span>`
                 : '';
-            const statutoryBadges = (uanPill + esicPill + npsPill + gratPill) || '<span style="color: #94a3b8; font-size: 0.7rem;">None</span>';
+            const statutoryBadges = (uanPill + esicPill + npsPill + gratPill) || '<span style="color: var(--k-muted); font-size: 0.7rem;">None</span>';
 
             const rawAcc = r.Account_Number || (r.banking && r.banking.accountNumber) || '';
             const maskedAcc = r.maskedAccountNumber || (rawAcc ? ('••••••••••' + String(rawAcc).slice(-4)) : '—');
@@ -3599,23 +3599,23 @@ function renderParsedEmployeeFinancePreview(fileName, sheetName, records, errors
                     <td style="font-weight: 700; color: var(--text-muted);">${idx + 1}</td>
                     <td style="font-family: monospace; font-weight: 800; color: #0284c7;">${escapeHtml(r.Employee_ID || r.employeeId)}</td>
                     <td>
-                        <strong style="color: #0f172a;">${escapeHtml(r.Account_Holder_Name || r.accountHolderName)}</strong>
+                        <strong style="color: var(--k-text);">${escapeHtml(r.Account_Holder_Name || r.accountHolderName)}</strong>
                     </td>
                     <td>
-                        <div style="font-size: 0.78rem; font-weight: 600; color: #1e293b;">${escapeHtml(r.Bank_Name || r.bankName)}</div>
-                        <div style="font-size: 0.7rem; color: #64748b;">${escapeHtml(r.Branch_Name || r.branchName || '—')}</div>
+                        <div style="font-size: 0.78rem; font-weight: 600; color: var(--k-text);">${escapeHtml(r.Bank_Name || r.bankName)}</div>
+                        <div style="font-size: 0.7rem; color: var(--k-muted);">${escapeHtml(r.Branch_Name || r.branchName || '—')}</div>
                     </td>
                     <td style="font-family: monospace; font-size: 0.78rem; font-weight: 600;">${escapeHtml(maskedAcc)}</td>
-                    <td style="font-family: monospace; font-weight: 700; color: #059669; font-size: 0.78rem;">${escapeHtml(r.IFSC || r.ifsc)}</td>
+                    <td style="font-family: monospace; font-weight: 700; color: var(--k-success-text); font-size: 0.78rem;">${escapeHtml(r.IFSC || r.ifsc)}</td>
                     <td>
-                        <span style="font-size: 0.72rem; font-weight: 700; background: #f1f5f9; color: #334155; padding: 2px 6px; border-radius: 6px; display: inline-block; margin-bottom: 2px;">
+                        <span style="font-size: 0.72rem; font-weight: 700; background: var(--k-subtle); color: var(--k-text-2); padding: 2px 6px; border-radius: 6px; display: inline-block; margin-bottom: 2px;">
                             ${escapeHtml(r.Account_Type || r.accountType)}
                         </span><br>
                         ${isPrimaryBadge}
                     </td>
                     <td>${statutoryBadges}</td>
                     <td style="text-align: center;">
-                        <span style="color: #166534; background: #dcfce7; font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid #bbf7d0;">
+                        <span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">
                             Valid
                         </span>
                     </td>
@@ -3744,36 +3744,36 @@ function renderParsedEpfoMasterPreview(fileName, sheetName, records, errors = []
 
             const kycStatus = r['KYC Status'] || r.kyc?.overallStatus || 'PENDING';
             const kycPill = kycStatus === 'VERIFIED'
-                ? `<span style="color: #166534; background: #dcfce7; font-weight: 800; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem; border: 1px solid #bbf7d0;">Verified</span>`
-                : `<span style="color: #b45309; background: #fef3c7; font-weight: 700; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem; border: 1px solid #fde68a;">${escapeHtml(kycStatus)}</span>`;
+                ? `<span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 800; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem; border: 1px solid var(--k-success-border);">Verified</span>`
+                : `<span style="color: var(--k-warning-text); background: var(--k-warning-soft); font-weight: 700; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem; border: 1px solid var(--k-warning-border);">${escapeHtml(kycStatus)}</span>`;
 
             const uanVerify = r['UAN Verification Status'] || r.verification?.status || 'PENDING';
             const verifyPill = uanVerify === 'SUCCESS'
-                ? `<span style="color: #1d4ed8; background: #eff6ff; font-weight: 800; padding: 2px 6px; border-radius: 6px; font-size: 0.7rem;">SUCCESS</span>`
-                : `<span style="color: #64748b; background: #f1f5f9; font-weight: 600; padding: 2px 6px; border-radius: 6px; font-size: 0.7rem;">${escapeHtml(uanVerify)}</span>`;
+                ? `<span style="color: var(--k-accent-text); background: var(--k-accent-soft); font-weight: 800; padding: 2px 6px; border-radius: 6px; font-size: 0.7rem;">SUCCESS</span>`
+                : `<span style="color: var(--k-muted); background: var(--k-subtle); font-weight: 600; padding: 2px 6px; border-radius: 6px; font-size: 0.7rem;">${escapeHtml(uanVerify)}</span>`;
 
             const epsBadge = (r['EPS Applicable'] === 'Yes' || r.isEpsApplicable)
                 ? `<span style="font-size: 0.68rem; font-weight: 700; background: #e0e7ff; color: #3730a3; padding: 1px 5px; border-radius: 4px; margin-right: 2px;">EPS</span>`
                 : '';
             const edliBadge = (r['EDLI Applicable'] === 'Yes' || r.isEdliApplicable)
-                ? `<span style="font-size: 0.68rem; font-weight: 700; background: #f0fdf4; color: #166534; padding: 1px 5px; border-radius: 4px;">EDLI</span>`
+                ? `<span style="font-size: 0.68rem; font-weight: 700; background: var(--k-success-soft); color: var(--k-success-text); padding: 1px 5px; border-radius: 4px;">EDLI</span>`
                 : '';
 
             return `
                 <tr>
                     <td style="font-weight: 700; color: var(--text-muted);">${idx + 1}</td>
                     <td style="font-family: monospace; font-weight: 800; color: #4338ca;">${escapeHtml(r['Employee ID'] || r.employeeId)}</td>
-                    <td style="font-family: monospace; font-weight: 700; color: #1e293b;">${escapeHtml(uan)}</td>
+                    <td style="font-family: monospace; font-weight: 700; color: var(--k-text);">${escapeHtml(uan)}</td>
                     <td>
-                        <code style="font-size: 0.75rem; color: #334155;">${escapeHtml(memberId)}</code>
+                        <code style="font-size: 0.75rem; color: var(--k-text-2);">${escapeHtml(memberId)}</code>
                     </td>
-                    <td style="font-size: 0.72rem; color: #64748b; font-family: monospace;">${escapeHtml(estId)}</td>
-                    <td style="font-size: 0.75rem; color: #334155;">${escapeHtml(doj)}</td>
-                    <td>${epsBadge}${edliBadge || '<span style="color:#94a3b8;font-size:0.7rem;">None</span>'}</td>
+                    <td style="font-size: 0.72rem; color: var(--k-muted); font-family: monospace;">${escapeHtml(estId)}</td>
+                    <td style="font-size: 0.75rem; color: var(--k-text-2);">${escapeHtml(doj)}</td>
+                    <td>${epsBadge}${edliBadge || '<span style="color:var(--k-muted);font-size:0.7rem;">None</span>'}</td>
                     <td>${kycPill}</td>
                     <td>${verifyPill}</td>
                     <td style="text-align: center;">
-                        <span style="color: #166534; background: #dcfce7; font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid #bbf7d0;">
+                        <span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">
                             Valid
                         </span>
                     </td>
@@ -3860,9 +3860,9 @@ async function renderOnboardingEpfoMasterTable() {
                         <i data-lucide="shield-check" style="width: 24px; height: 24px;"></i>
                     </div>
                     <div>
-                        <h2 style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin: 0;">EPFO / PF Statutory Master Console</h2>
+                        <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--k-text); margin: 0;">EPFO / PF Statutory Master Console</h2>
                         <p style="font-size: 0.82rem; color: var(--text-muted); margin: 2px 0 0 0;">
-                            Cloud Firestore: <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #4338ca; font-weight: 700;">organizations/{orgId}/employee_pf_details/{employeeId}</code>
+                            Cloud Firestore: <code style="background: var(--k-subtle); padding: 2px 6px; border-radius: 4px; color: #4338ca; font-weight: 700;">organizations/{orgId}/employee_pf_details/{employeeId}</code>
                         </p>
                     </div>
                 </div>
@@ -3901,11 +3901,11 @@ async function renderOnboardingEpfoMasterTable() {
                                     <span style="font-size: 0.68rem; font-weight: 700; background: #e0e7ff; color: #3730a3; padding: 2px 6px; border-radius: 4px;">EPS: ${r.isEpsApplicable !== false ? 'Yes' : 'No'}</span>
                                 </td>
                                 <td>
-                                    <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: ${r.kyc?.overallStatus === 'VERIFIED' ? '#ecfdf5' : '#fffbeb'}; color: ${r.kyc?.overallStatus === 'VERIFIED' ? '#059669' : '#d97706'};">
+                                    <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: ${r.kyc?.overallStatus === 'VERIFIED' ? 'var(--k-success-soft)' : 'var(--k-warning-soft)'}; color: ${r.kyc?.overallStatus === 'VERIFIED' ? 'var(--k-success-text)' : 'var(--k-warning-text)'};">
                                         ${escapeHtml(r.kyc?.overallStatus || 'PENDING')}
                                     </span>
                                 </td>
-                                <td style="font-size: 0.74rem; color: #64748b;">${escapeHtml(r.verification?.officialSource || 'Cashfree Payouts')}</td>
+                                <td style="font-size: 0.74rem; color: var(--k-muted);">${escapeHtml(r.verification?.officialSource || 'Cashfree Payouts')}</td>
                             </tr>
                         `).join('')}
                     </tbody>
@@ -3983,34 +3983,34 @@ function renderParsedEsicMasterPreview(fileName, sheetName, records, errors = []
             const verified = r['Insurance Number Verified'] === 'Yes' || r.isInsuranceNumberVerified === true;
 
             const ipPill = ipStatus === 'ACTIVE'
-                ? `<span style="color: #166534; background: #dcfce7; font-weight: 800; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem; border: 1px solid #bbf7d0;">Active</span>`
-                : `<span style="color: #475569; background: #f1f5f9; font-weight: 700; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem; border: 1px solid #cbd5e1;">${escapeHtml(ipStatus)}</span>`;
+                ? `<span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 800; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem; border: 1px solid var(--k-success-border);">Active</span>`
+                : `<span style="color: var(--k-text-2); background: var(--k-subtle); font-weight: 700; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem; border: 1px solid var(--k-border);">${escapeHtml(ipStatus)}</span>`;
 
             const aadhaarPill = aadhaar === 'VERIFIED'
-                ? `<span style="color: #166534; background: #dcfce7; font-weight: 800; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem;">Verified</span>`
-                : `<span style="color: #b91c1c; background: #fee2e2; font-weight: 700; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem;">${escapeHtml(aadhaar)}</span>`;
+                ? `<span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 800; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem;">Verified</span>`
+                : `<span style="color: var(--k-danger-text); background: var(--k-danger-soft); font-weight: 700; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem;">${escapeHtml(aadhaar)}</span>`;
 
             const familyPill = (family === 'VERIFIED' || family === 'SUBMITTED')
                 ? `<span style="color: #6b21a8; background: #f3e8ff; font-weight: 700; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem;">${escapeHtml(family)}</span>`
-                : `<span style="color: #b45309; background: #fef3c7; font-weight: 700; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem;">${escapeHtml(family)}</span>`;
+                : `<span style="color: var(--k-warning-text); background: var(--k-warning-soft); font-weight: 700; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem;">${escapeHtml(family)}</span>`;
 
             const verifyPill = verified
                 ? `<span style="color: #0369a1; background: #e0f2fe; font-weight: 800; padding: 2px 6px; border-radius: 6px; font-size: 0.7rem;">VERIFIED</span>`
-                : `<span style="color: #64748b; background: #f1f5f9; font-weight: 600; padding: 2px 6px; border-radius: 6px; font-size: 0.7rem;">UNVERIFIED</span>`;
+                : `<span style="color: var(--k-muted); background: var(--k-subtle); font-weight: 600; padding: 2px 6px; border-radius: 6px; font-size: 0.7rem;">UNVERIFIED</span>`;
 
             return `
                 <tr>
                     <td style="font-weight: 700; color: var(--text-muted);">${idx + 1}</td>
                     <td style="font-family: monospace; font-weight: 800; color: #0284c7;">${escapeHtml(r['Employee ID'] || r.employeeId)}</td>
-                    <td style="font-family: monospace; font-weight: 700; color: #1e293b;">${escapeHtml(ipNumber)}</td>
-                    <td><code style="font-size: 0.75rem; color: #334155;">${escapeHtml(employerCode)}</code></td>
-                    <td style="font-size: 0.75rem; color: #334155;">${escapeHtml(doj)}</td>
+                    <td style="font-family: monospace; font-weight: 700; color: var(--k-text);">${escapeHtml(ipNumber)}</td>
+                    <td><code style="font-size: 0.75rem; color: var(--k-text-2);">${escapeHtml(employerCode)}</code></td>
+                    <td style="font-size: 0.75rem; color: var(--k-text-2);">${escapeHtml(doj)}</td>
                     <td>${ipPill}</td>
                     <td>${aadhaarPill}</td>
                     <td>${familyPill}</td>
                     <td>${verifyPill}</td>
                     <td style="text-align: center;">
-                        <span style="color: #166534; background: #dcfce7; font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid #bbf7d0;">
+                        <span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">
                             Valid
                         </span>
                     </td>
@@ -4097,9 +4097,9 @@ async function renderOnboardingEsicMasterTable() {
                         <i data-lucide="cross" style="width: 24px; height: 24px;"></i>
                     </div>
                     <div>
-                        <h2 style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin: 0;">ESIC &amp; Medical Insurance Statutory Console</h2>
+                        <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--k-text); margin: 0;">ESIC &amp; Medical Insurance Statutory Console</h2>
                         <p style="font-size: 0.82rem; color: var(--text-muted); margin: 2px 0 0 0;">
-                            Cloud Firestore: <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #0284c7; font-weight: 700;">organizations/{orgId}/employee_esic_details/{employeeId}</code>
+                            Cloud Firestore: <code style="background: var(--k-subtle); padding: 2px 6px; border-radius: 4px; color: #0284c7; font-weight: 700;">organizations/{orgId}/employee_esic_details/{employeeId}</code>
                         </p>
                     </div>
                 </div>
@@ -4136,12 +4136,12 @@ async function renderOnboardingEsicMasterTable() {
                                 <td style="font-size: 0.74rem;">${escapeHtml(r.dispensaryBranch || '—')}</td>
                                 <td style="font-size: 0.74rem;">${escapeHtml(r.contributionState || '—')}</td>
                                 <td>
-                                    <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: ${r.insuredPersonStatus === 'ACTIVE' ? '#ecfdf5' : '#f1f5f9'}; color: ${r.insuredPersonStatus === 'ACTIVE' ? '#059669' : '#475569'};">
+                                    <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: ${r.insuredPersonStatus === 'ACTIVE' ? 'var(--k-success-soft)' : 'var(--k-subtle)'}; color: ${r.insuredPersonStatus === 'ACTIVE' ? 'var(--k-success-text)' : 'var(--k-text-2)'};">
                                         ${escapeHtml(r.insuredPersonStatus || 'ACTIVE')}
                                     </span>
                                 </td>
                                 <td>
-                                    <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: ${r.aadhaarSeeding === 'VERIFIED' ? '#ecfdf5' : '#fef2f2'}; color: ${r.aadhaarSeeding === 'VERIFIED' ? '#059669' : '#dc2626'};">
+                                    <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: ${r.aadhaarSeeding === 'VERIFIED' ? 'var(--k-success-soft)' : 'var(--k-danger-soft)'}; color: ${r.aadhaarSeeding === 'VERIFIED' ? 'var(--k-success-text)' : 'var(--k-danger-text)'};">
                                         ${escapeHtml(r.aadhaarSeeding || 'NOT_SEEDED')}
                                     </span>
                                 </td>
@@ -4151,7 +4151,7 @@ async function renderOnboardingEsicMasterTable() {
                                     </span>
                                 </td>
                                 <td>
-                                    <span style="font-size: 0.7rem; font-weight: 800; color: ${r.isInsuranceNumberVerified ? '#059669' : '#d97706'};">
+                                    <span style="font-size: 0.7rem; font-weight: 800; color: ${r.isInsuranceNumberVerified ? 'var(--k-success-text)' : 'var(--k-warning-text)'};">
                                         ${r.isInsuranceNumberVerified ? 'Verified' : 'Pending'}
                                     </span>
                                 </td>
@@ -4233,27 +4233,27 @@ function renderParsedPtMasterPreview(fileName, sheetName, records, errors = []) 
             const isActive = r['Active'] === 'Yes' || r.isActive === true;
 
             const activePill = isActive
-                ? `<span style="color: #166534; background: #dcfce7; font-weight: 800; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem; border: 1px solid #bbf7d0;">Active</span>`
-                : `<span style="color: #475569; background: #f1f5f9; font-weight: 700; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem; border: 1px solid #cbd5e1;">Inactive</span>`;
+                ? `<span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 800; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem; border: 1px solid var(--k-success-border);">Active</span>`
+                : `<span style="color: var(--k-text-2); background: var(--k-subtle); font-weight: 700; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem; border: 1px solid var(--k-border);">Inactive</span>`;
 
             const ptAppPill = isPt
                 ? `<span style="color: #0369a1; background: #e0f2fe; font-weight: 800; padding: 2px 6px; border-radius: 6px; font-size: 0.7rem;">Yes</span>`
-                : `<span style="color: #64748b; background: #f1f5f9; font-weight: 600; padding: 2px 6px; border-radius: 6px; font-size: 0.7rem;">No</span>`;
+                : `<span style="color: var(--k-muted); background: var(--k-subtle); font-weight: 600; padding: 2px 6px; border-radius: 6px; font-size: 0.7rem;">No</span>`;
 
             return `
                 <tr>
                     <td style="font-weight: 700; color: var(--text-muted);">${idx + 1}</td>
                     <td style="font-family: monospace; font-weight: 800; color: #4338ca;">${escapeHtml(r['Employee ID'] || r.employeeId)}</td>
-                    <td style="font-weight: 700; color: #1e293b;">${escapeHtml(stateName)}</td>
-                    <td><code style="font-size: 0.75rem; color: #334155;">${escapeHtml(regNo)}</code></td>
-                    <td style="font-size: 0.72rem; color: #64748b; font-family: monospace;">${escapeHtml(slab)}</td>
-                    <td style="font-weight: 700; font-family: monospace; color: #059669;">₹${deduction}</td>
-                    <td style="font-size: 0.75rem; color: #334155;">${escapeHtml(effFrom)}</td>
-                    <td style="font-size: 0.75rem; color: #64748b;">${escapeHtml(effTo)}</td>
+                    <td style="font-weight: 700; color: var(--k-text);">${escapeHtml(stateName)}</td>
+                    <td><code style="font-size: 0.75rem; color: var(--k-text-2);">${escapeHtml(regNo)}</code></td>
+                    <td style="font-size: 0.72rem; color: var(--k-muted); font-family: monospace;">${escapeHtml(slab)}</td>
+                    <td style="font-weight: 700; font-family: monospace; color: var(--k-success-text);">₹${deduction}</td>
+                    <td style="font-size: 0.75rem; color: var(--k-text-2);">${escapeHtml(effFrom)}</td>
+                    <td style="font-size: 0.75rem; color: var(--k-muted);">${escapeHtml(effTo)}</td>
                     <td>${ptAppPill}</td>
                     <td>${activePill}</td>
                     <td style="text-align: center;">
-                        <span style="color: #166534; background: #dcfce7; font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid #bbf7d0;">
+                        <span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">
                             Valid
                         </span>
                     </td>
@@ -4340,9 +4340,9 @@ async function renderOnboardingPtMasterTable() {
                         <i data-lucide="scale" style="width: 24px; height: 24px;"></i>
                     </div>
                     <div>
-                        <h2 style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin: 0;">Professional Tax (PT) Statutory Master Console</h2>
+                        <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--k-text); margin: 0;">Professional Tax (PT) Statutory Master Console</h2>
                         <p style="font-size: 0.82rem; color: var(--text-muted); margin: 2px 0 0 0;">
-                            Cloud Firestore: <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #4338ca; font-weight: 700;">organizations/{orgId}/employee_pt_details/{employeeId}</code>
+                            Cloud Firestore: <code style="background: var(--k-subtle); padding: 2px 6px; border-radius: 4px; color: #4338ca; font-weight: 700;">organizations/{orgId}/employee_pt_details/{employeeId}</code>
                         </p>
                     </div>
                 </div>
@@ -4373,18 +4373,18 @@ async function renderOnboardingPtMasterTable() {
                             <tr>
                                 <td>${i + 1}</td>
                                 <td><strong style="color: #4338ca; font-family: monospace;">${escapeHtml(r.employeeId)}</strong></td>
-                                <td style="font-weight: 700; color: #1e293b;">${escapeHtml(r.state || 'Karnataka')}</td>
+                                <td style="font-weight: 700; color: var(--k-text);">${escapeHtml(r.state || 'Karnataka')}</td>
                                 <td><code style="font-size: 0.74rem;">${escapeHtml(r.ptRegistrationNo || '—')}</code></td>
-                                <td style="font-size: 0.74rem; font-family: monospace; color: #64748b;">${escapeHtml(r.ptSlab || '—')}</td>
-                                <td style="font-family: monospace; font-weight: 700; color: #059669;">₹${Number(r.monthlyDeduction || 0).toFixed(2)}</td>
+                                <td style="font-size: 0.74rem; font-family: monospace; color: var(--k-muted);">${escapeHtml(r.ptSlab || '—')}</td>
+                                <td style="font-family: monospace; font-weight: 700; color: var(--k-success-text);">₹${Number(r.monthlyDeduction || 0).toFixed(2)}</td>
                                 <td style="font-size: 0.74rem;">${escapeHtml(r.effectiveFrom || '—')}</td>
                                 <td>
-                                    <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: ${r.isPtApplicable !== false ? '#ecfdf5' : '#f1f5f9'}; color: ${r.isPtApplicable !== false ? '#059669' : '#64748b'};">
+                                    <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: ${r.isPtApplicable !== false ? 'var(--k-success-soft)' : 'var(--k-subtle)'}; color: ${r.isPtApplicable !== false ? 'var(--k-success-text)' : 'var(--k-muted)'};">
                                         ${r.isPtApplicable !== false ? 'Yes' : 'No'}
                                     </span>
                                 </td>
                                 <td>
-                                    <span style="font-size: 0.7rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; background: ${r.isActive !== false ? '#ecfdf5' : '#f1f5f9'}; color: ${r.isActive !== false ? '#059669' : '#64748b'};">
+                                    <span style="font-size: 0.7rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; background: ${r.isActive !== false ? 'var(--k-success-soft)' : 'var(--k-subtle)'}; color: ${r.isActive !== false ? 'var(--k-success-text)' : 'var(--k-muted)'};">
                                         ${r.isActive !== false ? 'Active' : 'Inactive'}
                                     </span>
                                 </td>
@@ -4468,16 +4468,16 @@ function renderParsedLwfMasterPreview(fileName, sheetName, records, errors = [])
             return `
                 <tr>
                     <td style="font-weight: 700; color: var(--text-muted);">${idx + 1}</td>
-                    <td style="font-family: monospace; font-weight: 800; color: #1e40af;">${escapeHtml(r['Employee ID'] || r.employeeId)}</td>
-                    <td style="font-weight: 700; color: #1e293b;">${escapeHtml(stateName)}</td>
-                    <td><code style="font-size: 0.75rem; color: #334155;">${escapeHtml(regNo)}</code></td>
-                    <td style="font-weight: 700; font-family: monospace; color: #047857;">₹${ee}</td>
-                    <td style="font-weight: 700; font-family: monospace; color: #1e40af;">₹${er}</td>
-                    <td style="font-size: 0.75rem; color: #1e40af; font-weight: 700;">${escapeHtml(freq)}</td>
-                    <td style="font-size: 0.75rem; color: #334155;">${escapeHtml(effFrom)}</td>
-                    <td style="font-size: 0.75rem; color: #64748b;">${escapeHtml(effTo)}</td>
+                    <td style="font-family: monospace; font-weight: 800; color: var(--k-accent-text);">${escapeHtml(r['Employee ID'] || r.employeeId)}</td>
+                    <td style="font-weight: 700; color: var(--k-text);">${escapeHtml(stateName)}</td>
+                    <td><code style="font-size: 0.75rem; color: var(--k-text-2);">${escapeHtml(regNo)}</code></td>
+                    <td style="font-weight: 700; font-family: monospace; color: var(--k-success-text);">₹${ee}</td>
+                    <td style="font-weight: 700; font-family: monospace; color: var(--k-accent-text);">₹${er}</td>
+                    <td style="font-size: 0.75rem; color: var(--k-accent-text); font-weight: 700;">${escapeHtml(freq)}</td>
+                    <td style="font-size: 0.75rem; color: var(--k-text-2);">${escapeHtml(effFrom)}</td>
+                    <td style="font-size: 0.75rem; color: var(--k-muted);">${escapeHtml(effTo)}</td>
                     <td style="text-align: center;">
-                        <span style="color: #166534; background: #dcfce7; font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid #bbf7d0;">
+                        <span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">
                             Valid
                         </span>
                     </td>
@@ -4560,18 +4560,18 @@ async function renderOnboardingLwfMasterTable() {
         <div style="background: white; border: 1px solid var(--border); border-radius: 20px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <div style="width: 44px; height: 44px; border-radius: 12px; background: #eff6ff; color: #1d4ed8; display: flex; align-items: center; justify-content: center;">
+                    <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="shield-check" style="width: 24px; height: 24px;"></i>
                     </div>
                     <div>
-                        <h2 style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin: 0;">Labour Welfare Fund (LWF) Statutory Master Console</h2>
+                        <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--k-text); margin: 0;">Labour Welfare Fund (LWF) Statutory Master Console</h2>
                         <p style="font-size: 0.82rem; color: var(--text-muted); margin: 2px 0 0 0;">
-                            Cloud Firestore: <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #1d4ed8; font-weight: 700;">organizations/{orgId}/employee_lwf_details/{employeeId}</code>
+                            Cloud Firestore: <code style="background: var(--k-subtle); padding: 2px 6px; border-radius: 4px; color: var(--k-accent-text); font-weight: 700;">organizations/{orgId}/employee_lwf_details/{employeeId}</code>
                         </p>
                     </div>
                 </div>
                 <div style="display: flex; gap: 8px;">
-                    <span class="badge-verified" style="background: #eff6ff; color: #1e40af; border-color: #bfdbfe;">
+                    <span class="badge-verified" style="background: var(--k-accent-soft); color: var(--k-accent-text); border-color: var(--k-accent-border);">
                         <i data-lucide="layers"></i> ${records.length} Profiles Tracked
                     </span>
                 </div>
@@ -4597,16 +4597,16 @@ async function renderOnboardingLwfMasterTable() {
                         ${records.map((r, i) => `
                             <tr>
                                 <td>${i + 1}</td>
-                                <td><strong style="color: #1e40af; font-family: monospace;">${escapeHtml(r.employeeId)}</strong></td>
-                                <td style="font-weight: 700; color: #1e293b;">${escapeHtml(r.state || 'Karnataka')}</td>
+                                <td><strong style="color: var(--k-accent-text); font-family: monospace;">${escapeHtml(r.employeeId)}</strong></td>
+                                <td style="font-weight: 700; color: var(--k-text);">${escapeHtml(r.state || 'Karnataka')}</td>
                                 <td><code style="font-size: 0.74rem;">${escapeHtml(r.employerRegistrationNo || '—')}</code></td>
-                                <td style="font-size: 0.74rem; font-weight: 700; color: #1e40af;">${escapeHtml(r.frequency || 'Annual')}</td>
-                                <td style="font-family: monospace; font-weight: 700; color: #047857;">₹${Number(r.employeeContribution || 0).toFixed(2)}</td>
-                                <td style="font-family: monospace; font-weight: 700; color: #1e40af;">₹${Number(r.employerContribution || 0).toFixed(2)}</td>
-                                <td style="font-family: monospace; font-weight: 800; color: #0f172a;">₹${(Number(r.employeeContribution || 0) + Number(r.employerContribution || 0)).toFixed(2)}</td>
-                                <td style="font-size: 0.74rem; color: #047857; font-weight: 700;">${escapeHtml(r.deductionSchedule?.nextDeduction || '—')}</td>
+                                <td style="font-size: 0.74rem; font-weight: 700; color: var(--k-accent-text);">${escapeHtml(r.frequency || 'Annual')}</td>
+                                <td style="font-family: monospace; font-weight: 700; color: var(--k-success-text);">₹${Number(r.employeeContribution || 0).toFixed(2)}</td>
+                                <td style="font-family: monospace; font-weight: 700; color: var(--k-accent-text);">₹${Number(r.employerContribution || 0).toFixed(2)}</td>
+                                <td style="font-family: monospace; font-weight: 800; color: var(--k-text);">₹${(Number(r.employeeContribution || 0) + Number(r.employerContribution || 0)).toFixed(2)}</td>
+                                <td style="font-size: 0.74rem; color: var(--k-success-text); font-weight: 700;">${escapeHtml(r.deductionSchedule?.nextDeduction || '—')}</td>
                                 <td>
-                                    <span style="font-size: 0.7rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; background: ${r.isLwfApplicable !== false ? '#ecfdf5' : '#f1f5f9'}; color: ${r.isLwfApplicable !== false ? '#059669' : '#64748b'};">
+                                    <span style="font-size: 0.7rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; background: ${r.isLwfApplicable !== false ? 'var(--k-success-soft)' : 'var(--k-subtle)'}; color: ${r.isLwfApplicable !== false ? 'var(--k-success-text)' : 'var(--k-muted)'};">
                                         ${r.isLwfApplicable !== false ? 'Active' : 'Exempt'}
                                     </span>
                                 </td>
@@ -4699,21 +4699,21 @@ function renderParsedNpsMasterPreview(fileName, sheetName, records, errors = [])
             return `
                 <tr>
                     <td style="font-weight: 700; color: var(--text-muted);">${idx + 1}</td>
-                    <td style="font-family: monospace; font-weight: 800; color: #1e40af;">${escapeHtml(r['Employee ID'] || r.employeeId)}</td>
-                    <td><code style="font-size: 0.75rem; color: #047857; font-weight: 700;">${escapeHtml(pran)}</code></td>
-                    <td style="font-size: 0.75rem; font-weight: 700; color: ${status === 'ACTIVE' ? '#059669' : '#64748b'};">${escapeHtml(status)}</td>
-                    <td style="font-size: 0.75rem; color: #1e293b; font-weight: 600;">${escapeHtml(cra)}</td>
-                    <td style="font-size: 0.72rem; color: #334155;">${escapeHtml(t1)}, ${escapeHtml(t2)}</td>
-                    <td style="font-weight: 700; font-family: monospace; color: #047857;">${escapeHtml(ee)}</td>
-                    <td style="font-weight: 700; font-family: monospace; color: #1e40af;">${escapeHtml(er)}</td>
-                    <td style="font-weight: 700; font-family: monospace; color: #0f172a;">₹${ytd}</td>
+                    <td style="font-family: monospace; font-weight: 800; color: var(--k-accent-text);">${escapeHtml(r['Employee ID'] || r.employeeId)}</td>
+                    <td><code style="font-size: 0.75rem; color: var(--k-success-text); font-weight: 700;">${escapeHtml(pran)}</code></td>
+                    <td style="font-size: 0.75rem; font-weight: 700; color: ${status === 'ACTIVE' ? 'var(--k-success-text)' : 'var(--k-muted)'};">${escapeHtml(status)}</td>
+                    <td style="font-size: 0.75rem; color: var(--k-text); font-weight: 600;">${escapeHtml(cra)}</td>
+                    <td style="font-size: 0.72rem; color: var(--k-text-2);">${escapeHtml(t1)}, ${escapeHtml(t2)}</td>
+                    <td style="font-weight: 700; font-family: monospace; color: var(--k-success-text);">${escapeHtml(ee)}</td>
+                    <td style="font-weight: 700; font-family: monospace; color: var(--k-accent-text);">${escapeHtml(er)}</td>
+                    <td style="font-weight: 700; font-family: monospace; color: var(--k-text);">₹${ytd}</td>
                     <td>
-                        <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: ${kyc === 'VERIFIED' ? '#ecfdf5' : '#fffbeb'}; color: ${kyc === 'VERIFIED' ? '#059669' : '#b45309'};">
+                        <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: ${kyc === 'VERIFIED' ? 'var(--k-success-soft)' : 'var(--k-warning-soft)'}; color: ${kyc === 'VERIFIED' ? 'var(--k-success-text)' : 'var(--k-warning-text)'};">
                             ${escapeHtml(kyc)}
                         </span>
                     </td>
                     <td style="text-align: center;">
-                        <span style="color: #166534; background: #dcfce7; font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid #bbf7d0;">
+                        <span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">
                             Valid
                         </span>
                     </td>
@@ -4796,18 +4796,18 @@ async function renderOnboardingNpsMasterTable() {
         <div style="background: white; border: 1px solid var(--border); border-radius: 20px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <div style="width: 44px; height: 44px; border-radius: 12px; background: #ecfdf5; color: #059669; display: flex; align-items: center; justify-content: center;">
+                    <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--k-success-soft); color: var(--k-success-text); display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="piggy-bank" style="width: 24px; height: 24px;"></i>
                     </div>
                     <div>
-                        <h2 style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin: 0;">National Pension System (NPS) Statutory Master Console</h2>
+                        <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--k-text); margin: 0;">National Pension System (NPS) Statutory Master Console</h2>
                         <p style="font-size: 0.82rem; color: var(--text-muted); margin: 2px 0 0 0;">
-                            Cloud Firestore: <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #059669; font-weight: 700;">organizations/{orgId}/employee_nps_details/{employeeId}</code>
+                            Cloud Firestore: <code style="background: var(--k-subtle); padding: 2px 6px; border-radius: 4px; color: var(--k-success-text); font-weight: 700;">organizations/{orgId}/employee_nps_details/{employeeId}</code>
                         </p>
                     </div>
                 </div>
                 <div style="display: flex; gap: 8px;">
-                    <span class="badge-verified" style="background: #ecfdf5; color: #065f46; border-color: #a7f3d0;">
+                    <span class="badge-verified" style="background: var(--k-success-soft); color: var(--k-success-text); border-color: var(--k-success-border);">
                         <i data-lucide="layers"></i> ${records.length} Profiles Tracked
                     </span>
                 </div>
@@ -4841,24 +4841,24 @@ async function renderOnboardingNpsMasterTable() {
                             return `
                                 <tr>
                                     <td>${i + 1}</td>
-                                    <td><strong style="color: #1e40af; font-family: monospace;">${escapeHtml(r.employeeId)}</strong></td>
-                                    <td><code style="font-size: 0.74rem; color: #047857; font-weight: 700;">${escapeHtml(r.pran || '—')}</code></td>
-                                    <td style="font-weight: 600; color: #1e293b;">${escapeHtml(r.npsModel || 'Corporate Model')}<br><small style="color: var(--text-muted);">${escapeHtml(r.craAgency || 'Protean (NSDL)')}</small></td>
+                                    <td><strong style="color: var(--k-accent-text); font-family: monospace;">${escapeHtml(r.employeeId)}</strong></td>
+                                    <td><code style="font-size: 0.74rem; color: var(--k-success-text); font-weight: 700;">${escapeHtml(r.pran || '—')}</code></td>
+                                    <td style="font-weight: 600; color: var(--k-text);">${escapeHtml(r.npsModel || 'Corporate Model')}<br><small style="color: var(--text-muted);">${escapeHtml(r.craAgency || 'Protean (NSDL)')}</small></td>
                                     <td style="font-size: 0.74rem;">
-                                        <span style="color: ${r.tier1Active !== false ? '#059669' : '#94a3b8'}; font-weight: 700;">T1: ${r.tier1Active !== false ? 'Active' : 'Off'}</span><br>
-                                        <span style="color: ${r.tier2Active ? '#0284c7' : '#94a3b8'}; font-weight: 700;">T2: ${r.tier2Active ? 'Active' : 'Off'}</span>
+                                        <span style="color: ${r.tier1Active !== false ? 'var(--k-success-text)' : 'var(--k-muted)'}; font-weight: 700;">T1: ${r.tier1Active !== false ? 'Active' : 'Off'}</span><br>
+                                        <span style="color: ${r.tier2Active ? '#0284c7' : 'var(--k-muted)'}; font-weight: 700;">T2: ${r.tier2Active ? 'Active' : 'Off'}</span>
                                     </td>
-                                    <td style="font-family: monospace; font-weight: 700; color: #047857;">${escapeHtml(ee)}</td>
-                                    <td style="font-family: monospace; font-weight: 700; color: #1e40af;">${escapeHtml(er)}</td>
-                                    <td style="font-family: monospace; font-weight: 800; color: #0f172a;">₹${ytd}</td>
-                                    <td style="font-size: 0.74rem; color: #334155;">${escapeHtml(r.nomineeStatus || 'SUBMITTED')}</td>
+                                    <td style="font-family: monospace; font-weight: 700; color: var(--k-success-text);">${escapeHtml(ee)}</td>
+                                    <td style="font-family: monospace; font-weight: 700; color: var(--k-accent-text);">${escapeHtml(er)}</td>
+                                    <td style="font-family: monospace; font-weight: 800; color: var(--k-text);">₹${ytd}</td>
+                                    <td style="font-size: 0.74rem; color: var(--k-text-2);">${escapeHtml(r.nomineeStatus || 'SUBMITTED')}</td>
                                     <td>
-                                        <span style="font-size: 0.7rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; background: ${kyc === 'VERIFIED' ? '#ecfdf5' : '#fffbeb'}; color: ${kyc === 'VERIFIED' ? '#059669' : '#b45309'};">
+                                        <span style="font-size: 0.7rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; background: ${kyc === 'VERIFIED' ? 'var(--k-success-soft)' : 'var(--k-warning-soft)'}; color: ${kyc === 'VERIFIED' ? 'var(--k-success-text)' : 'var(--k-warning-text)'};">
                                             ${escapeHtml(kyc)}
                                         </span>
                                     </td>
                                     <td>
-                                        <span style="font-size: 0.7rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; background: ${r.isNpsApplicable !== false ? '#ecfdf5' : '#f1f5f9'}; color: ${r.isNpsApplicable !== false ? '#059669' : '#64748b'};">
+                                        <span style="font-size: 0.7rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; background: ${r.isNpsApplicable !== false ? 'var(--k-success-soft)' : 'var(--k-subtle)'}; color: ${r.isNpsApplicable !== false ? 'var(--k-success-text)' : 'var(--k-muted)'};">
                                             ${r.isNpsApplicable !== false ? (r.npsAccountStatus || 'Active') : 'Exempt'}
                                         </span>
                                     </td>
@@ -4969,19 +4969,19 @@ function renderParsedGratuityMasterPreview(fileName, sheetName, records, errors 
             return `
                 <tr>
                     <td style="font-weight: 700; color: var(--text-muted);">${idx + 1}</td>
-                    <td style="font-family: monospace; font-weight: 800; color: #1e40af;">${escapeHtml(empId)}</td>
+                    <td style="font-family: monospace; font-weight: 800; color: var(--k-accent-text);">${escapeHtml(empId)}</td>
                     <td style="font-family: monospace; font-size: 0.76rem;">${escapeHtml(doj)}</td>
-                    <td style="font-family: monospace; font-size: 0.76rem; color: ${doe !== '—' ? '#b45309' : '#94a3b8'};">${escapeHtml(doe)}</td>
+                    <td style="font-family: monospace; font-size: 0.76rem; color: ${doe !== '—' ? 'var(--k-warning-text)' : 'var(--k-muted)'};">${escapeHtml(doe)}</td>
                     <td style="font-weight: 600;">${tenure} yrs</td>
-                    <td style="font-weight: 700; color: #0f172a;">${completed}</td>
+                    <td style="font-weight: 700; color: var(--k-text);">${completed}</td>
                     <td>
                         <span style="font-size: 0.7rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; background: ${eligBg}; color: ${eligColor};">
                             ${escapeHtml(eligStatus)}
                         </span>
                     </td>
-                    <td style="font-weight: 700; font-family: monospace; color: #0f172a;">₹${Number(eligibleSal).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                    <td style="font-weight: 800; font-family: monospace; color: #059669;">₹${Number(accrued).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                    <td style="font-size: 0.74rem; color: #475569;">${escapeHtml(formula)}</td>
+                    <td style="font-weight: 700; font-family: monospace; color: var(--k-text);">₹${Number(eligibleSal).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                    <td style="font-weight: 800; font-family: monospace; color: var(--k-success-text);">₹${Number(accrued).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                    <td style="font-size: 0.74rem; color: var(--k-text-2);">${escapeHtml(formula)}</td>
                     <td style="font-size: 0.72rem; font-weight: 600;">${escapeHtml(nominee)}</td>
                     <td>
                         <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: ${payBg}; color: ${payColor};">
@@ -4989,7 +4989,7 @@ function renderParsedGratuityMasterPreview(fileName, sheetName, records, errors 
                         </span>
                     </td>
                     <td style="text-align: center;">
-                        <span style="color: #166534; background: #dcfce7; font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid #bbf7d0;">
+                        <span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">
                             Valid
                         </span>
                     </td>
@@ -5080,9 +5080,9 @@ async function renderOnboardingGratuityMasterTable() {
                         <i data-lucide="award" style="width: 24px; height: 24px;"></i>
                     </div>
                     <div>
-                        <h2 style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin: 0;">Payment of Gratuity Act, 1972 Statutory Master Console</h2>
+                        <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--k-text); margin: 0;">Payment of Gratuity Act, 1972 Statutory Master Console</h2>
                         <p style="font-size: 0.82rem; color: var(--text-muted); margin: 2px 0 0 0;">
-                            Cloud Firestore: <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #4338ca; font-weight: 700;">organizations/{orgId}/employee_gratuity_details/{employeeId}</code>
+                            Cloud Firestore: <code style="background: var(--k-subtle); padding: 2px 6px; border-radius: 4px; color: #4338ca; font-weight: 700;">organizations/{orgId}/employee_gratuity_details/{employeeId}</code>
                         </p>
                     </div>
                 </div>
@@ -5090,13 +5090,13 @@ async function renderOnboardingGratuityMasterTable() {
                     <span class="badge-verified" style="background: #e0e7ff; color: #3730a3; border-color: #c7d2fe;">
                         <i data-lucide="users"></i> ${records.length} Profiles Tracked
                     </span>
-                    <span class="badge-verified" style="background: #ecfdf5; color: #065f46; border-color: #a7f3d0;">
+                    <span class="badge-verified" style="background: var(--k-success-soft); color: var(--k-success-text); border-color: var(--k-success-border);">
                         <i data-lucide="shield-check"></i> ${totalVested} Vested (&ge;5 Yrs)
                     </span>
                     <span class="badge-verified" style="background: #fff7ed; color: #9a3412; border-color: #fed7aa;">
                         <i data-lucide="clock"></i> ${totalPending} Pending F&amp;F
                     </span>
-                    <span class="badge-verified" style="background: #f8fafc; color: #0f172a; border-color: #e2e8f0; font-family: monospace;">
+                    <span class="badge-verified" style="background: var(--k-subtle); color: var(--k-text); border-color: var(--k-border); font-family: monospace;">
                         Liability: ₹${totalLiability.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
                 </div>
@@ -5135,17 +5135,17 @@ async function renderOnboardingGratuityMasterTable() {
                             return `
                                 <tr>
                                     <td>${i + 1}</td>
-                                    <td><strong style="color: #1e40af; font-family: monospace;">${escapeHtml(r.employeeId)}</strong></td>
+                                    <td><strong style="color: var(--k-accent-text); font-family: monospace;">${escapeHtml(r.employeeId)}</strong></td>
                                     <td style="font-size: 0.74rem;">
                                         DOJ: ${escapeHtml(r.dateOfJoining || '—')}<br>
-                                        <span style="color: ${r.dateOfExit ? '#b45309' : '#94a3b8'};">DOE: ${escapeHtml(r.dateOfExit || 'Active')}</span>
+                                        <span style="color: ${r.dateOfExit ? 'var(--k-warning-text)' : 'var(--k-muted)'};">DOE: ${escapeHtml(r.dateOfExit || 'Active')}</span>
                                     </td>
                                     <td style="font-weight: 600;">${r.continuousServiceYears !== undefined ? r.continuousServiceYears : 0} Years</td>
-                                    <td style="font-weight: 800; color: #0f172a;">${r.completedYearsForGratuity || r.completedYears || 0}</td>
+                                    <td style="font-weight: 800; color: var(--k-text);">${r.completedYearsForGratuity || r.completedYears || 0}</td>
                                     <td style="font-family: monospace; font-weight: 700;">₹${Number(wages).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                                    <td style="font-family: monospace; font-weight: 800; color: #059669;">₹${Number(accrued).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                                    <td style="font-size: 0.74rem; color: #475569;">${escapeHtml(r.calculationBasis || '15/26 Formula')}</td>
-                                    <td style="font-size: 0.74rem; font-weight: 600; color: ${r.nomineeStatus === 'VERIFIED' ? '#059669' : '#b45309'};">
+                                    <td style="font-family: monospace; font-weight: 800; color: var(--k-success-text);">₹${Number(accrued).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                                    <td style="font-size: 0.74rem; color: var(--k-text-2);">${escapeHtml(r.calculationBasis || '15/26 Formula')}</td>
+                                    <td style="font-size: 0.74rem; font-weight: 600; color: ${r.nomineeStatus === 'VERIFIED' ? 'var(--k-success-text)' : 'var(--k-warning-text)'};">
                                         ${escapeHtml(r.nomineeStatus || 'VERIFIED')}
                                     </td>
                                     <td>
@@ -5267,8 +5267,8 @@ function renderParsedSalaryStructurePreview(fileName, sheetName, records, firest
         parsedSalaryStructureTableBody.innerHTML = records.map((r, idx) => {
             const isActive = r.Active === true || r.Active === 'Yes' || r.Active === 'true';
             const statusBadge = isActive
-                ? `<span style="color: #166534; background: #dcfce7; font-weight: 800; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem; border: 1px solid #bbf7d0;">Active</span>`
-                : `<span style="color: #64748b; background: #f1f5f9; font-weight: 600; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem;">Inactive</span>`;
+                ? `<span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 800; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem; border: 1px solid var(--k-success-border);">Active</span>`
+                : `<span style="color: var(--k-muted); background: var(--k-subtle); font-weight: 600; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem;">Inactive</span>`;
 
             const amtDisplay = (r.Amount !== null && r.Amount !== undefined && r.Amount !== '') 
                 ? '₹' + Number(r.Amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -5285,9 +5285,9 @@ function renderParsedSalaryStructurePreview(fileName, sheetName, records, firest
                 <tr>
                     <td style="font-weight: 700; color: var(--text-muted);">${idx + 1}</td>
                     <td style="font-family: monospace; font-weight: 800; color: #0284c7;">${escapeHtml(r.Employee_ID || r.employeeId)}</td>
-                    <td style="font-size: 0.78rem; font-weight: 600; color: #475569;">${escapeHtml(r.Effective_From || r.effectiveFrom)}</td>
+                    <td style="font-size: 0.78rem; font-weight: 600; color: var(--k-text-2);">${escapeHtml(r.Effective_From || r.effectiveFrom)}</td>
                     <td>
-                        <strong style="color: #0f172a; font-family: monospace; font-size: 0.78rem;">${escapeHtml(r.Salary_Structure_Code || r.salaryStructureCode)}</strong>
+                        <strong style="color: var(--k-text); font-family: monospace; font-size: 0.78rem;">${escapeHtml(r.Salary_Structure_Code || r.salaryStructureCode)}</strong>
                     </td>
                     <td>
                         <span style="font-weight: 700; color: #4f46e5; background: #eef2ff; padding: 2px 6px; border-radius: 6px; font-family: monospace; font-size: 0.78rem;">
@@ -5297,11 +5297,11 @@ function renderParsedSalaryStructurePreview(fileName, sheetName, records, firest
                     <td style="text-align: right; font-family: monospace; font-weight: 600;">${escapeHtml(amtDisplay)}</td>
                     <td style="text-align: right; font-family: monospace; font-weight: 600; color: #0891b2;">${escapeHtml(pctDisplay)}</td>
                     <td>
-                        <span style="font-size: 0.72rem; font-weight: 700; background: #f1f5f9; color: #334155; padding: 2px 6px; border-radius: 6px;">
+                        <span style="font-size: 0.72rem; font-weight: 700; background: var(--k-subtle); color: var(--k-text-2); padding: 2px 6px; border-radius: 6px;">
                             ${escapeHtml(r.Calculation_Basis || r.calculationBasis)}
                         </span>
                     </td>
-                    <td style="text-align: right; font-family: monospace; font-weight: 800; color: #059669;">${escapeHtml(compVal)}</td>
+                    <td style="text-align: right; font-family: monospace; font-weight: 800; color: var(--k-success-text);">${escapeHtml(compVal)}</td>
                     <td style="text-align: center;">${statusBadge}</td>
                 </tr>
             `;
@@ -5512,22 +5512,22 @@ function renderParsedAttributesPreview(fileName, sheetName, data) {
             
             let statusPill = '';
             if (isMissingRequired) {
-                statusPill = '<span style="color: #991b1b; background: #fee2e2; font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid #fecaca;">Missing *</span>';
+                statusPill = '<span style="color: var(--k-danger-text); background: var(--k-danger-soft); font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid var(--k-danger-border);">Missing *</span>';
             } else if (val) {
-                statusPill = '<span style="color: #166534; background: #dcfce7; font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid #bbf7d0;">Extracted</span>';
+                statusPill = '<span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">Extracted</span>';
             } else {
-                statusPill = '<span style="color: #64748b; background: #f1f5f9; font-weight: 600; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem;">Optional</span>';
+                statusPill = '<span style="color: var(--k-muted); background: var(--k-subtle); font-weight: 600; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem;">Optional</span>';
             }
 
             const displayVal = val 
-                ? `<span style="font-weight: 600; color: #0f172a;">${escapeHtml(val)}</span>` 
-                : `<span style="color: #94a3b8; font-style: italic;">(Empty)</span>`;
+                ? `<span style="font-weight: 600; color: var(--k-text);">${escapeHtml(val)}</span>` 
+                : `<span style="color: var(--k-muted); font-style: italic;">(Empty)</span>`;
 
             return `
                 <tr>
                     <td style="font-weight: 700; color: var(--text-muted);">${index + 1}</td>
                     <td>
-                        <strong style="color: #1e293b;">${attr.key}</strong>
+                        <strong style="color: var(--k-text);">${attr.key}</strong>
                         ${attr.required ? '<span style="color: var(--danger); font-weight: 800;">*</span>' : ''}
                     </td>
                     <td>${displayVal}</td>
@@ -5820,19 +5820,19 @@ function renderParsedHolidayCalendarPreview(fileName, sheetName, records, firest
 
             return `
                 <tr style="${hasError ? 'background: #fff1f2;' : ''}">
-                    <td style="font-weight: 700; color: #64748b;">${idx + 1}</td>
+                    <td style="font-weight: 700; color: var(--k-muted);">${idx + 1}</td>
                     <td>
-                        <strong style="color: #0f172a; font-family: monospace; font-size: 0.78rem;">${escapeHtml(r.Holiday_Calendar_Code || r.calendarCode)}</strong>
+                        <strong style="color: var(--k-text); font-family: monospace; font-size: 0.78rem;">${escapeHtml(r.Holiday_Calendar_Code || r.calendarCode)}</strong>
                     </td>
                     <td>
-                        <span style="display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 800; background: #f1f5f9; color: #334155;">
+                        <span style="display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 800; background: var(--k-subtle); color: var(--k-text-2);">
                             ${escapeHtml(r.Location_Code || r.locationCode)}
                         </span>
                     </td>
-                    <td style="font-family: monospace; font-weight: 700; color: #0f172a;">
+                    <td style="font-family: monospace; font-weight: 700; color: var(--k-text);">
                         ${escapeHtml(r.Holiday_Date || r.holidayDate)}
                     </td>
-                    <td style="font-weight: 700; color: #1e293b;">
+                    <td style="font-weight: 700; color: var(--k-text);">
                         ${escapeHtml(r.Holiday_Name || r.holidayName)}
                     </td>
                     <td>
@@ -5841,17 +5841,17 @@ function renderParsedHolidayCalendarPreview(fileName, sheetName, records, firest
                         </span>
                     </td>
                     <td style="text-align: center;">
-                        <span style="display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 800; background: ${isOpt ? '#fef3c7; color: #b45309;' : '#f1f5f9; color: #64748b;'}">
+                        <span style="display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 800; background: ${isOpt ? 'var(--k-warning-soft); color: var(--k-warning-text);' : '#f1f5f9; color: var(--k-muted);'}">
                             ${isOpt ? 'FLOATING' : 'MANDATORY'}
                         </span>
                     </td>
                     <td style="text-align: center;">
-                        <span style="display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 800; background: ${isPaid ? '#dcfce7; color: #15803d;' : '#fee2e2; color: #b91c1c;'}">
+                        <span style="display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 800; background: ${isPaid ? 'var(--k-success-soft); color: var(--k-success-text);' : '#fee2e2; color: var(--k-danger-text);'}">
                             ${isPaid ? 'PAID' : 'UNPAID'}
                         </span>
                     </td>
                     <td style="text-align: center;">
-                        <span style="display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 800; background: ${isAct ? '#ecfdf5; color: #047857;' : '#f1f5f9; color: #94a3b8;'}">
+                        <span style="display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 800; background: ${isAct ? 'var(--k-success-soft); color: var(--k-success-text);' : '#f1f5f9; color: var(--k-muted);'}">
                             ${isAct ? 'ACTIVE' : 'INACTIVE'}
                         </span>
                     </td>
@@ -5975,20 +5975,20 @@ function renderParsedStatutoryCompliancePreview(fileName, sheetName, records, fi
             return `
                 <tr style="border-bottom: 1px solid var(--border);">
                     <td style="color: var(--text-muted); font-size: 0.75rem;">${idx + 1}</td>
-                    <td style="font-family: monospace; font-weight: 800; color: #2563eb;">${r.Compliance_Code}</td>
-                    <td style="font-weight: 700; color: #0f172a;">${r.Compliance_Name}</td>
+                    <td style="font-family: monospace; font-weight: 800; color: var(--k-accent-text);">${r.Compliance_Code}</td>
+                    <td style="font-weight: 700; color: var(--k-text);">${r.Compliance_Name}</td>
                     <td style="text-align: center;">
-                        <span style="display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; background: ${r.Applicable ? '#dcfce7' : '#f1f5f9'}; color: ${r.Applicable ? '#166534' : '#64748b'};">
+                        <span style="display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; background: ${r.Applicable ? 'var(--k-success-soft)' : 'var(--k-subtle)'}; color: ${r.Applicable ? 'var(--k-success-text)' : 'var(--k-muted)'};">
                             ${r.Applicable ? 'YES' : 'NO'}
                         </span>
                     </td>
                     <td style="font-family: monospace; font-size: 0.75rem;">${r.Registration_Number || '-'}</td>
-                    <td><span style="padding: 2px 6px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; background: #eff6ff; color: #1e40af;">${r.State}</span></td>
-                    <td style="font-size: 0.75rem; color: #64748b;">${r.Effective_From}</td>
-                    <td style="font-weight: 700; color: #334155;">${typeof r.Wage_Ceiling_or_Rule === 'number' ? `₹${r.Wage_Ceiling_or_Rule.toLocaleString('en-IN')}` : r.Wage_Ceiling_or_Rule}</td>
-                    <td style="font-weight: 700; color: #2563eb;">${eeRate}</td>
-                    <td style="font-weight: 700; color: #16a34a;">${erRate}</td>
-                    <td style="text-align: center; font-weight: 800; color: #0f172a;">${r.Due_Date_Day}th</td>
+                    <td><span style="padding: 2px 6px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; background: var(--k-accent-soft); color: var(--k-accent-text);">${r.State}</span></td>
+                    <td style="font-size: 0.75rem; color: var(--k-muted);">${r.Effective_From}</td>
+                    <td style="font-weight: 700; color: var(--k-text-2);">${typeof r.Wage_Ceiling_or_Rule === 'number' ? `₹${r.Wage_Ceiling_or_Rule.toLocaleString('en-IN')}` : r.Wage_Ceiling_or_Rule}</td>
+                    <td style="font-weight: 700; color: var(--k-accent-text);">${eeRate}</td>
+                    <td style="font-weight: 700; color: var(--k-success-text);">${erRate}</td>
+                    <td style="text-align: center; font-weight: 800; color: var(--k-text);">${r.Due_Date_Day}th</td>
                 </tr>
             `;
         }).join('');
@@ -6173,17 +6173,17 @@ function renderParsedRolePermissionPreview(fileName, sheetName, records, firesto
             return `
                 <tr>
                     <td style="font-weight: 700; color: var(--text-muted);">${i + 1}</td>
-                    <td style="font-weight: 800; font-family: monospace; color: ${isRole ? '#2563eb' : '#be185d'};">
+                    <td style="font-weight: 800; font-family: monospace; color: ${isRole ? 'var(--k-accent-text)' : '#be185d'};">
                         ${r.Role_Code_or_Employee_Code}
                     </td>
                     <td>
-                        <span style="font-size: 0.7rem; padding: 2px 6px; border-radius: 6px; font-weight: 800; ${isRole ? 'background: #eff6ff; color: #1e40af;' : 'background: #fdf2f8; color: #9d174d;'}">
+                        <span style="font-size: 0.7rem; padding: 2px 6px; border-radius: 6px; font-weight: 800; ${isRole ? 'background: #eff6ff; color: var(--k-accent-text);' : 'background: #fdf2f8; color: #9d174d;'}">
                             ${isRole ? 'BASE_ROLE' : 'OVERRIDE'}
                         </span>
                     </td>
                     <td style="font-weight: 600;">${r.Role_Name}</td>
                     <td>
-                        <span style="font-size: 0.72rem; padding: 2px 6px; border-radius: 6px; background: #f8fafc; border: 1px solid #e2e8f0; font-weight: 700;">
+                        <span style="font-size: 0.72rem; padding: 2px 6px; border-radius: 6px; background: var(--k-subtle); border: 1px solid var(--k-border); font-weight: 700;">
                             ${r.Scope_Level}
                         </span>
                     </td>
@@ -6196,7 +6196,7 @@ function renderParsedRolePermissionPreview(fileName, sheetName, records, firesto
                     <td style="text-align: center;"><span style="font-size: 0.65rem; padding: 2px 4px; border-radius: 4px; ${badgeHelper(r.Reports_Module)}">${r.Reports_Module}</span></td>
                     <td style="text-align: center;"><span style="font-size: 0.65rem; padding: 2px 4px; border-radius: 4px; ${badgeHelper(r.Organization_Setup)}">${r.Organization_Setup}</span></td>
                     <td style="text-align: center;">
-                        <span style="font-size: 0.7rem; font-weight: 800; color: ${r.Active === 'Yes' ? '#16a34a' : '#dc2626'};">${r.Active}</span>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: ${r.Active === 'Yes' ? 'var(--k-success-text)' : 'var(--k-danger-text)'};">${r.Active}</span>
                     </td>
                 </tr>
             `;
@@ -6395,11 +6395,11 @@ function renderParsedWorkflowRulesPreview(fileName, sheetName, records, workflow
         workflowRulesParsedTableBody.innerHTML = records.map((r, i) => {
             let targetLabel = '-';
             if (r.Approver_Type === 'Specific_Employee') {
-                targetLabel = `<span style="font-size: 0.72rem; font-weight: 700; color: #b45309; background: #fef3c7; padding: 2px 6px; border-radius: 4px;">ID: ${r.Approver_Employee_ID}</span>`;
+                targetLabel = `<span style="font-size: 0.72rem; font-weight: 700; color: var(--k-warning-text); background: var(--k-warning-soft); padding: 2px 6px; border-radius: 4px;">ID: ${r.Approver_Employee_ID}</span>`;
             } else if (r.Approver_Type === 'Role_Based') {
                 targetLabel = `<span style="font-size: 0.72rem; font-weight: 700; color: #4338ca; background: #e0e7ff; padding: 2px 6px; border-radius: 4px;">Role: ${r.Approver_Role_Code}</span>`;
             } else {
-                targetLabel = `<span style="font-size: 0.72rem; color: #64748b;">Dynamic</span>`;
+                targetLabel = `<span style="font-size: 0.72rem; color: var(--k-muted);">Dynamic</span>`;
             }
 
             return `
@@ -6409,12 +6409,12 @@ function renderParsedWorkflowRulesPreview(fileName, sheetName, records, workflow
                         ${r.Workflow_Code}
                     </td>
                     <td>
-                        <span style="font-size: 0.72rem; padding: 2px 6px; border-radius: 6px; background: #f1f5f9; color: #334155; font-weight: 700;">
+                        <span style="font-size: 0.72rem; padding: 2px 6px; border-radius: 6px; background: var(--k-subtle); color: var(--k-text-2); font-weight: 700;">
                             ${r.Module}
                         </span>
                     </td>
                     <td style="font-weight: 600;">${r.Transaction_Type}</td>
-                    <td style="text-align: center; font-weight: 800; color: #0f172a;">${r.Step_No}</td>
+                    <td style="text-align: center; font-weight: 800; color: var(--k-text);">${r.Step_No}</td>
                     <td>
                         <span style="font-size: 0.72rem; padding: 2px 6px; border-radius: 6px; background: #e0f2fe; color: #0369a1; font-weight: 700;">
                             ${r.Approver_Type}
@@ -6423,10 +6423,10 @@ function renderParsedWorkflowRulesPreview(fileName, sheetName, records, workflow
                     <td>${targetLabel}</td>
                     <td style="text-align: center; font-weight: 700;">${r.SLA_Hours}h</td>
                     <td style="text-align: center;">
-                        <span style="font-size: 0.7rem; font-weight: 800; color: ${r.Mandatory === 'Yes' ? '#b91c1c' : '#64748b'};">${r.Mandatory}</span>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: ${r.Mandatory === 'Yes' ? 'var(--k-danger-text)' : 'var(--k-muted)'};">${r.Mandatory}</span>
                     </td>
                     <td style="text-align: center;">
-                        <span style="font-size: 0.7rem; font-weight: 800; color: ${r.Active === 'Yes' ? '#16a34a' : '#dc2626'};">${r.Active}</span>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: ${r.Active === 'Yes' ? 'var(--k-success-text)' : 'var(--k-danger-text)'};">${r.Active}</span>
                     </td>
                 </tr>
             `;
@@ -6659,22 +6659,22 @@ function renderParsedPayrollComponentPreview(fileName, sheetName, records, fires
             return `
                 <tr>
                     <td style="font-weight: 700; color: var(--text-muted);">${i + 1}</td>
-                    <td style="font-weight: 800; font-family: monospace; color: #2563eb;">${r.Component_Code}</td>
+                    <td style="font-weight: 800; font-family: monospace; color: var(--k-accent-text);">${r.Component_Code}</td>
                     <td style="font-weight: 600;">${r.Component_Name}</td>
                     <td>
                         <span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 6px; font-weight: 700; ${typeBadge}">
                             ${r.Component_Type}
                         </span>
                     </td>
-                    <td style="font-size: 0.8rem; color: #475569;">${r.Calculation_Method}</td>
+                    <td style="font-size: 0.8rem; color: var(--k-text-2);">${r.Calculation_Method}</td>
                     <td style="font-size: 0.8rem; font-weight: 700;">${valDisplay}</td>
-                    <td style="text-align: center; font-size: 0.75rem; font-weight: 800; color: ${r.Taxable === 'Yes' ? '#16a34a' : '#64748b'};">${r.Taxable}</td>
-                    <td style="text-align: center; font-size: 0.75rem; font-weight: 800; color: ${r.PF_Applicable === 'Yes' ? '#2563eb' : '#64748b'};">${r.PF_Applicable}</td>
-                    <td style="text-align: center; font-size: 0.75rem; font-weight: 800; color: ${r.ESI_Applicable === 'Yes' ? '#2563eb' : '#64748b'};">${r.ESI_Applicable}</td>
-                    <td style="text-align: center; font-size: 0.75rem; font-weight: 800; color: ${r.PT_Applicable === 'Yes' ? '#2563eb' : '#64748b'};">${r.PT_Applicable}</td>
-                    <td style="text-align: center; font-size: 0.75rem; font-weight: 800; color: ${r.TDS_Applicable === 'Yes' ? '#2563eb' : '#64748b'};">${r.TDS_Applicable}</td>
-                    <td style="text-align: center; font-size: 0.75rem; font-weight: 800; color: ${r.Prorate_On_LOP === 'Yes' ? '#2563eb' : '#64748b'};">${r.Prorate_On_LOP}</td>
-                    <td style="text-align: center; font-size: 0.75rem; font-weight: 800; color: ${r.Active === 'Yes' ? '#16a34a' : '#dc2626'};">${r.Active}</td>
+                    <td style="text-align: center; font-size: 0.75rem; font-weight: 800; color: ${r.Taxable === 'Yes' ? 'var(--k-success-text)' : 'var(--k-muted)'};">${r.Taxable}</td>
+                    <td style="text-align: center; font-size: 0.75rem; font-weight: 800; color: ${r.PF_Applicable === 'Yes' ? 'var(--k-accent-text)' : 'var(--k-muted)'};">${r.PF_Applicable}</td>
+                    <td style="text-align: center; font-size: 0.75rem; font-weight: 800; color: ${r.ESI_Applicable === 'Yes' ? 'var(--k-accent-text)' : 'var(--k-muted)'};">${r.ESI_Applicable}</td>
+                    <td style="text-align: center; font-size: 0.75rem; font-weight: 800; color: ${r.PT_Applicable === 'Yes' ? 'var(--k-accent-text)' : 'var(--k-muted)'};">${r.PT_Applicable}</td>
+                    <td style="text-align: center; font-size: 0.75rem; font-weight: 800; color: ${r.TDS_Applicable === 'Yes' ? 'var(--k-accent-text)' : 'var(--k-muted)'};">${r.TDS_Applicable}</td>
+                    <td style="text-align: center; font-size: 0.75rem; font-weight: 800; color: ${r.Prorate_On_LOP === 'Yes' ? 'var(--k-accent-text)' : 'var(--k-muted)'};">${r.Prorate_On_LOP}</td>
+                    <td style="text-align: center; font-size: 0.75rem; font-weight: 800; color: ${r.Active === 'Yes' ? 'var(--k-success-text)' : 'var(--k-danger-text)'};">${r.Active}</td>
                 </tr>
             `;
         }).join('');

@@ -68,7 +68,7 @@
         const exemptReason = overrides.exemptReason || (isPtApplicable ? null : "Explicitly Exempt");
 
         return `
-        <div id="ptStatutoryMasterCard" class="modal-section-card" style="margin-bottom: 1.25rem; border: 1.5px solid #059669; border-radius: 16px; background: #ffffff; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.08); overflow: hidden;">
+        <div id="ptStatutoryMasterCard" class="modal-section-card" style="margin-bottom: 1.25rem; border: 1.5px solid #059669; border-radius: 16px; background: var(--k-surface); box-shadow: 0 4px 12px rgba(5, 150, 105, 0.08); overflow: hidden;">
             <!-- Header Section -->
             <div style="background: linear-gradient(135deg, #047857 0%, #059669 100%); padding: 1.1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; color: white;">
                 <div style="display: flex; align-items: center; gap: 12px;">
@@ -85,7 +85,7 @@
                         <i data-lucide="${statusBadge.icon || 'check-circle'}" style="width: 12px; height: 12px;"></i>
                         <span id="ptStatusHeaderText">${statusBadge.label}</span>
                     </span>
-                    <button type="button" id="btnRecalculatePt" class="btn" style="background: #ffffff; color: #047857; font-size: 0.76rem; font-weight: 800; padding: 6px 14px; border-radius: 8px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.2s ease;">
+                    <button type="button" id="btnRecalculatePt" class="btn" style="background: var(--k-surface); color: var(--k-success-text); font-size: 0.76rem; font-weight: 800; padding: 6px 14px; border-radius: 8px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.2s ease;">
                         <i data-lucide="refresh-cw" id="ptRecalcIcon" style="width: 13px; height: 13px;"></i>
                         <span id="ptRecalcBtnText">Recalculate PT</span>
                     </button>
@@ -96,41 +96,41 @@
             <div style="padding: 1.25rem;">
                 <!-- Live Status & Jurisdiction Matrix -->
                 <div style="margin-bottom: 1.25rem;">
-                    <div style="font-size: 0.72rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-                        <i data-lucide="map-pin" style="width: 14px; height: 14px; color: #059669;"></i>
+                    <div style="font-size: 0.72rem; font-weight: 800; color: var(--k-text-2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="map-pin" style="width: 14px; height: 14px; color: var(--k-success-text);"></i>
                         State Jurisdiction &amp; Active Statutory Slabs
                     </div>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 10px;">
                         <!-- State Jurisdiction Pill -->
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
-                            <span style="font-size: 0.68rem; color: #64748b; font-weight: 700;">State</span>
-                            <span id="pillPtState" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.74rem; font-weight: 800; color: #0f172a; background: #ffffff; border: 1px solid #cbd5e1; padding: 2px 8px; border-radius: 6px; width: fit-content;">
-                                <i data-lucide="map-pin" style="width: 11px; height: 11px; color: #059669;"></i>
+                        <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
+                            <span style="font-size: 0.68rem; color: var(--k-muted); font-weight: 700;">State</span>
+                            <span id="pillPtState" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.74rem; font-weight: 800; color: var(--k-text); background: var(--k-surface); border: 1px solid var(--k-border); padding: 2px 8px; border-radius: 6px; width: fit-content;">
+                                <i data-lucide="map-pin" style="width: 11px; height: 11px; color: var(--k-success-text);"></i>
                                 <span id="textPtState">${escapeHtml(stateName)}</span>
                             </span>
                         </div>
 
                         <!-- PTRC Number Pill -->
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
-                            <span style="font-size: 0.68rem; color: #64748b; font-weight: 700;">PTRC Reg No</span>
-                            <span id="pillPtrcNo" style="font-family: monospace; font-size: 0.72rem; font-weight: 700; color: #047857; background: #ecfdf5; border: 1px solid #a7f3d0; padding: 2px 8px; border-radius: 6px; width: fit-content;">
+                        <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
+                            <span style="font-size: 0.68rem; color: var(--k-muted); font-weight: 700;">PTRC Reg No</span>
+                            <span id="pillPtrcNo" style="font-family: monospace; font-size: 0.72rem; font-weight: 700; color: var(--k-success-text); background: var(--k-success-soft); border: 1px solid var(--k-success-border); padding: 2px 8px; border-radius: 6px; width: fit-content;">
                                 ${escapeHtml(ptrcNo)}
                             </span>
                         </div>
 
                         <!-- Assigned Slab Code Pill -->
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
-                            <span style="font-size: 0.68rem; color: #64748b; font-weight: 700;">Assigned Slab</span>
-                            <span id="pillPtSlab" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.72rem; font-weight: 800; color: #1d4ed8; background: #eff6ff; border: 1px solid #bfdbfe; padding: 2px 8px; border-radius: 6px; width: fit-content;">
+                        <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
+                            <span style="font-size: 0.68rem; color: var(--k-muted); font-weight: 700;">Assigned Slab</span>
+                            <span id="pillPtSlab" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.72rem; font-weight: 800; color: var(--k-accent-text); background: var(--k-accent-soft); border: 1px solid var(--k-accent-border); padding: 2px 8px; border-radius: 6px; width: fit-content;">
                                 <i data-lucide="tag" style="width: 11px; height: 11px;"></i>
                                 <span id="textPtSlab">${escapeHtml(slabCode)}</span>
                             </span>
                         </div>
 
                         <!-- Monthly Deduction Pill -->
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
-                            <span style="font-size: 0.68rem; color: #64748b; font-weight: 700;">Monthly Deduction</span>
-                            <span id="pillPtAmount" style="font-size: 0.88rem; font-weight: 800; color: #047857; width: fit-content;">
+                        <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
+                            <span style="font-size: 0.68rem; color: var(--k-muted); font-weight: 700;">Monthly Deduction</span>
+                            <span id="pillPtAmount" style="font-size: 0.88rem; font-weight: 800; color: var(--k-success-text); width: fit-content;">
                                 ₹<span id="textPtAmount">${monthlyDeduction.toFixed(2)}</span>
                             </span>
                         </div>
@@ -138,44 +138,44 @@
                 </div>
 
                 <!-- Detailed Attributes Grid (All 10 Attributes Visualized) -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; background: #f8fafc; padding: 14px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 1.25rem;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; background: var(--k-subtle); padding: 14px; border-radius: 12px; border: 1px solid var(--k-border); margin-bottom: 1.25rem;">
                     <div>
-                        <div style="font-size: 0.7rem; color: #64748b; font-weight: 700; text-transform: uppercase;">PT Applicable</div>
-                        <div id="ptDisplayApplicable" style="font-size: 0.86rem; font-weight: 700; color: ${isPtApplicable ? '#059669' : '#dc2626'}; margin-top: 2px;">
+                        <div style="font-size: 0.7rem; color: var(--k-muted); font-weight: 700; text-transform: uppercase;">PT Applicable</div>
+                        <div id="ptDisplayApplicable" style="font-size: 0.86rem; font-weight: 700; color: ${isPtApplicable ? 'var(--k-success-text)' : 'var(--k-danger-text)'}; margin-top: 2px;">
                             ${isPtApplicable ? 'Yes (Mandatory Statutory Deduction)' : 'No (Statutorily Exempt)'}
                         </div>
                     </div>
 
                     <div>
-                        <div style="font-size: 0.7rem; color: #64748b; font-weight: 700; text-transform: uppercase;">Effective Window</div>
-                        <div style="font-size: 0.84rem; font-weight: 600; color: #334155; margin-top: 2px;">
-                            ${escapeHtml(effectiveFrom)} &nbsp;→&nbsp; <span style="color: ${effectiveTo === 'Active / Ongoing' ? '#059669' : '#dc2626'}">${escapeHtml(effectiveTo)}</span>
+                        <div style="font-size: 0.7rem; color: var(--k-muted); font-weight: 700; text-transform: uppercase;">Effective Window</div>
+                        <div style="font-size: 0.84rem; font-weight: 600; color: var(--k-text-2); margin-top: 2px;">
+                            ${escapeHtml(effectiveFrom)} &nbsp;→&nbsp; <span style="color: ${effectiveTo === 'Active / Ongoing' ? 'var(--k-success-text)' : 'var(--k-danger-text)'}">${escapeHtml(effectiveTo)}</span>
                         </div>
                     </div>
 
                     <div>
-                        <div style="font-size: 0.7rem; color: #64748b; font-weight: 700; text-transform: uppercase;">Exemption Status</div>
-                        <div id="ptDisplayExemption" style="font-size: 0.84rem; font-weight: 600; color: ${exemptReason ? '#d97706' : '#64748b'}; margin-top: 2px;">
+                        <div style="font-size: 0.7rem; color: var(--k-muted); font-weight: 700; text-transform: uppercase;">Exemption Status</div>
+                        <div id="ptDisplayExemption" style="font-size: 0.84rem; font-weight: 600; color: ${exemptReason ? 'var(--k-warning-text)' : 'var(--k-muted)'}; margin-top: 2px;">
                             ${escapeHtml(exemptReason || 'Standard State Taxable Profile')}
                         </div>
                     </div>
 
                     <div>
-                        <div style="font-size: 0.7rem; color: #64748b; font-weight: 700; text-transform: uppercase;">Calculation Mode</div>
-                        <div id="ptDisplayCalcMode" style="font-size: 0.84rem; font-weight: 700; color: #1e293b; margin-top: 2px;">
-                            ${isOverride ? '<span style="color: #b45309;">Administrative Manual Override</span>' : '<span style="color: #047857;">Dynamic Multi-State Matrix</span>'}
+                        <div style="font-size: 0.7rem; color: var(--k-muted); font-weight: 700; text-transform: uppercase;">Calculation Mode</div>
+                        <div id="ptDisplayCalcMode" style="font-size: 0.84rem; font-weight: 700; color: var(--k-text); margin-top: 2px;">
+                            ${isOverride ? '<span style="color: var(--k-warning-text);">Administrative Manual Override</span>' : '<span style="color: var(--k-success-text);">Dynamic Multi-State Matrix</span>'}
                         </div>
                     </div>
                 </div>
 
                 <!-- Multi-State Slab Rules Callout (PRD §§ 4 & 11) -->
-                <div style="background: #f0fdf4; border: 1px dashed #86efac; border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;">
+                <div style="background: var(--k-success-soft); border: 1px dashed var(--k-success-border); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 0.74rem; font-weight: 800; color: #166534; display: flex; align-items: center; gap: 6px;">
-                            <i data-lucide="info" style="width: 14px; height: 14px; color: #16a34a;"></i>
+                        <span style="font-size: 0.74rem; font-weight: 800; color: var(--k-success-text); display: flex; align-items: center; gap: 6px;">
+                            <i data-lucide="info" style="width: 14px; height: 14px; color: var(--k-success-text);"></i>
                             Statutory Multi-State Slab Rules (PRD Section 4)
                         </span>
-                        <span style="font-size: 0.7rem; font-weight: 700; color: #15803d; background: #dcfce7; padding: 2px 8px; border-radius: 6px;">
+                        <span style="font-size: 0.7rem; font-weight: 700; color: var(--k-success-text); background: var(--k-success-soft); padding: 2px 8px; border-radius: 6px;">
                             Active Jurisdiction: ${escapeHtml(stateName)}
                         </span>
                     </div>
@@ -201,9 +201,9 @@
                 </div>
 
                 <!-- Last Evaluated Footer -->
-                <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem; color: #94a3b8;">
-                    <span>Employer PTRC: <strong id="ptDisplayFooterPtrc" style="color: #64748b; font-family: monospace;">${escapeHtml(ptrcNo)}</strong></span>
-                    <span>State Jurisdiction: <strong id="ptDisplayFooterState" style="color: #64748b;">${escapeHtml(stateName)}</strong></span>
+                <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem; color: var(--k-muted);">
+                    <span>Employer PTRC: <strong id="ptDisplayFooterPtrc" style="color: var(--k-muted); font-family: monospace;">${escapeHtml(ptrcNo)}</strong></span>
+                    <span>State Jurisdiction: <strong id="ptDisplayFooterState" style="color: var(--k-muted);">${escapeHtml(stateName)}</strong></span>
                 </div>
             </div>
         </div>
@@ -303,7 +303,7 @@
         if (!container) return;
 
         const orgId = options.orgId || (typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null);
-        if (!orgId) { container.innerHTML = '<div style="padding: 1rem; color: #ef4444;">No organization found for the signed-in user. Sign in again.</div>'; return; }
+        if (!orgId) { container.innerHTML = '<div style="padding: 1rem; color: var(--k-danger-text);">No organization found for the signed-in user. Sign in again.</div>'; return; }
         let ptDetails = null;
 
         let service = (typeof window !== 'undefined' && window.KylrxPtDetailsService) ? window.KylrxPtDetailsService : null;
@@ -320,7 +320,7 @@
         }
 
         if (!ptDetails) {
-            container.innerHTML = '<div style="padding: 1rem; color: #64748b;">No details added yet</div>';
+            container.innerHTML = '<div style="padding: 1rem; color: var(--k-muted);">No details added yet</div>';
             return;
         }
 

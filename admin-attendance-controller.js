@@ -471,25 +471,25 @@ class AdminAttendanceControllerClass {
                         </div>
                     </td>
                     <td>
-                        <span style="font-weight: 700; color: #0f172a;">${esc(rec.date)}</span>
+                        <span style="font-weight: 700; color: var(--k-text);">${esc(rec.date)}</span>
                     </td>
                     <td>
-                        <span style="font-family: monospace; font-size: 0.78rem; font-weight: 700; background: #f1f5f9; padding: 3px 8px; border-radius: 6px; color: #334155;">
+                        <span style="font-family: monospace; font-size: 0.78rem; font-weight: 700; background: var(--k-subtle); padding: 3px 8px; border-radius: 6px; color: var(--k-text-2);">
                             ${esc(rec.shiftCode || '—')}
                         </span>
                     </td>
                     <td>
-                        <span style="font-weight: 800; color: ${rec.isLate ? '#d97706' : '#059669'};">
+                        <span style="font-weight: 800; color: ${rec.isLate ? 'var(--k-warning-text)' : 'var(--k-success-text)'};">
                             ${esc(rec.punchIn || '--:--')}
                         </span>
                     </td>
                     <td>
-                        <span style="font-weight: 700; color: #64748b;">
+                        <span style="font-weight: 700; color: var(--k-muted);">
                             ${esc(rec.punchOut || '--:--')}
                         </span>
                     </td>
                     <td>
-                        <span style="font-weight: 800; color: #2563eb;">
+                        <span style="font-weight: 800; color: var(--k-accent-text);">
                             ${esc(rec.totalHoursWorked || 0)} hrs
                         </span>
                     </td>
@@ -500,7 +500,7 @@ class AdminAttendanceControllerClass {
                         </div>
                     </td>
                     <td style="text-align: right;">
-                        ${statusUpper.includes('REGULARIZATION') ? '<span style="font-size: 0.72rem; color: #64748b;">Approve in the queue</span>' : `
+                        ${statusUpper.includes('REGULARIZATION') ? '<span style="font-size: 0.72rem; color: var(--k-muted);">Approve in the queue</span>' : `
                         <button class="btn-att btn-att-outline btn-att-row-override"
                             data-emp-id="${esc(rec.employeeId)}"
                             data-date="${esc(rec.date)}"

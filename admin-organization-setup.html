@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="kylrx-theme-init.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Organization Setup & Structure | Kylrx AI</title>
@@ -67,26 +68,26 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background: #fef3c7;
-            color: #92400e;
+            background: var(--k-warning-soft);
+            color: var(--k-warning-text);
             padding: 6px 14px;
             border-radius: 9999px;
             font-size: 0.75rem;
             font-weight: 700;
-            border: 1px solid #fde68a;
+            border: 1px solid var(--k-warning-border);
         }
 
         .badge-verified {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background: #dcfce7;
-            color: #166534;
+            background: var(--k-success-soft);
+            color: var(--k-success-text);
             padding: 6px 14px;
             border-radius: 9999px;
             font-size: 0.75rem;
             font-weight: 700;
-            border: 1px solid #bbf7d0;
+            border: 1px solid var(--k-success-border);
         }
 
         .card {
@@ -116,8 +117,8 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
+            background: var(--k-success-soft);
+            border: 1px solid var(--k-success-border);
             border-radius: 16px;
             padding: 1.5rem 2rem;
             margin-top: 1.25rem;
@@ -140,13 +141,13 @@
         .btn-primary { background: var(--primary); color: white; }
         .btn-primary:hover { background: var(--primary-dark); }
         .btn-success { background: var(--success); color: white; }
-        .btn-success:hover { background: #059669; }
+        .btn-success:hover { background: var(--k-success); }
         .btn-outline { background: white; border: 1px solid var(--border); color: var(--text-main); }
         .btn-outline:hover { background: var(--bg); }
 
         .drop-zone {
-            border: 2px dashed #93c5fd;
-            background: #f8fafc;
+            border: 2px dashed var(--k-accent-border);
+            background: var(--k-subtle);
             border-radius: 18px;
             padding: 2rem 2rem;
             text-align: center;
@@ -162,13 +163,13 @@
 
         .schema-pill {
             display: inline-block;
-            background: #f1f5f9;
-            color: #334155;
+            background: var(--k-subtle);
+            color: var(--k-text-2);
             padding: 4px 10px;
             border-radius: 6px;
             font-size: 0.7rem;
             font-family: monospace;
-            border: 1px solid #cbd5e1;
+            border: 1px solid var(--k-border);
             margin: 2px 4px 2px 0;
         }
 
@@ -186,13 +187,17 @@
         }
 
         .preview-table th {
-            background: #f8fafc;
+            background: var(--k-subtle);
             font-size: 0.7rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             color: var(--text-muted);
         }
     </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="kylrx-theme.css">
 </head>
 <body>
 
@@ -217,22 +222,22 @@
             Download Official 27-Sheet Organization Template
         </h2>
         <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 8px; line-height: 1.6;">
-            Download the official master workbook (<code style="font-weight: 700; color: #1e3a8a;">Templates.xlsx</code>) directly in-app. It contains the standardized 27 sheets required for Indian statutory compliance, organizational hierarchy, and payroll automation.
+            Download the official master workbook (<code style="font-weight: 700; color: var(--k-accent-text);">Templates.xlsx</code>) directly in-app. It contains the standardized 27 sheets required for Indian statutory compliance, organizational hierarchy, and payroll automation.
         </p>
 
         <div class="download-box">
             <div style="display: flex; align-items: center; gap: 14px;">
-                <div style="width: 44px; height: 44px; border-radius: 12px; background: #dcfce7; display: flex; align-items: center; justify-content: center; color: #166534;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--k-success-soft); display: flex; align-items: center; justify-content: center; color: var(--k-success-text);">
                     <i data-lucide="file-spreadsheet" style="width: 24px; height: 24px;"></i>
                 </div>
                 <div>
-                    <h3 style="font-size: 1rem; font-weight: 800; color: #166534;">Templates.xlsx (27 Sheets Master)</h3>
-                    <p style="font-size: 0.75rem; color: #15803d; margin-top: 2px;">
+                    <h3 style="font-size: 1rem; font-weight: 800; color: var(--k-success-text);">Templates.xlsx (27 Sheets Master)</h3>
+                    <p style="font-size: 0.75rem; color: var(--k-success-text); margin-top: 2px;">
                         <i data-lucide="check-circle" style="width: 12px; display: inline-block;"></i> Direct in-app asset download. <strong>NOT distributed via email.</strong>
                     </p>
                 </div>
             </div>
-            <a href="assets/Templates.xlsx" download="Templates.xlsx" class="btn btn-primary" id="btnDownloadTemplates" style="background: #16a34a;">
+            <a href="assets/Templates.xlsx" download="Templates.xlsx" class="btn btn-primary" id="btnDownloadTemplates" style="background: var(--k-success);">
                 <i data-lucide="download"></i> Download Templates.xlsx
             </a>
         </div>
@@ -393,7 +398,7 @@
         `;
 
         if (result.errors && result.errors.length) {
-            html += `<div style="background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 12px; border-radius: 10px; font-size: 0.8rem; margin-bottom: 1rem;">
+            html += `<div style="background: var(--k-danger-soft); border: 1px solid var(--k-danger-border); color: var(--k-danger-text); padding: 12px; border-radius: 10px; font-size: 0.8rem; margin-bottom: 1rem;">
                 <strong>Validation Warnings:</strong><br>${result.errors.join('<br>')}
             </div>`;
         }

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="kylrx-theme-init.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kylrx Onboarding AI | Command Center</title>
@@ -46,7 +47,7 @@
         .ai-glass-card:hover { transform: translateY(-5px); border-color: var(--primary); }
 
         .ai-pulse {
-            width: 8px; height: 8px; background: #10b981; border-radius: 50%;
+            width: 8px; height: 8px; background: var(--k-success); border-radius: 50%;
             display: inline-block; margin-right: 8px;
             box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
             animation: pulse 2s infinite;
@@ -82,26 +83,26 @@
         /* Insights List */
         .insight-item {
             display: flex; gap: 1rem; padding: 1rem; border-radius: 16px;
-            background: #f8fafc; margin-bottom: 1rem; border-left: 4px solid var(--primary);
+            background: var(--k-subtle); margin-bottom: 1rem; border-left: 4px solid var(--primary);
             cursor: pointer;
             transition: all 0.3s ease;
         }
 
         .insight-item:hover {
             transform: translateX(6px);
-            background: #f1f5f9;
+            background: var(--k-subtle);
         }
 
         .insight-icon { width: 32px; height: 32px; border-radius: 8px; background: white; display: flex; align-items: center; justify-content: center; color: var(--primary); }
 
         .sentiment-meter {
-            height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin: 10px 0;
+            height: 8px; background: var(--k-border); border-radius: 4px; overflow: hidden; margin: 10px 0;
         }
 
         .sentiment-fill { height: 100%; background: linear-gradient(90deg, #ef4444, #f59e0b, #10b981); width: 85%; }
 
         .prediction-badge {
-            background: #ecfdf5; color: #059669; padding: 4px 10px; border-radius: 100px; font-size: 0.7rem; font-weight: 800;
+            background: var(--k-success-soft); color: var(--k-success-text); padding: 4px 10px; border-radius: 100px; font-size: 0.7rem; font-weight: 800;
         }
 
         .bottleneck-card { border-left-color: #ef4444 !important; }
@@ -155,7 +156,7 @@
 
         .confirm-modal-icon {
             width: 56px; height: 56px;
-            background: #fee2e2; color: #ef4444;
+            background: var(--k-danger-soft); color: var(--k-danger-text);
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             margin: 0 auto 1.5rem auto;
@@ -163,11 +164,11 @@
 
         .confirm-modal-title {
             font-size: 1.25rem; font-weight: 800;
-            color: #0f172a; margin-bottom: 0.5rem;
+            color: var(--k-text); margin-bottom: 0.5rem;
         }
 
         .confirm-modal-desc {
-            font-size: 0.875rem; color: #64748b;
+            font-size: 0.875rem; color: var(--k-muted);
             margin-bottom: 2rem; line-height: 1.5;
         }
 
@@ -184,14 +185,14 @@
         }
 
         .confirm-modal-btn-cancel {
-            background: #f1f5f9; color: #475569;
+            background: var(--k-subtle); color: var(--k-text-2);
         }
-        .confirm-modal-btn-cancel:hover { background: #e2e8f0; }
+        .confirm-modal-btn-cancel:hover { background: var(--k-border); }
 
         .confirm-modal-btn-confirm {
-            background: #ef4444; color: white;
+            background: var(--k-danger); color: white;
         }
-        .confirm-modal-btn-confirm:hover { background: #dc2626; }
+        .confirm-modal-btn-confirm:hover { background: var(--k-danger); }
 
         /* Checklist Feature Widget */
         .checklist-widget {
@@ -251,7 +252,7 @@
             transition: all 0.2s ease;
         }
         .checklist-item.checked .checklist-text {
-            color: #64748b;
+            color: var(--k-muted);
             text-decoration: line-through;
         }
         /* Toast Notification */
@@ -259,7 +260,7 @@
             position: fixed;
             bottom: 24px;
             right: 24px;
-            background: #ffffff;
+            background: var(--k-surface);
             border-left: 4px solid #10b981;
             padding: 1rem 1.5rem;
             border-radius: 12px;
@@ -281,7 +282,7 @@
         }
 
         .toast-notification i {
-            color: #10b981;
+            color: var(--k-success-text);
             width: 20px;
             height: 20px;
         }
@@ -292,6 +293,10 @@
             color: var(--text-main);
         }
     </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="kylrx-theme.css">
 </head>
 <body class="admin-dashboard">
     <div class="dashboard-container">
@@ -397,7 +402,7 @@
                 <div class="ai-glass-card">
                     <p class="nav-label" style="margin:0 0 8px 0">Activation Rate</p>
                     <h2 id="overallCompletion" style="font-size: 1.875rem; font-weight: 800;">0.0%</h2>
-                    <p id="completionTrend" style="font-size: 0.75rem; color: #10b981; font-weight: 700;">Loading…</p>
+                    <p id="completionTrend" style="font-size: 0.75rem; color: var(--k-success-text); font-weight: 700;">Loading…</p>
                 </div>
                 <div class="ai-glass-card">
                     <p class="nav-label" style="margin:0 0 8px 0">Awaiting Activation</p>
@@ -436,10 +441,10 @@
                     <div class="checklist-widget" id="diagnosticsChecklist">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                             <div class="checklist-title" style="margin-bottom: 0;">AI Action Plan</div>
-                            <div id="checklistPercentage" style="font-size: 1rem; font-weight: 800; color: #ef4444;">0%</div>
+                            <div id="checklistPercentage" style="font-size: 1rem; font-weight: 800; color: var(--k-danger-text);">0%</div>
                         </div>
                         <div style="height: 6px; background: #3f3f46; border-radius: 4px; margin-bottom: 1.5rem; overflow: hidden;">
-                            <div id="checklistProgressBar" style="height: 100%; width: 0%; background: #ef4444; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+                            <div id="checklistProgressBar" style="height: 100%; width: 0%; background: var(--k-danger); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);"></div>
                         </div>
                         <div id="actionPlanItems"><div class="checklist-text" style="opacity:0.8;">Building your action plan…</div></div>
                     </div>
@@ -575,7 +580,7 @@
                 renderPlan(overview.plan);
                 initCharts(Object.keys(overview.weekly), Object.values(overview.weekly));
             } catch (err) {
-                document.getElementById('insightsContainer').innerHTML = `<p style="color:#b91c1c;font-size: 0.875rem;">Could not load onboarding data: ${esc(err.message)}</p>`;
+                document.getElementById('insightsContainer').innerHTML = `<p style="color:var(--k-danger-text);font-size: 0.875rem;">Could not load onboarding data: ${esc(err.message)}</p>`;
             }
         }
 
@@ -594,7 +599,7 @@
         function renderInsights(insights) {
             const container = document.getElementById('insightsContainer');
             if (!insights.length) {
-                container.innerHTML = '<div class="insight-item"><div class="insight-icon" style="color:#10b981;"><i data-lucide="check-circle"></i></div><div><h4 style="font-size: 0.875rem; font-weight: 800;">No onboarding issues</h4><p style="font-size: 0.8rem; color: var(--text-muted);">Everyone has signed in and profiles are complete.</p></div></div>';
+                container.innerHTML = '<div class="insight-item"><div class="insight-icon" style="color:var(--k-success-text);"><i data-lucide="check-circle"></i></div><div><h4 style="font-size: 0.875rem; font-weight: 800;">No onboarding issues</h4><p style="font-size: 0.8rem; color: var(--text-muted);">Everyone has signed in and profiles are complete.</p></div></div>';
                 icons();
                 return;
             }
@@ -838,13 +843,13 @@
     <!-- Insight Detail Modal -->
     <div class="confirm-modal-overlay" id="insightDetailModal">
         <div class="confirm-modal" style="max-width: 500px; width: 95%;">
-            <div class="confirm-modal-icon" id="insightModalIcon" style="background: #eff6ff; color: var(--primary);">
+            <div class="confirm-modal-icon" id="insightModalIcon" style="background: var(--k-accent-soft); color: var(--primary);">
                 <i data-lucide="info" style="width: 28px; height: 28px;"></i>
             </div>
             <h4 class="confirm-modal-title" id="insightModalTitle">Insight Details</h4>
             <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1rem;" id="insightModalSubtitle">Insight Subtitle</p>
             
-            <div id="insightModalContent" style="text-align: left; margin-bottom: 1.5rem; font-size: 0.875rem; line-height: 1.5; color: var(--text-main); background: #f8fafc; padding: 1rem; border-radius: 12px; border: 1px solid var(--border); max-height: 250px; overflow-y: auto;">
+            <div id="insightModalContent" style="text-align: left; margin-bottom: 1.5rem; font-size: 0.875rem; line-height: 1.5; color: var(--text-main); background: var(--k-subtle); padding: 1rem; border-radius: 12px; border: 1px solid var(--border); max-height: 250px; overflow-y: auto;">
                 <!-- Dynamic Content Here -->
             </div>
             
@@ -917,27 +922,27 @@
                 justify-content: center;
             }
             #customAppsModal .modal {
-                background: #ffffff !important;
-                color: #0f172a !important;
+                background: var(--k-surface) !important;
+                color: var(--k-text) !important;
                 padding: 2rem;
                 border-radius: 24px;
                 width: 90%;
                 max-width: 500px;
                 box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-                border: 1px solid #e2e8f0;
+                border: 1px solid var(--k-border);
                 position: relative;
                 text-align: left;
             }
             #customAppsModal .modal h2 {
                 font-weight: 800;
                 font-size: 1.25rem;
-                color: #0f172a !important;
+                color: var(--k-text) !important;
                 margin-bottom: 4px;
                 margin-top: 0;
             }
             #customAppsModal .modal p {
                 font-size: 0.75rem;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 margin: 0;
             }
             #customAppsModal .modal .form-group {
@@ -949,7 +954,7 @@
             #customAppsModal .modal label {
                 font-size: 0.7rem;
                 font-weight: 800;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 text-transform: uppercase;
                 display: block;
                 margin-bottom: 4px;
@@ -958,9 +963,9 @@
                 width: 100%;
                 padding: 12px 16px;
                 border-radius: 12px;
-                border: 1px solid #cbd5e1 !important;
-                background: #ffffff !important;
-                color: #0f172a !important;
+                border: 1px solid var(--k-border) !important;
+                background: var(--k-surface) !important;
+                color: var(--k-text) !important;
                 outline: none;
                 margin-top: 4px;
                 font-family: inherit;
@@ -968,15 +973,15 @@
                 transition: border-color 0.2s, box-shadow 0.2s;
             }
             #customAppsModal .modal input:focus {
-                border-color: #3b82f6 !important;
+                border-color: var(--k-accent) !important;
                 box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
             }
             #customAppsModal .modal input::placeholder {
-                color: #94a3b8 !important;
+                color: var(--k-muted) !important;
                 opacity: 0.8;
             }
             #customAppsModal .modal button.map-btn {
-                background: #3b82f6;
+                background: var(--k-accent);
                 color: white !important;
                 border: none;
                 border-radius: 12px;
@@ -990,13 +995,13 @@
                 margin-top: 0.5rem;
             }
             #customAppsModal .modal button.map-btn:hover {
-                background: #2563eb;
+                background: var(--k-accent);
                 transform: translateY(-1px);
             }
             #customAppsModal .modal h3 {
                 font-size: 0.7rem;
                 font-weight: 800;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 text-transform: uppercase;
                 margin-bottom: 10px;
                 margin-top: 0;
@@ -1008,8 +1013,8 @@
                 width: 36px;
                 height: 36px;
                 border-radius: 10px;
-                background: #f8fafc;
-                color: #64748b !important;
+                background: var(--k-subtle);
+                color: var(--k-muted) !important;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -1018,8 +1023,8 @@
                 border: none;
             }
             #customAppsModal .close-modal:hover {
-                color: #ef4444 !important;
-                background: #fee2e2;
+                color: var(--k-danger-text) !important;
+                background: var(--k-danger-soft);
             }
         </style>
         <div class="modal">
@@ -1043,7 +1048,7 @@
                 <button class="map-btn" onclick="addCustomApp()">Map Tool Link</button>
             </div>
 
-            <div style="border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
+            <div style="border-top: 1px solid var(--k-border); padding-top: 1.25rem;">
                 <h3>Mapped Connections</h3>
                 <div id="registryAppsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;">
                     <!-- Mapped apps inside the registry panel -->

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="kylrx-theme-init.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Policy Center | HRFlow</title>
@@ -69,8 +70,8 @@
             display: flex; align-items: center; justify-content: center;
             margin: 0 auto 1.5rem; font-size: 1.5rem;
         }
-        .modal-icon.success { background: #dcfce7; color: #10b981; }
-        .modal-icon.info { background: #dbeafe; color: #3b82f6; }
+        .modal-icon.success { background: var(--k-success-soft); color: var(--k-success-text); }
+        .modal-icon.info { background: var(--k-accent-soft); color: var(--k-accent-text); }
         
         .modal-title { font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; }
         .modal-desc { color: var(--text-muted); font-size: 0.875rem; margin-bottom: 2rem; line-height: 1.6; }
@@ -80,7 +81,7 @@
         @keyframes modalFadeIn { from { opacity: 0; } to { opacity: 1; } }
     
         .layout { display: grid; grid-template-columns: 280px 1fr; height: 100vh; overflow: hidden; }
-        .sidebar {background: #ffffff; border-right: 1px solid var(--border); padding: 2rem 1.5rem; display: flex; flex-direction: column; z-index: 100; overflow-y: auto; scrollbar-width: thin;
+        .sidebar {background: var(--k-surface); border-right: 1px solid var(--border); padding: 2rem 1.5rem; display: flex; flex-direction: column; z-index: 100; overflow-y: auto; scrollbar-width: thin;
             -ms-overflow-style: auto;}
         .sidebar::-webkit-scrollbar {
             width: 6px;
@@ -114,7 +115,7 @@
         .config-header h2 { font-weight: 800; font-size: 1.25rem; }
         .config-section { margin-bottom: 2rem; }
         .config-section h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--primary); margin-bottom: 1.25rem; font-weight: 800; }
-        .config-option { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 0.75rem; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border); }
+        .config-option { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 0.75rem; background: var(--k-subtle); border-radius: 12px; border: 1px solid var(--border); }
         .config-option span { font-size: 0.875rem; font-weight: 600; }
 
         /* switches */
@@ -151,6 +152,10 @@
         .policy-content.compact-policy { padding: 2rem; }
     </style>
     <link rel="stylesheet" href="sidebar-lock.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="kylrx-theme.css">
 </head>
 <body>
     <!-- No legacy script block here, all logic moved to the module script at the bottom to align with employee-notifications.html -->
@@ -212,8 +217,8 @@
                 <h1 style="font-size: 2.25rem; font-weight: 800; margin-top: 1rem; letter-spacing: -1px;">Policy Center</h1>
             </div>
             <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <div id="backendStatusPill" style="display: flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); transition: 0.3s;">
-                    <span id="backendStatusDot" style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block; box-shadow: 0 0 8px #10b981;"></span>
+                <div id="backendStatusPill" style="display: flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; background: var(--k-success-soft); color: var(--k-success-text); border: 1px solid var(--k-success-border); box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); transition: 0.3s;">
+                    <span id="backendStatusDot" style="width: 8px; height: 8px; border-radius: 50%; background: var(--k-success); display: inline-block; box-shadow: 0 0 8px #10b981;"></span>
                     <span id="backendStatusText">Firebase Backend Online</span>
                 </div>
                 <div style="font-size: 0.8rem; font-weight: 800; color: var(--text-muted); background: white; padding: 12px 16px; border-radius: 100px; border: 1px solid var(--border);">v2.4 • MAY 2026</div>

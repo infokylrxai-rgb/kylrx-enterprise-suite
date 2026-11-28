@@ -326,7 +326,7 @@ function populateWidgetContent(id) {
                 <div id="tvc-alert-stream" style="background: #0f172a; padding: 1rem; border-radius: 12px; font-family: monospace; font-size: 0.75rem; color: #10b981; min-height: 140px; overflow-y: auto; max-height: 200px;">
                     <div style="margin-bottom: 5px; opacity: 0.7;">[SYSTEM] Initializing Secure TVC Link...</div>
                     <div class="tvc-log-container" id="tvc-logs"></div>
-                    <div class="cursor" style="display: inline-block; width: 8px; height: 14px; background: #10b981; animation: blink 1s infinite;"></div>
+                    <div class="cursor" style="display: inline-block; width: 8px; height: 14px; background: var(--k-success); animation: blink 1s infinite;"></div>
                 </div>
                 <style>
                     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
@@ -361,11 +361,11 @@ function populateWidgetContent(id) {
             container.innerHTML = `
                 <div style="display:flex; flex-direction:column; gap:10px;">
                     <div style="padding:10px; background:rgba(16, 185, 129, 0.1); border-radius:8px; border-left:4px solid #10b981;">
-                        <div style="font-weight:700; font-size:0.8rem; color:#10b981;">Total Bonuses Paid</div>
+                        <div style="font-weight:700; font-size:0.8rem; color:var(--k-success-text);">Total Bonuses Paid</div>
                         <div id="stat-bonus-val" style="font-size:1.2rem; font-weight:800;">₹0</div>
                     </div>
                     <div style="padding:10px; background:rgba(239, 68, 68, 0.1); border-radius:8px; border-left:4px solid #ef4444;">
-                        <div style="font-weight:700; font-size:0.8rem; color:#ef4444;">Total Penalties Applied</div>
+                        <div style="font-weight:700; font-size:0.8rem; color:var(--k-danger-text);">Total Penalties Applied</div>
                         <div id="stat-penalty-val" style="font-size:1.2rem; font-weight:800;">₹0</div>
                     </div>
                 </div>
@@ -427,7 +427,7 @@ function populateWidgetContent(id) {
                         <div id="risk-attrition" class="ai-insight-desc">Scanning engagement metrics...</div>
                     </div>
                     <div class="ai-insight-item" style="border-left-color: #f59e0b;">
-                        <div class="ai-insight-title" style="color:#f59e0b;">Burnout Warning</div>
+                        <div class="ai-insight-title" style="color:var(--k-warning-text);">Burnout Warning</div>
                         <div id="risk-burnout" class="ai-insight-desc">Analyzing overtime patterns...</div>
                     </div>
                 </div>
@@ -1451,7 +1451,7 @@ function renderEmployeeTableRows(employees) {
         <tr style="${isTrashed ? 'opacity: 0.6; background: rgba(239, 68, 68, 0.02);' : ''}">
             <td>
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <div style="width: 38px; height: 38px; background: ${isManager ? 'var(--primary-light)' : '#f1f5f9'}; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; color: ${isManager ? 'var(--primary)' : '#64748b'}; border: 1px solid ${isManager ? 'var(--primary-soft)' : '#e2e8f0'};">
+                    <div style="width: 38px; height: 38px; background: ${isManager ? 'var(--primary-light)' : 'var(--k-subtle)'}; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; color: ${isManager ? 'var(--primary)' : 'var(--k-muted)'}; border: 1px solid ${isManager ? 'var(--primary-soft)' : 'var(--k-border)'};">
                         ${emp.name ? escapeHtml(emp.name.split(' ').map(n => n[0]).join('')) : '??'}
                     </div>
                     <div>
@@ -1466,20 +1466,20 @@ function renderEmployeeTableRows(employees) {
                 <div style="font-size: 0.7rem; color: var(--text-muted); font-family: monospace;">${escapeHtml(emp.departmentId || '---')}</div>
             </td>
             <td>
-                <span class="badge" style="background: ${isManager ? '#fee2e2' : ((emp.role || '').toLowerCase() === 'superadmin' ? '#e0e7ff' : ((emp.role || '').toLowerCase() === 'hradmin' || (emp.role || '').toLowerCase() === 'hrms' ? '#fce7f3' : '#dcfce7'))}; color: ${isManager ? '#ef4444' : ((emp.role || '').toLowerCase() === 'superadmin' ? '#4338ca' : ((emp.role || '').toLowerCase() === 'hradmin' || (emp.role || '').toLowerCase() === 'hrms' ? '#db2777' : '#10b981'))}; font-weight: 800; text-transform: uppercase; font-size: 0.65rem;">
+                <span class="badge" style="background: ${isManager ? 'var(--k-danger-soft)' : ((emp.role || '').toLowerCase() === 'superadmin' ? '#e0e7ff' : ((emp.role || '').toLowerCase() === 'hradmin' || (emp.role || '').toLowerCase() === 'hrms' ? '#fce7f3' : 'var(--k-success-soft)'))}; color: ${isManager ? 'var(--k-danger-text)' : ((emp.role || '').toLowerCase() === 'superadmin' ? '#4338ca' : ((emp.role || '').toLowerCase() === 'hradmin' || (emp.role || '').toLowerCase() === 'hrms' ? '#db2777' : 'var(--k-success-text)'))}; font-weight: 800; text-transform: uppercase; font-size: 0.65rem;">
                     ${escapeHtml((emp.role || 'employee').toLowerCase() === 'hradmin' ? 'HR ADMIN' : (emp.role || 'employee'))}
                 </span>
             </td>
             <td>
                 <div style="display: flex; flex-direction: column; gap: 4px; min-width: 160px;">
                     <div style="display: flex; align-items: center; gap: 6px;">
-                        <span class="badge-manager-l1" style="font-weight: 800; font-size: 0.65rem; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 1px 6px; border-radius: 4px; white-space: nowrap;">L1</span>
-                        <span style="font-size: 0.76rem; font-weight: 600; color: #1e293b; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(l1Display)}">${escapeHtml(l1Display)}</span>
+                        <span class="badge-manager-l1" style="font-weight: 800; font-size: 0.65rem; background: var(--k-accent-soft); color: var(--k-accent-text); border: 1px solid var(--k-accent-border); padding: 1px 6px; border-radius: 4px; white-space: nowrap;">L1</span>
+                        <span style="font-size: 0.76rem; font-weight: 600; color: var(--k-text); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(l1Display)}">${escapeHtml(l1Display)}</span>
                     </div>
                     ${l2Id ? `
                     <div style="display: flex; align-items: center; gap: 6px;">
                         <span class="badge-manager-l2" style="font-weight: 800; font-size: 0.65rem; background: #f5f3ff; color: #6d28d9; border: 1px solid #ddd6fe; padding: 1px 6px; border-radius: 4px; white-space: nowrap;">L2</span>
-                        <span style="font-size: 0.74rem; font-weight: 600; color: #64748b; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(l2Display)}">${escapeHtml(l2Display)}</span>
+                        <span style="font-size: 0.74rem; font-weight: 600; color: var(--k-muted); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(l2Display)}">${escapeHtml(l2Display)}</span>
                     </div>
                     ` : ''}
                 </div>
@@ -1506,7 +1506,7 @@ function renderEmployeeTableRows(employees) {
                         <i data-lucide="git-pull-request" size="14"></i>
                     </button>
                     ${emp.invite_status === 'pending' ? `
-                        <button class="btn-action" onclick="window.triggerEmailInvite('${escapeHtml(emp.id)}', '${escapeHtml(emp.email)}', '${escapeHtml(emp.tempPassword || '')}')" title="Trigger Email Invite" style="color: #f59e0b;">
+                        <button class="btn-action" onclick="window.triggerEmailInvite('${escapeHtml(emp.id)}', '${escapeHtml(emp.email)}', '${escapeHtml(emp.tempPassword || '')}')" title="Trigger Email Invite" style="color: var(--k-warning-text);">
                             <i data-lucide="mail" size="14"></i>
                         </button>
                     ` : ''}
@@ -1539,7 +1539,7 @@ function renderEmployeeCards(employees) {
 
     if (!employees || employees.length === 0) {
         cardGrid.innerHTML = `
-            <div style="grid-column: 1 / -1; text-align: center; padding: 3.5rem 1rem; color: var(--text-muted); background: #f8fafc; border-radius: 18px; border: 1px dashed var(--border);">
+            <div style="grid-column: 1 / -1; text-align: center; padding: 3.5rem 1rem; color: var(--text-muted); background: var(--k-subtle); border-radius: 18px; border: 1px dashed var(--border);">
                 <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
                     <i data-lucide="users" style="width: 36px; height: 36px; color: #cbd5e1;"></i>
                     <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-main);">No matching personnel records</div>
@@ -1593,7 +1593,7 @@ function renderEmployeeCards(employees) {
                 <div>
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 0.75rem;">
                         <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
-                            <div style="width: 40px; height: 40px; flex-shrink: 0; background: ${isManager ? 'var(--primary-light)' : '#f1f5f9'}; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.95rem; color: ${isManager ? 'var(--primary)' : '#64748b'}; border: 1px solid ${isManager ? 'var(--primary-soft)' : '#e2e8f0'};">
+                            <div style="width: 40px; height: 40px; flex-shrink: 0; background: ${isManager ? 'var(--primary-light)' : 'var(--k-subtle)'}; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.95rem; color: ${isManager ? 'var(--primary)' : 'var(--k-muted)'}; border: 1px solid ${isManager ? 'var(--primary-soft)' : 'var(--k-border)'};">
                                 ${emp.name ? escapeHtml(emp.name.split(' ').map(n => n[0]).join('')) : '??'}
                             </div>
                             <div style="min-width: 0;">
@@ -1617,24 +1617,24 @@ function renderEmployeeCards(employees) {
                         <span class="badge" style="background: ${roleBg}; color: ${roleColor}; font-weight: 800; font-size: 0.65rem;">
                             ${escapeHtml(roleLabel)}
                         </span>
-                        <span style="font-family: monospace; font-size: 0.72rem; font-weight: 700; color: #475569; background: #f1f5f9; padding: 2px 7px; border-radius: 6px; border: 1px solid #e2e8f0;" title="Employee ID">
+                        <span style="font-family: monospace; font-size: 0.72rem; font-weight: 700; color: var(--k-text-2); background: var(--k-subtle); padding: 2px 7px; border-radius: 6px; border: 1px solid var(--k-border);" title="Employee ID">
                             ${escapeHtml(emp.employeeId || emp.uid?.substring(0,6) || 'N/A')}
                         </span>
-                        <span style="font-size: 0.74rem; font-weight: 600; color: #3b82f6; background: #eff6ff; padding: 2px 8px; border-radius: 6px; border: 1px solid #dbeafe;" title="Department">
+                        <span style="font-size: 0.74rem; font-weight: 600; color: var(--k-accent-text); background: var(--k-accent-soft); padding: 2px 8px; border-radius: 6px; border: 1px solid var(--k-accent-border);" title="Department">
                             ${escapeHtml(emp.departmentName || emp.department || 'N/A')}
                         </span>
                     </div>
 
                     <!-- Details Box -->
-                    <div style="background: #f8fafc; border-radius: 12px; padding: 9px 11px; border: 1px solid #f1f5f9; display: flex; flex-direction: column; gap: 5px; font-size: 0.76rem;">
+                    <div style="background: var(--k-subtle); border-radius: 12px; padding: 9px 11px; border: 1px solid var(--k-border); display: flex; flex-direction: column; gap: 5px; font-size: 0.76rem;">
                         <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
                             <span style="color: var(--text-muted); font-size: 0.68rem; font-weight: 700; text-transform: uppercase;">Reporting L1:</span>
-                            <span style="font-weight: 600; color: #1e293b; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(l1Display)}">${escapeHtml(l1Display)}</span>
+                            <span style="font-weight: 600; color: var(--k-text); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(l1Display)}">${escapeHtml(l1Display)}</span>
                         </div>
                         ${l2Id ? `
                         <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
                             <span style="color: var(--text-muted); font-size: 0.68rem; font-weight: 700; text-transform: uppercase;">Reporting L2:</span>
-                            <span style="font-weight: 600; color: #64748b; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(l2Display)}">${escapeHtml(l2Display)}</span>
+                            <span style="font-weight: 600; color: var(--k-muted); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(l2Display)}">${escapeHtml(l2Display)}</span>
                         </div>
                         ` : ''}
                         <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
@@ -1660,7 +1660,7 @@ function renderEmployeeCards(employees) {
                             <i data-lucide="git-pull-request" size="14"></i>
                         </button>
                         ${emp.invite_status === 'pending' ? `
-                            <button class="btn-action" onclick="window.triggerEmailInvite('${escapeHtml(emp.id)}', '${escapeHtml(emp.email)}', '${escapeHtml(emp.tempPassword || '')}')" title="Trigger Email Invite" style="color: #f59e0b;">
+                            <button class="btn-action" onclick="window.triggerEmailInvite('${escapeHtml(emp.id)}', '${escapeHtml(emp.email)}', '${escapeHtml(emp.tempPassword || '')}')" title="Trigger Email Invite" style="color: var(--k-warning-text);">
                                 <i data-lucide="mail" size="14"></i>
                             </button>
                         ` : ''}

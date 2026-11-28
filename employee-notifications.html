@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="kylrx-theme-init.js"></script>
     <script src="config.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -176,7 +177,7 @@
         }
         .notif-item:last-child { border-bottom: none; }
         .notif-item.read { opacity: 0.65; }
-        .notif-item:hover { background: #f8fafc; }
+        .notif-item:hover { background: var(--k-subtle); }
 
         .notif-icon {
             width: 44px;
@@ -237,7 +238,7 @@
         .config-header h2 { font-weight: 800; font-size: 1.25rem; }
         .config-section { margin-bottom: 2rem; }
         .config-section h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--primary); margin-bottom: 1.25rem; font-weight: 800; }
-        .config-option { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 0.75rem; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border); }
+        .config-option { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 0.75rem; background: var(--k-subtle); border-radius: 12px; border: 1px solid var(--border); }
         .config-option span { font-size: 0.875rem; font-weight: 600; }
 
         /* switches */
@@ -301,9 +302,9 @@
             display: flex; align-items: center; justify-content: center;
             margin: 0 auto 1.5rem; font-size: 1.5rem;
         }
-        .modal-icon-status.error { background: #fee2e2; color: #ef4444; }
-        .modal-icon-status.success { background: #dcfce7; color: #10b981; }
-        .modal-icon-status.info { background: #dbeafe; color: #3b82f6; }
+        .modal-icon-status.error { background: var(--k-danger-soft); color: var(--k-danger-text); }
+        .modal-icon-status.success { background: var(--k-success-soft); color: var(--k-success-text); }
+        .modal-icon-status.info { background: var(--k-accent-soft); color: var(--k-accent-text); }
         
         .modal-title { font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; }
         .modal-desc { color: var(--text-muted); font-size: 0.875rem; margin-bottom: 2rem; line-height: 1.6; }
@@ -313,6 +314,10 @@
         @keyframes modalFadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
     <link rel="stylesheet" href="sidebar-lock.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="kylrx-theme.css">
 </head>
 <body>
 
@@ -382,8 +387,8 @@
                     <p class="sub-header">View and manage all real-time organizational updates</p>
                 </div>
                 <div style="display: flex; align-items: center; gap: 0.75rem;">
-                    <div id="backendStatusPill" style="display: flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; box-shadow: var(--shadow-sm); transition: 0.3s;">
-                        <span id="backendStatusDot" style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block; box-shadow: 0 0 8px #10b981;"></span>
+                    <div id="backendStatusPill" style="display: flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; background: var(--k-success-soft); color: var(--k-success-text); border: 1px solid var(--k-success-border); box-shadow: var(--shadow-sm); transition: 0.3s;">
+                        <span id="backendStatusDot" style="width: 8px; height: 8px; border-radius: 50%; background: var(--k-success); display: inline-block; box-shadow: 0 0 8px #10b981;"></span>
                         <span id="backendStatusText">Firebase Backend Online</span>
                     </div>
                     <div style="display: flex; align-items: center; gap: 0.75rem; background: white; padding: 6px; border-radius: 14px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
@@ -613,7 +618,7 @@
             const feedEl = document.getElementById('notificationsFeed');
             if (feedEl) {
                 const safe = String(message).replace(/[<>&]/g, '');
-                feedEl.innerHTML = `<div style="text-align:center; color:#991b1b; padding: 2rem 2rem;"><p style="font-weight:700;">Could not load notifications</p><p style="font-size: 0.875rem; margin-top:4px;">${safe}</p></div>`;
+                feedEl.innerHTML = `<div style="text-align:center; color:var(--k-danger-text); padding: 2rem 2rem;"><p style="font-weight:700;">Could not load notifications</p><p style="font-size: 0.875rem; margin-top:4px;">${safe}</p></div>`;
             }
             showToast('Could not load notifications: ' + message, true);
         }
@@ -841,11 +846,11 @@
             delModal.style.cssText = modalStyle;
             delModal.innerHTML = `
                 <div style="${contentStyle}">
-                    <h3 style="margin-top:0; margin-bottom:8px; color:#ef4444; font-size: 1.125rem; font-weight:700;">Clear Notification</h3>
-                    <p style="color:#475569; margin-bottom:20px; font-size: 0.875rem;">Are you sure you want to permanently clear this notification?</p>
+                    <h3 style="margin-top:0; margin-bottom:8px; color:var(--k-danger-text); font-size: 1.125rem; font-weight:700;">Clear Notification</h3>
+                    <p style="color:var(--k-text-2); margin-bottom:20px; font-size: 0.875rem;">Are you sure you want to permanently clear this notification?</p>
                     <div style="display:flex; justify-content:flex-end; gap:12px;">
-                        <button id="customDelNotifCancel" style="${btnStyle} border:1px solid #cbd5e1; background:white; color:#475569;">Cancel</button>
-                        <button id="customDelNotifConfirm" style="${btnStyle} border:none; background:#ef4444; color:white;">Clear</button>
+                        <button id="customDelNotifCancel" style="${btnStyle} border:1px solid #cbd5e1; background:white; color:var(--k-text-2);">Cancel</button>
+                        <button id="customDelNotifConfirm" style="${btnStyle} border:none; background:var(--k-danger); color:white;">Clear</button>
                     </div>
                 </div>
             `;
@@ -855,11 +860,11 @@
             clearAllModal.style.cssText = modalStyle;
             clearAllModal.innerHTML = `
                 <div style="${contentStyle}">
-                    <h3 style="margin-top:0; margin-bottom:8px; color:#ef4444; font-size: 1.125rem; font-weight:700;">Clear All Notifications</h3>
-                    <p style="color:#475569; margin-bottom:20px; font-size: 0.875rem;">Are you sure you want to permanently clear all notifications? This action cannot be undone.</p>
+                    <h3 style="margin-top:0; margin-bottom:8px; color:var(--k-danger-text); font-size: 1.125rem; font-weight:700;">Clear All Notifications</h3>
+                    <p style="color:var(--k-text-2); margin-bottom:20px; font-size: 0.875rem;">Are you sure you want to permanently clear all notifications? This action cannot be undone.</p>
                     <div style="display:flex; justify-content:flex-end; gap:12px;">
-                        <button id="customClearAllNotifCancel" style="${btnStyle} border:1px solid #cbd5e1; background:white; color:#475569;">Cancel</button>
-                        <button id="customClearAllNotifConfirm" style="${btnStyle} border:none; background:#ef4444; color:white;">Clear All</button>
+                        <button id="customClearAllNotifCancel" style="${btnStyle} border:1px solid #cbd5e1; background:white; color:var(--k-text-2);">Cancel</button>
+                        <button id="customClearAllNotifConfirm" style="${btnStyle} border:none; background:var(--k-danger); color:white;">Clear All</button>
                     </div>
                 </div>
             `;

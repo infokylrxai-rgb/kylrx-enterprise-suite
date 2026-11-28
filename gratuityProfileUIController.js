@@ -123,7 +123,7 @@
         const isDisbursed = paymentStatus === 'DISBURSED';
 
         return `
-        <div id="gratuityStatutoryMasterCard" class="modal-section-card" style="margin-bottom: 1.25rem; border: 1.5px solid #4338ca; border-radius: 16px; background: #ffffff; box-shadow: 0 4px 14px rgba(67, 56, 202, 0.08); overflow: hidden;">
+        <div id="gratuityStatutoryMasterCard" class="modal-section-card" style="margin-bottom: 1.25rem; border: 1.5px solid #4338ca; border-radius: 16px; background: var(--k-surface); box-shadow: 0 4px 14px rgba(67, 56, 202, 0.08); overflow: hidden;">
             <!-- Header Section -->
             <div style="background: linear-gradient(135deg, #1e1b4b 0%, #3730a3 50%, #4338ca 100%); padding: 1.15rem 1.25rem; display: flex; justify-content: space-between; align-items: center; color: white;">
                 <div style="display: flex; align-items: center; gap: 12px;">
@@ -143,7 +143,7 @@
                         <i data-lucide="${eligBadge.icon || 'check-circle'}" style="width: 12px; height: 12px;"></i>
                         <span>${eligBadge.label}</span>
                     </span>
-                    <button type="button" id="btnRecalculateGratuity" class="btn" style="background: #ffffff; color: #3730a3; font-size: 0.76rem; font-weight: 800; padding: 6px 14px; border-radius: 8px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.2s ease;">
+                    <button type="button" id="btnRecalculateGratuity" class="btn" style="background: var(--k-surface); color: #3730a3; font-size: 0.76rem; font-weight: 800; padding: 6px 14px; border-radius: 8px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.2s ease;">
                         <i data-lucide="refresh-cw" style="width: 12px; height: 12px;"></i>
                         <span>Recalculate</span>
                     </button>
@@ -154,63 +154,63 @@
             <div style="padding: 1.25rem;">
                 <!-- 1. Service Tenure & Statutory Eligibility Matrix (4 Highlights) -->
                 <div style="margin-bottom: 1.25rem;">
-                    <div style="font-size: 0.72rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                    <div style="font-size: 0.72rem; font-weight: 800; color: var(--k-text-2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
                         <i data-lucide="hourglass" style="width: 14px; height: 14px; color: #4f46e5;"></i>
                         Service Tenure &amp; Qualifying Statutory Vesting Matrix
                     </div>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
                         <!-- Continuous Service -->
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 12px;">
-                            <div style="font-size: 0.68rem; color: #64748b; font-weight: 700; text-transform: uppercase;">Continuous Service</div>
+                        <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 12px; padding: 10px 12px;">
+                            <div style="font-size: 0.68rem; color: var(--k-muted); font-weight: 700; text-transform: uppercase;">Continuous Service</div>
                             <div style="font-size: 1.05rem; font-weight: 800; color: #1e1b4b; margin-top: 2px;" id="gratuityContinuousYearsDisplay">${continuousYears} Years</div>
-                            <div style="font-size: 0.65rem; color: #94a3b8; margin-top: 2px;">DOJ: ${escapeHtml(doj)} ${doe ? `• DOE: ${escapeHtml(doe)}` : '• Active'}</div>
+                            <div style="font-size: 0.65rem; color: var(--k-muted); margin-top: 2px;">DOJ: ${escapeHtml(doj)} ${doe ? `• DOE: ${escapeHtml(doe)}` : '• Active'}</div>
                         </div>
 
                         <!-- Completed Qualifying Years -->
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 12px;">
-                            <div style="font-size: 0.68rem; color: #64748b; font-weight: 700; text-transform: uppercase;">Completed Years (Gratuity)</div>
+                        <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 12px; padding: 10px 12px;">
+                            <div style="font-size: 0.68rem; color: var(--k-muted); font-weight: 700; text-transform: uppercase;">Completed Years (Gratuity)</div>
                             <div style="font-size: 1.05rem; font-weight: 800; color: #4338ca; margin-top: 2px;" id="gratuityCompletedYearsDisplay">${completedYears} Years</div>
-                            <div style="font-size: 0.65rem; color: #15803d; margin-top: 2px; font-weight: 600;">
+                            <div style="font-size: 0.65rem; color: var(--k-success-text); margin-top: 2px; font-weight: 600;">
                                 <i data-lucide="check" style="width: 10px; height: 10px; display: inline;"></i> &gt;6 Mo Round-Up Rule Applied
                             </div>
                         </div>
 
                         <!-- Calculation Basis -->
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 12px;">
-                            <div style="font-size: 0.68rem; color: #64748b; font-weight: 700; text-transform: uppercase;">Statutory Formula</div>
-                            <div style="font-size: 0.95rem; font-weight: 800; color: #0f172a; margin-top: 3px;" id="gratuityFormulaDisplay">${escapeHtml(calculationBasis)}</div>
-                            <div style="font-size: 0.65rem; color: #64748b; margin-top: 2px;">(15 &times; Wages &times; Yrs) / 26</div>
+                        <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 12px; padding: 10px 12px;">
+                            <div style="font-size: 0.68rem; color: var(--k-muted); font-weight: 700; text-transform: uppercase;">Statutory Formula</div>
+                            <div style="font-size: 0.95rem; font-weight: 800; color: var(--k-text); margin-top: 3px;" id="gratuityFormulaDisplay">${escapeHtml(calculationBasis)}</div>
+                            <div style="font-size: 0.65rem; color: var(--k-muted); margin-top: 2px;">(15 &times; Wages &times; Yrs) / 26</div>
                         </div>
 
                         <!-- Form F Nominee Status -->
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 12px;">
-                            <div style="font-size: 0.68rem; color: #64748b; font-weight: 700; text-transform: uppercase;">Nominee Details (Form F)</div>
+                        <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 12px; padding: 10px 12px;">
+                            <div style="font-size: 0.68rem; color: var(--k-muted); font-weight: 700; text-transform: uppercase;">Nominee Details (Form F)</div>
                             <div style="margin-top: 4px;">
                                 <span style="padding: 3px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 800; background: ${nomBadge.bg}; color: ${nomBadge.color}; border: 1px solid ${nomBadge.border}; display: inline-flex; align-items: center; gap: 4px;">
                                     <i data-lucide="${nomBadge.icon || 'shield-check'}" style="width: 11px; height: 11px;"></i>
                                     <span>${nomBadge.label}</span>
                                 </span>
                             </div>
-                            <div style="font-size: 0.65rem; color: #64748b; margin-top: 2px;">${escapeHtml(schemePolicyName)}</div>
+                            <div style="font-size: 0.65rem; color: var(--k-muted); margin-top: 2px;">${escapeHtml(schemePolicyName)}</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- 2. Financial Wages & Accrued Gratuity Valuation -->
                 <div style="margin-bottom: 1.25rem;">
-                    <div style="font-size: 0.72rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                    <div style="font-size: 0.72rem; font-weight: 800; color: var(--k-text-2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
                         <i data-lucide="calculator" style="width: 14px; height: 14px; color: #4f46e5;"></i>
                         Last Drawn Wages &amp; Gratuity Liability Breakdown
                     </div>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
                         <!-- Wages Box -->
-                        <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 1px solid #bbf7d0; border-radius: 12px; padding: 12px;">
+                        <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 1px solid var(--k-success-border); border-radius: 12px; padding: 12px;">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span style="font-size: 0.7rem; font-weight: 800; color: #166534; text-transform: uppercase;">Eligible Wages (Basic + DA)</span>
-                                <span style="font-size: 0.65rem; color: #15803d; font-weight: 700;">Monthly</span>
+                                <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-success-text); text-transform: uppercase;">Eligible Wages (Basic + DA)</span>
+                                <span style="font-size: 0.65rem; color: var(--k-success-text); font-weight: 700;">Monthly</span>
                             </div>
                             <div style="font-size: 1.35rem; font-weight: 800; color: #14532d; margin-top: 4px;" id="gratuityWagesDisplay">${formatCurrency(eligibleSalary)}</div>
-                            <div style="font-size: 0.68rem; color: #166534; margin-top: 4px; display: flex; justify-content: space-between;">
+                            <div style="font-size: 0.68rem; color: var(--k-success-text); margin-top: 4px; display: flex; justify-content: space-between;">
                                 <span>Basic: <strong>${formatCurrency(basic)}</strong></span>
                                 <span>DA: <strong>${formatCurrency(da)}</strong></span>
                             </div>
@@ -225,18 +225,18 @@
                             <div style="font-size: 1.35rem; font-weight: 800; color: #1e1b4b; margin-top: 4px;" id="gratuityAccruedDisplay">${formatCurrency(finalAccrued)}</div>
                             <div style="font-size: 0.68rem; color: #3730a3; margin-top: 4px; display: flex; justify-content: space-between;">
                                 <span>Monthly Accrual: <strong>${formatCurrency(monthlyAccrual)}</strong></span>
-                                <span style="font-weight: 700; color: #15803d;">100% Tax-Exempt</span>
+                                <span style="font-weight: 700; color: var(--k-success-text);">100% Tax-Exempt</span>
                             </div>
                         </div>
 
                         <!-- Tax Relief Box (Section 10(10)) -->
-                        <div style="background: #fafafa; border: 1px solid #e5e5e5; border-radius: 12px; padding: 12px;">
+                        <div style="background: var(--k-subtle); border: 1px solid #e5e5e5; border-radius: 12px; padding: 12px;">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <span style="font-size: 0.7rem; font-weight: 800; color: #525252; text-transform: uppercase;">Section 10(10) Tax Exemption</span>
                                 <span style="font-size: 0.65rem; color: #737373; font-weight: 700;">Cap: ₹20,00,000</span>
                             </div>
                             <div style="font-size: 1.15rem; font-weight: 800; color: #171717; margin-top: 4px;" id="gratuityTaxExemptDisplay">${formatCurrency(taxExempt)}</div>
-                            <div style="font-size: 0.68rem; color: ${taxable > 0 ? '#b91c1c' : '#525252'}; margin-top: 4px;">
+                            <div style="font-size: 0.68rem; color: ${taxable > 0 ? 'var(--k-danger-text)' : '#525252'}; margin-top: 4px;">
                                 ${taxable > 0 ? `Taxable Excess: <strong>${formatCurrency(taxable)}</strong>` : 'Nil Taxable Excess (Under ₹20L Limit)'}
                             </div>
                         </div>
@@ -244,17 +244,17 @@
                 </div>
 
                 <!-- 3. Full & Final (F&F) Settlement & Decentro Fabric Disbursement Section -->
-                <div style="background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 14px; padding: 14px; margin-top: 1rem;">
+                <div style="background: var(--k-subtle); border: 1.5px solid var(--k-border); border-radius: 14px; padding: 14px; margin-top: 1rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <div style="width: 34px; height: 34px; border-radius: 8px; background: #e0e7ff; color: #3730a3; display: flex; align-items: center; justify-content: center;">
                                 <i data-lucide="landmark" style="width: 18px; height: 18px;"></i>
                             </div>
                             <div>
-                                <div style="font-size: 0.72rem; font-weight: 800; color: #1e293b; text-transform: uppercase;">
+                                <div style="font-size: 0.72rem; font-weight: 800; color: var(--k-text); text-transform: uppercase;">
                                     Full &amp; Final (F&amp;F) Settlement Gateway • Decentro Fabric
                                 </div>
-                                <div style="font-size: 0.7rem; color: #64748b; margin-top: 1px;">
+                                <div style="font-size: 0.7rem; color: var(--k-muted); margin-top: 1px;">
                                     Automated Core Banking Disbursal &amp; Statutory Discharge Notice
                                 </div>
                             </div>
@@ -268,29 +268,29 @@
                     </div>
 
                     <!-- Settlement Info Details Bar -->
-                    <div style="margin-top: 10px; padding: 10px 12px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; font-size: 0.73rem;">
+                    <div style="margin-top: 10px; padding: 10px 12px; background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; font-size: 0.73rem;">
                         <div>
-                            <span style="color: #64748b;">Payment Date:</span>
-                            <strong style="color: #0f172a; margin-left: 4px;" id="gratuityPaymentDateDisplay">${escapeHtml(paymentDate || (isDisbursed ? '2026-05-20' : 'Pending Settlement'))}</strong>
+                            <span style="color: var(--k-muted);">Payment Date:</span>
+                            <strong style="color: var(--k-text); margin-left: 4px;" id="gratuityPaymentDateDisplay">${escapeHtml(paymentDate || (isDisbursed ? '2026-05-20' : 'Pending Settlement'))}</strong>
                         </div>
                         <div>
-                            <span style="color: #64748b;">Decentro UTR / Ref:</span>
-                            <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #1e40af; font-weight: 700; margin-left: 4px;" id="gratuityPaymentRefDisplay">${escapeHtml(paymentReference || (isDisbursed ? 'UTR_DEC_20260520_918234' : 'Awaiting Disbursement'))}</code>
+                            <span style="color: var(--k-muted);">Decentro UTR / Ref:</span>
+                            <code style="background: var(--k-subtle); padding: 2px 6px; border-radius: 4px; color: var(--k-accent-text); font-weight: 700; margin-left: 4px;" id="gratuityPaymentRefDisplay">${escapeHtml(paymentReference || (isDisbursed ? 'UTR_DEC_20260520_918234' : 'Awaiting Disbursement'))}</code>
                         </div>
                         <div>
-                            <span style="color: #64748b;">Beneficiary Bank:</span>
-                            <strong style="color: #0f172a; margin-left: 4px;">HDFC Bank (Primary Salary A/C)</strong>
+                            <span style="color: var(--k-muted);">Beneficiary Bank:</span>
+                            <strong style="color: var(--k-text); margin-left: 4px;">HDFC Bank (Primary Salary A/C)</strong>
                         </div>
                     </div>
 
                     <!-- Action Buttons -->
                     <div style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 12px;">
-                        <button type="button" id="btnViewFormINotice" class="btn" style="background: #ffffff; color: #334155; border: 1px solid #cbd5e1; font-size: 0.76rem; font-weight: 700; padding: 8px 14px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                        <button type="button" id="btnViewFormINotice" class="btn" style="background: var(--k-surface); color: var(--k-text-2); border: 1px solid var(--k-border); font-size: 0.76rem; font-weight: 700; padding: 8px 14px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
                             <i data-lucide="file-text" style="width: 13px; height: 13px;"></i>
                             <span>View Form I (Claim Notice)</span>
                         </button>
 
-                        <button type="button" id="btnInitiateGratuitySettlement" class="btn" style="background: ${isDisbursed ? '#10b981' : '#4338ca'}; color: #ffffff; border: none; font-size: 0.78rem; font-weight: 800; padding: 8px 18px; border-radius: 8px; cursor: ${isDisbursed ? 'default' : 'pointer'}; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(67, 56, 202, 0.25);" ${isDisbursed ? 'disabled' : ''}>
+                        <button type="button" id="btnInitiateGratuitySettlement" class="btn" style="background: ${isDisbursed ? 'var(--k-success)' : '#4338ca'}; color: var(--k-on-success); border: none; font-size: 0.78rem; font-weight: 800; padding: 8px 18px; border-radius: 8px; cursor: ${isDisbursed ? 'default' : 'pointer'}; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(67, 56, 202, 0.25);" ${isDisbursed ? 'disabled' : ''}>
                             <i data-lucide="${isDisbursed ? 'check-check' : 'send'}" id="gratuitySettleIcon" style="width: 14px; height: 14px;"></i>
                             <span id="gratuitySettleBtnText">${isDisbursed ? 'Settlement Disbursed' : 'Initiate Gratuity Settlement (Decentro)'}</span>
                         </button>
@@ -301,7 +301,7 @@
 
         <!-- Embedded Form I Modal Container (Hidden by default) -->
         <div id="gratuityFormIModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 9999; justify-content: center; align-items: center; padding: 20px;">
-            <div style="background: #ffffff; border-radius: 16px; width: 100%; max-width: 820px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);">
+            <div style="background: var(--k-surface); border-radius: 16px; width: 100%; max-width: 820px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);">
                 <div style="background: #0f172a; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; color: white;">
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <i data-lucide="file-check" style="width: 18px; height: 18px; color: #818cf8;"></i>
@@ -311,7 +311,7 @@
                         <button type="button" id="btnPrintFormINotice" style="background: #334155; color: white; border: none; padding: 5px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer;">
                             <i data-lucide="printer" style="width: 12px; height: 12px; display: inline;"></i> Print / PDF
                         </button>
-                        <button type="button" id="btnCloseFormIModal" style="background: transparent; color: #94a3b8; border: none; font-size: 1.2rem; cursor: pointer; line-height: 1;">&times;</button>
+                        <button type="button" id="btnCloseFormIModal" style="background: transparent; color: var(--k-muted); border: none; font-size: 1.2rem; cursor: pointer; line-height: 1;">&times;</button>
                     </div>
                 </div>
                 <div id="gratuityFormIContent" style="padding: 24px; overflow-y: auto; flex-grow: 1;">
@@ -331,7 +331,7 @@
 
         const service = getService();
         const orgId = options.orgId || (typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null);
-        if (!orgId) { container.innerHTML = '<div style="padding: 1rem; color: #ef4444;">No organization found for the signed-in user. Sign in again.</div>'; return; }
+        if (!orgId) { container.innerHTML = '<div style="padding: 1rem; color: var(--k-danger-text);">No organization found for the signed-in user. Sign in again.</div>'; return; }
 
         let gratuityDetails = null;
         if (service && typeof service.getGratuityDetails === 'function') {
@@ -343,7 +343,7 @@
         }
 
         if (!gratuityDetails) {
-            container.innerHTML = '<div style="padding: 1rem; color: #64748b;">No details added yet</div>';
+            container.innerHTML = '<div style="padding: 1rem; color: var(--k-muted);">No details added yet</div>';
             return;
         }
 

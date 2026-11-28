@@ -784,7 +784,7 @@ async function applySimulatedTransition() {
                 </div>
                 <div class="center-modal-list-item">
                     <span class="item-label">New Type</span>
-                    <span class="item-val" style="color: #2563eb;">${escapeHtml(prospectiveType)} (Regularized)</span>
+                    <span class="item-val" style="color: var(--k-accent-text);">${escapeHtml(prospectiveType)} (Regularized)</span>
                 </div>
                 <div class="center-modal-list-item">
                     <span class="item-label">Effective Date</span>
@@ -792,13 +792,13 @@ async function applySimulatedTransition() {
                 </div>
                 <div class="center-modal-list-item">
                     <span class="item-label">Historical Records</span>
-                    <span class="item-val" style="color: #059669; display: flex; align-items: center; justify-content: flex-end; gap: 4px;">
+                    <span class="item-val" style="color: var(--k-success-text); display: flex; align-items: center; justify-content: flex-end; gap: 4px;">
                         <i data-lucide="shield-check" size="14"></i> PRESERVED &amp; SEALED (SHA-256)
                     </span>
                 </div>
                 <div class="center-modal-list-item">
                     <span class="item-label">Cloud Firestore</span>
-                    <span class="item-val" style="color: #059669; display: flex; align-items: center; justify-content: flex-end; gap: 4px;">
+                    <span class="item-val" style="color: var(--k-success-text); display: flex; align-items: center; justify-content: flex-end; gap: 4px;">
                         <i data-lucide="cloud" size="14"></i> Saved &amp; Confirmed
                     </span>
                 </div>
@@ -824,7 +824,7 @@ function renderMatrixCatalog() {
     let html = '';
     matrixRules.forEach(rule => {
         html += `
-            <div style="border:1px solid #e2e8f0; border-radius:12px; padding:1.2rem; margin-bottom:12px; background:#f8fafc;">
+            <div style="border:1px solid var(--k-border); border-radius:12px; padding:1.2rem; margin-bottom:12px; background:var(--k-subtle);">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <div style="font-weight:800; font-size:1rem; color:var(--text-main);">${escapeHtml(rule.name)}</div>
                     <span class="cat-badge" style="background:#e0e7ff; color:#3730a3;">Priority: ${rule.priority}</span>

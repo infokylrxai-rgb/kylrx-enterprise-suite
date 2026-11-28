@@ -334,7 +334,7 @@
         if (!tbody) return;
 
         if (state.recipientsList.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 2rem; color: #64748b;">No recipients selected. Click "Load Your People".</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 2rem; color: var(--k-muted);">No recipients selected. Click "Load Your People".</td></tr>`;
             return;
         }
 
@@ -346,26 +346,26 @@
 
             return `
                 <tr style="border-bottom: 1px solid var(--border); transition: background 0.15s;">
-                    <td style="padding: 10px 14px; font-weight: 700; font-size: 0.8rem; color: #334155;">#${idx + 1}</td>
-                    <td style="padding: 10px 14px; font-weight: 700; font-size: 0.85rem; color: #0f172a;">${escapeHtml(r.name)}</td>
-                    <td style="padding: 10px 14px; font-size: 0.82rem; color: ${isBadEmail ? '#ef4444; font-weight: 700;' : '#475569;'}">
+                    <td style="padding: 10px 14px; font-weight: 700; font-size: 0.8rem; color: var(--k-text-2);">#${idx + 1}</td>
+                    <td style="padding: 10px 14px; font-weight: 700; font-size: 0.85rem; color: var(--k-text);">${escapeHtml(r.name)}</td>
+                    <td style="padding: 10px 14px; font-size: 0.82rem; color: ${isBadEmail ? 'var(--k-danger-text); font-weight: 700;' : '#475569;'}">
                         ${escapeHtml(r.email)} ${isBadEmail ? '⚠️' : ''}
                     </td>
-                    <td style="padding: 10px 14px; font-size: 0.82rem; color: #64748b;">${escapeHtml(r.department)}</td>
+                    <td style="padding: 10px 14px; font-size: 0.82rem; color: var(--k-muted);">${escapeHtml(r.department)}</td>
                     <td style="padding: 10px 14px;">
                         ${isOptedOut 
-                            ? '<span style="background: #fee2e2; color: #b91c1c; font-size: 0.68rem; font-weight: 800; padding: 2px 6px; border-radius: 4px;">Opted Out</span>'
-                            : '<span style="background: #dcfce7; color: #15803d; font-size: 0.68rem; font-weight: 800; padding: 2px 6px; border-radius: 4px;">Consent Granted</span>'}
+                            ? '<span style="background: var(--k-danger-soft); color: var(--k-danger-text); font-size: 0.68rem; font-weight: 800; padding: 2px 6px; border-radius: 4px;">Opted Out</span>'
+                            : '<span style="background: var(--k-success-soft); color: var(--k-success-text); font-size: 0.68rem; font-weight: 800; padding: 2px 6px; border-radius: 4px;">Consent Granted</span>'}
                     </td>
                     <td style="padding: 10px 14px; text-align: right;">
-                        <button data-remove-recipient="${escapeHtml(r.id)}" style="background:none; border:none; color:#ef4444; cursor:pointer;" title="Remove">✕</button>
+                        <button data-remove-recipient="${escapeHtml(r.id)}" style="background:none; border:none; color:var(--k-danger-text); cursor:pointer;" title="Remove">✕</button>
                     </td>
                 </tr>
             `;
         }).join('');
 
         if (state.recipientsList.length > 50) {
-            tbody.innerHTML += `<tr><td colspan="6" style="text-align: center; padding: 8px; font-size: 0.75rem; color: #64748b; background: #f8fafc;">... and ${state.recipientsList.length - 50} more items in this cohort</td></tr>`;
+            tbody.innerHTML += `<tr><td colspan="6" style="text-align: center; padding: 8px; font-size: 0.75rem; color: var(--k-muted); background: var(--k-subtle);">... and ${state.recipientsList.length - 50} more items in this cohort</td></tr>`;
         }
     }
 
@@ -449,7 +449,7 @@
             if (data.invalidCount > 0 && data.invalidItems) {
                 warningsBox.style.display = 'block';
                 warningsBox.innerHTML = `
-                    <div style="font-weight: 700; color: #b91c1c; font-size: 0.8rem; margin-bottom: 4px;">
+                    <div style="font-weight: 700; color: var(--k-danger-text); font-size: 0.8rem; margin-bottom: 4px;">
                         ⚠️ ${data.invalidCount} item(s) will be excluded from dispatch:
                     </div>
                     <ul style="margin: 0; padding-left: 18px; font-size: 0.75rem; color: #7f1d1d; line-height: 1.4;">
@@ -529,11 +529,11 @@
         box.innerHTML = `
             <div class="ai-review-card">
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <strong style="font-size: 1.25rem; color: ${color};">${review.score}<span style="font-size: 0.7rem; color: #94a3b8;">/100</span></strong>
+                    <strong style="font-size: 1.25rem; color: ${color};">${review.score}<span style="font-size: 0.7rem; color: var(--k-muted);">/100</span></strong>
                     <span style="font-size: 0.78rem; font-weight: 800; color: ${color};">${label}</span>
                 </div>
                 ${review.issues.map(i => `<div class="ai-review-item" style="background: ${sev[i.severity][0]}; color: ${sev[i.severity][1]};"><strong>${escapeHtml(i.severity.toUpperCase())}</strong> · ${escapeHtml(i.message)}</div>`).join('')}
-                ${review.suggestions.map(s => `<div style="font-size: 0.76rem; color: #334155;">• ${escapeHtml(s)}</div>`).join('')}
+                ${review.suggestions.map(s => `<div style="font-size: 0.76rem; color: var(--k-text-2);">• ${escapeHtml(s)}</div>`).join('')}
             </div>`;
     }
 
@@ -653,14 +653,14 @@
         const batchesContainer = document.getElementById('monitorBatchesList');
         if (batchesContainer) {
             batchesContainer.innerHTML = `
-                <div style="grid-column: 1 / -1; background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 14px; padding: 2rem 1.5rem; text-align: center;">
+                <div style="grid-column: 1 / -1; background: var(--k-subtle); border: 1.5px dashed var(--k-border); border-radius: 14px; padding: 2rem 1.5rem; text-align: center;">
                     <div style="font-size: 2rem; margin-bottom: 6px;">📋</div>
-                    <h4 style="font-size: 1rem; font-weight: 800; color: #0f172a; margin: 0 0 6px 0;">No Batch Job Currently Executing</h4>
-                    <p style="font-size: 0.82rem; color: #64748b; max-width: 520px; margin: 0 auto 16px auto; line-height: 1.5;">
+                    <h4 style="font-size: 1rem; font-weight: 800; color: var(--k-text); margin: 0 0 6px 0;">No Batch Job Currently Executing</h4>
+                    <p style="font-size: 0.82rem; color: var(--k-muted); max-width: 520px; margin: 0 auto 16px auto; line-height: 1.5;">
                         Choose an action and recipients in <strong>Tab 1 (Trigger Configuration)</strong>, then start the job to follow its batches here.
                     </p>
                     <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-                        <button onclick="switchToTab('trigger')" style="background: white; border: 1.5px solid #cbd5e1; color: #0f172a; padding: 9px 16px; border-radius: 10px; font-weight: 700; font-size: 0.82rem; cursor: pointer;">
+                        <button onclick="switchToTab('trigger')" style="background: white; border: 1.5px solid var(--k-border); color: var(--k-text); padding: 9px 16px; border-radius: 10px; font-weight: 700; font-size: 0.82rem; cursor: pointer;">
                             👈 Go to Trigger Configuration
                         </button>
                     </div>
@@ -795,24 +795,24 @@
                 const isPartially = b.status === 'partially_completed';
                 const isRunning = b.status === 'processing';
 
-                let badgeHtml = '<span style="font-size: 0.72rem; font-weight: 800; background: #dcfce7; color: #15803d; padding: 3px 8px; border-radius: 6px;">✓ Completed</span>';
+                let badgeHtml = '<span style="font-size: 0.72rem; font-weight: 800; background: var(--k-success-soft); color: var(--k-success-text); padding: 3px 8px; border-radius: 6px;">✓ Completed</span>';
                 if (bFail > 0 || isPartially) {
-                    badgeHtml = '<span style="font-size: 0.72rem; font-weight: 800; background: #fee2e2; color: #b91c1c; padding: 3px 8px; border-radius: 6px;">⚠️ Has Failures</span>';
+                    badgeHtml = '<span style="font-size: 0.72rem; font-weight: 800; background: var(--k-danger-soft); color: var(--k-danger-text); padding: 3px 8px; border-radius: 6px;">⚠️ Has Failures</span>';
                 } else if (isRunning) {
-                    badgeHtml = '<span style="font-size: 0.72rem; font-weight: 800; background: #fef3c7; color: #b45309; padding: 3px 8px; border-radius: 6px;">⏳ Processing</span>';
+                    badgeHtml = '<span style="font-size: 0.72rem; font-weight: 800; background: var(--k-warning-soft); color: var(--k-warning-text); padding: 3px 8px; border-radius: 6px;">⏳ Processing</span>';
                 }
 
                 return `
-                    <div style="background: white; border: 1.5px solid ${bFail > 0 ? '#fca5a5' : '#e2e8f0'}; border-radius: 12px; padding: 12px; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="background: white; border: 1.5px solid ${bFail > 0 ? 'var(--k-danger-border)' : 'var(--k-border)'}; border-radius: 12px; padding: 12px; display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 4px;">
-                                <span style="font-size: 0.72rem; font-weight: 800; background: #eff6ff; color: #2563eb; padding: 2px 6px; border-radius: 6px;">
+                                <span style="font-size: 0.72rem; font-weight: 800; background: var(--k-accent-soft); color: var(--k-accent-text); padding: 2px 6px; border-radius: 6px;">
                                     Batch ${b.batchIndex}
                                 </span>
-                                <strong style="font-size: 0.85rem; color: #0f172a;">${b.size} items</strong>
+                                <strong style="font-size: 0.85rem; color: var(--k-text);">${b.size} items</strong>
                             </div>
-                            <div style="font-size: 0.72rem; color: #64748b;">
-                                Completed: <span style="color: #10b981; font-weight: 700;">${bSuccess}</span> | Failed: <span style="color: #ef4444; font-weight: 700;">${bFail}</span>
+                            <div style="font-size: 0.72rem; color: var(--k-muted);">
+                                Completed: <span style="color: var(--k-success-text); font-weight: 700;">${bSuccess}</span> | Failed: <span style="color: var(--k-danger-text); font-weight: 700;">${bFail}</span>
                             </div>
                         </div>
                         <div>
@@ -841,7 +841,7 @@
                                     ${escapeHtml(f.errorReason)}
                                 </div>
                             </div>
-                            <span style="font-size: 0.68rem; font-weight: 800; background: #fee2e2; color: #e11d48; padding: 3px 8px; border-radius: 6px;">
+                            <span style="font-size: 0.68rem; font-weight: 800; background: var(--k-danger-soft); color: #e11d48; padding: 3px 8px; border-radius: 6px;">
                                 ${escapeHtml(f.errorCode || 'DISPATCH_ERROR')}
                             </span>
                         </div>
@@ -1034,7 +1034,7 @@
         if (!container) return;
 
         if (!logs || logs.length === 0) {
-            container.innerHTML = '<div style="text-align: center; padding: 2rem; color: #64748b;">No bulk trigger audit records logged yet.</div>';
+            container.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--k-muted);">No bulk trigger audit records logged yet.</div>';
             return;
         }
 
@@ -1046,18 +1046,18 @@
                 <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 10px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                         <div style="display: flex; gap: 8px; align-items: center;">
-                            <span style="font-size: 0.75rem; font-weight: 800; background: #eff6ff; color: #2563eb; padding: 2px 6px; border-radius: 6px;">${escapeHtml(l.action)}</span>
-                            <strong style="font-size: 0.85rem; color: #0f172a;">Job: ${escapeHtml(l.jobId)}</strong>
+                            <span style="font-size: 0.75rem; font-weight: 800; background: var(--k-accent-soft); color: var(--k-accent-text); padding: 2px 6px; border-radius: 6px;">${escapeHtml(l.action)}</span>
+                            <strong style="font-size: 0.85rem; color: var(--k-text);">Job: ${escapeHtml(l.jobId)}</strong>
                         </div>
-                        <span style="font-size: 0.72rem; color: #64748b;">${dateStr}</span>
+                        <span style="font-size: 0.72rem; color: var(--k-muted);">${dateStr}</span>
                     </div>
 
-                    <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: #334155; margin-bottom: 6px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--k-text-2); margin-bottom: 6px;">
                         <span>Initiator: <strong>${escapeHtml(l.initiator?.name || 'Admin')}</strong> (${escapeHtml(l.initiator?.role || 'admin')})</span>
-                        <span>Total: <strong>${l.count?.total || 0}</strong> | Succeeded: <strong style="color: #10b981;">${l.count?.success || 0}</strong> | Failed: <strong style="color: #ef4444;">${l.count?.failed || 0}</strong></span>
+                        <span>Total: <strong>${l.count?.total || 0}</strong> | Succeeded: <strong style="color: var(--k-success-text);">${l.count?.success || 0}</strong> | Failed: <strong style="color: var(--k-danger-text);">${l.count?.failed || 0}</strong></span>
                     </div>
 
-                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; color: #64748b; border-top: 1px dashed #e2e8f0; padding-top: 6px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; color: var(--k-muted); border-top: 1px dashed var(--k-border); padding-top: 6px;">
                         <span>Batches: ${l.count?.batches || 1} (Size: ${l.count?.batchSize || 20})</span>
                         <span style="font-family: monospace; color: #0284c7;" title="Cryptographic SHA-256 Signature">🔒 ${escapeHtml(hashSnippet)}</span>
                     </div>
@@ -1390,7 +1390,7 @@
             const configs = json.data || [];
 
             if (configs.length === 0) {
-                container.innerHTML = '<div style="text-align: center; padding: 2rem; color: #64748b;">No configurations found in this view.</div>';
+                container.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--k-muted);">No configurations found in this view.</div>';
                 return;
             }
 
@@ -1410,21 +1410,21 @@
                                 <div>
                                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                                         <span style="font-size: 0.72rem; font-weight: 800; padding: 2px 8px; border-radius: 12px; text-transform: uppercase; ${badgeColor}">${c.status}</span>
-                                        <span style="font-size: 0.7rem; color: #64748b;">${new Date(c.updatedAt).toLocaleDateString()}</span>
+                                        <span style="font-size: 0.7rem; color: var(--k-muted);">${new Date(c.updatedAt).toLocaleDateString()}</span>
                                     </div>
-                                    <h5 style="font-size: 0.95rem; font-weight: 800; color: #0f172a; margin: 0 0 6px 0;">${escapeHtml(c.name)}</h5>
-                                    <p style="font-size: 0.76rem; color: #64748b; margin: 0 0 10px 0; line-height: 1.4;">${escapeHtml(c.description || '')}</p>
+                                    <h5 style="font-size: 0.95rem; font-weight: 800; color: var(--k-text); margin: 0 0 6px 0;">${escapeHtml(c.name)}</h5>
+                                    <p style="font-size: 0.76rem; color: var(--k-muted); margin: 0 0 10px 0; line-height: 1.4;">${escapeHtml(c.description || '')}</p>
                                     
-                                    <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 0.74rem; margin-bottom: 10px;">
-                                        <div>Trigger: <strong style="font-family: monospace; color: #2563eb;">${escapeHtml(c.triggers?.eventKey || 'N/A')}</strong></div>
+                                    <div style="background: var(--k-subtle); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 0.74rem; margin-bottom: 10px;">
+                                        <div>Trigger: <strong style="font-family: monospace; color: var(--k-accent-text);">${escapeHtml(c.triggers?.eventKey || 'N/A')}</strong></div>
                                         <div>Condition: <strong>${escapeHtml(c.conditions?.metric || '')} ${escapeHtml(c.conditions?.comparator || '')} ${c.conditions?.thresholdValue}</strong></div>
                                         <div>Recipients: <strong>${(c.recipients || []).map(r => r.role || r.target).join(', ')}</strong></div>
                                     </div>
                                 </div>
 
                                 <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 4px;">
-                                    <span style="font-size: 0.7rem; color: #64748b;">${isActive ? `Activated by ${escapeHtml(c.activatedBy?.name || 'Admin')}` : 'Requires user approval'}</span>
-                                    <button onclick="loadAiDraftIntoWorkspace('${c.id}')" style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 5px 10px; border-radius: 6px; font-size: 0.74rem; font-weight: 700; cursor: pointer;">
+                                    <span style="font-size: 0.7rem; color: var(--k-muted);">${isActive ? `Activated by ${escapeHtml(c.activatedBy?.name || 'Admin')}` : 'Requires user approval'}</span>
+                                    <button onclick="loadAiDraftIntoWorkspace('${c.id}')" style="background: var(--k-accent-soft); color: var(--k-accent-text); border: 1px solid var(--k-accent-border); padding: 5px 10px; border-radius: 6px; font-size: 0.74rem; font-weight: 700; cursor: pointer;">
                                         Inspect / Review →
                                     </button>
                                 </div>
@@ -1513,7 +1513,7 @@
     function showToast(msg) {
         const toast = document.createElement('div');
         toast.style.cssText = 'position: fixed; bottom: 24px; right: 24px; background: #0f172a; color: white; padding: 12px 20px; border-radius: 12px; font-size: 0.82rem; font-weight: 700; z-index: 10000; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 8px; border: 1px solid #334155;';
-        toast.innerHTML = `<span style="color: #10b981;">✓</span> <span>${escapeHtml(msg)}</span>`;
+        toast.innerHTML = `<span style="color: var(--k-success-text);">✓</span> <span>${escapeHtml(msg)}</span>`;
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 3400);
     }
