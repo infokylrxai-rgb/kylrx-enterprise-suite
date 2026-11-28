@@ -83,6 +83,20 @@ service cloud.firestore {
       return signedIn() && isSuperAdmin() && isOrgConfigured(orgId);
     }
 
+    // A view-only role. Deliberately NOT part of isStaff(), canAccessStaff() or
+    // canAccessAdmin(): those guard 15, 6 and 45 write rules respectively, so including an
+    // auditor in any of them would hand it write access to the whole tenant. It is wired
+    // only into read rules, through canView() below.
+    function isAuditor() {
+      return signedIn() && getRole() in ['auditor', 'Auditor', 'AUDITOR'];
+    }
+
+    // Anyone allowed to READ what staff can read: staff themselves, plus an auditor.
+    // Used in place of canAccessStaff()/canAccessAdmin() on read rules ONLY.
+    function canView() {
+      return canAccessStaff() || (isAuditor() && isOrgConfigured(getOrgId()));
+    }
+
     function canAccessStaff() {
       let orgId = getOrgId();
       return signedIn() && isStaff() && (isOrgConfigured(orgId) || !isSuperAdmin());
@@ -166,7 +180,7 @@ service cloud.firestore {
 
       // Audit logs: Append-only via backend Cloud Functions
       match /audit_logs/{logId} {
-        allow read: if canAccessAdmin() && isSameTenant(orgId);
+        allow read: if canView() && isSameTenant(orgId);
         allow write: if false;
       }
 
@@ -292,7 +306,7 @@ service cloud.firestore {
 
     // Master Company Settings & Command Center
     match /admin_settings/{settingId} {
-      allow read: if canAccessAdmin() && tenantRead();
+      allow read: if canView() && tenantRead();
       allow create: if canAccessAdmin() && tenantCreate();
       allow update: if canAccessAdmin() && tenantUpdate();
       allow delete: if canAccessAdmin() && tenantRead();
@@ -320,7 +334,7 @@ service cloud.firestore {
 
     // Payroll Documents
     match /payroll_documents/{docId} {
-      allow read: if tenantRead() && (canAccessAdmin() || ownsEmployeeId(resource.data.employeeId));
+      allow read: if tenantRead() && (canView() || ownsEmployeeId(resource.data.employeeId));
       allow create: if canAccessAdmin() && tenantCreate();
       allow update: if canAccessAdmin() && tenantUpdate();
       allow delete: if canAccessAdmin() && tenantRead();
@@ -328,7 +342,7 @@ service cloud.firestore {
 
     // Statutory Policy Configurations (Versioned Master Rules)
     match /statutory_policy_configs/{configId} {
-      allow read: if canAccessStaff() && tenantRead();
+      allow read: if canView() && tenantRead();
       allow create: if canAccessAdmin() && tenantCreate();
       allow update: if canAccessAdmin() && tenantUpdate();
       allow delete: if false; // Policy history must never be deleted
@@ -336,7 +350,7 @@ service cloud.firestore {
 
     // Payroll Runs (Independent lifecycle for calculation)
     match /payroll_runs/{runId} {
-      allow read: if canAccessStaff() && tenantRead();
+      allow read: if canView() && tenantRead();
       allow create: if canAccessAdmin() && tenantCreate();
       allow update: if canAccessAdmin() && tenantUpdate() && (
         resource.data.status != 'LOCKED' || request.resource.data.status == 'ARCHIVED'
@@ -346,7 +360,7 @@ service cloud.firestore {
 
     // Payment Batches (Disbursement lifecycle & 4-Eyes Check)
     match /payment_batches/{batchId} {
-      allow read: if canAccessStaff() && tenantRead();
+      allow read: if canView() && tenantRead();
       allow create: if canAccessAdmin() && tenantCreate();
       // Maker cannot be Checker (4-Eye rule enforcement)
       allow update: if canAccessAdmin() && tenantUpdate() && (
@@ -357,21 +371,21 @@ service cloud.firestore {
 
       match /records/{recordId} {
         allow read: if parentInTenant(/databases/$(database)/documents/payment_batches/$(batchId))
-          && (canAccessStaff() || ownsEmployeeId(resource.data.employee_id));
+          && (canView() || ownsEmployeeId(resource.data.employee_id));
         allow write: if canAccessAdmin() && parentInTenant(/databases/$(database)/documents/payment_batches/$(batchId));
       }
     }
 
     // Compliance Returns (PF ECR, ESIC, Gratuity, NPS)
     match /compliance_returns/{returnId} {
-      allow read: if canAccessStaff() && tenantRead();
+      allow read: if canView() && tenantRead();
       allow create: if canAccessAdmin() && tenantCreate();
       allow update: if canAccessAdmin() && tenantUpdate();
       allow delete: if false;
     }
 
     match /statutory_exceptions/{exceptionId} {
-      allow read: if canAccessAdmin() && tenantRead();
+      allow read: if canView() && tenantRead();
       allow create: if canAccessAdmin() && tenantCreate();
       allow update: if canAccessAdmin() && tenantUpdate();
       allow delete: if canAccessAdmin() && tenantRead();
@@ -379,27 +393,27 @@ service cloud.firestore {
 
     // Bank Files & Reconciliation Audit Logs
     match /bank_files/{fileId} {
-      allow read: if canAccessStaff() && tenantRead();
+      allow read: if canView() && tenantRead();
       allow create: if canAccessAdmin() && tenantCreate();
       allow update, delete: if false; // Tamper-proof bank files
     }
 
     match /bank_reconciliations/{recId} {
-      allow read: if canAccessStaff() && tenantRead();
+      allow read: if canView() && tenantRead();
       allow create: if canAccessAdmin() && tenantCreate();
       allow update: if canAccessAdmin() && tenantUpdate();
       allow delete: if false;
     }
 
     match /disbursement_logs/{logId} {
-      allow read: if canAccessStaff() && tenantRead();
+      allow read: if canView() && tenantRead();
       allow create: if canAccessAdmin() && tenantCreate();
       allow update, delete: if false; // Append-only audit logs
     }
 
     // Recruitment ATS
     match /candidates/{candidateId} {
-      allow read: if canAccessStaff() && tenantRead();
+      allow read: if canView() && tenantRead();
       allow create: if canAccessStaff() && tenantCreate();
       allow update: if canAccessStaff() && tenantUpdate();
       allow delete: if canAccessStaff() && tenantRead();
@@ -411,7 +425,7 @@ service cloud.firestore {
     }
 
     match /recruitment_events/{eventId} {
-      allow read: if canAccessStaff() && tenantRead();
+      allow read: if canView() && tenantRead();
       allow create: if canAccessStaff() && tenantCreate();
       allow update: if canAccessStaff() && tenantUpdate();
       allow delete: if canAccessStaff() && tenantRead();
@@ -456,7 +470,7 @@ service cloud.firestore {
 
       match /compliance_profile/{profileId} {
         allow read: if parentInTenant(/databases/$(database)/documents/users/$(userId))
-          && (canAccessStaff() || ownsEmployeeId(userId));
+          && (canView() || ownsEmployeeId(userId));
         allow write: if canAccessAdmin() && parentInTenant(/databases/$(database)/documents/users/$(userId));
       }
     }

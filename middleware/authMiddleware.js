@@ -8,6 +8,7 @@ if (!process.env.JWT_SECRET) {
 const JWT_SECRET = process.env.JWT_SECRET;
 
 const ALLOWED_ROLES = [
+    'auditor',
     'compliance_officer',
     'Super Admin',
     'Admin',
@@ -142,11 +143,34 @@ const ADMIN_HR_ROLES = [
 // 'hr_admin' / 'HR Admin'); compare them ignoring case, spaces, underscores and hyphens
 const normalizeRole = (role) => String(role || '').toLowerCase().replace(/[\s_-]+/g, '');
 
+/**
+ * View-only roles. An auditor may reach any admin route that only READS, and is refused
+ * on anything that changes something, whatever role list the route was given.
+ *
+ * This is method-aware rather than a longer role list because authorize() gates a whole
+ * route: adding 'auditor' to ADMIN_HR_ROLES would have handed it every POST, PATCH and
+ * DELETE those 68 routes expose. A read-only role has to be enforced per request.
+ */
+const READ_ONLY_ROLES = ['auditor'];
+const READ_METHODS = ['GET', 'HEAD', 'OPTIONS'];
+const isReadOnlyRole = (role) => READ_ONLY_ROLES.map(normalizeRole).includes(normalizeRole(role));
+
 const authorize = (...roles) => {
     const flatRoles = roles.flat();
     return (req, res, next) => {
         const allowedRoles = flatRoles.map(normalizeRole);
         const userRole = normalizeRole(req.user && req.user.role);
+
+        // An auditor reaches a reading route even when the route did not name the role,
+        // and never reaches a writing one.
+        if (isReadOnlyRole(userRole)) {
+            if (READ_METHODS.includes(String(req.method || '').toUpperCase())) return next();
+            return res.status(403).json({
+                success: false,
+                error: 'Your access is view-only. Ask an administrator to make this change.',
+                code: 'read_only_role'
+            });
+        }
 
         if (!allowedRoles.includes(userRole)) {
             return res.status(403).json({
@@ -164,4 +188,4 @@ const requireOrg = (req, res, next) => {
     return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
 };
 
-module.exports = { verifyToken, authorize, requireOrg, ALLOWED_ROLES, ADMIN_HR_ROLES };
+module.exports = { verifyToken, authorize, requireOrg, ALLOWED_ROLES, ADMIN_HR_ROLES, READ_ONLY_ROLES, isReadOnlyRole };
