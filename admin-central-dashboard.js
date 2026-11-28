@@ -126,7 +126,7 @@ async function refreshDashboardData() {
                 const colSpan = document.getElementById('fbModalCollections');
                 if (colSpan && json.firebase.liveCounts) {
                     const lc = json.firebase.liveCounts;
-                    colSpan.textContent = `users (${lc.users || 4}), employees (${lc.employees || 950}), attendance, activities`;
+                    colSpan.textContent = `users (${lc.users ?? 0}), employees (${lc.employees ?? 0}), attendance, activities`;
                 }
             }
             return;
@@ -137,239 +137,39 @@ async function refreshDashboardData() {
     renderFallbackLiveDashboard();
 }
 
+/**
+ * Shown when the dashboard API cannot be reached.
+ *
+ * This used to render a complete invented organisation - 950 headcount, 142 new hires,
+ * 8.4% attrition, Rs 142.8 Lakhs of payroll across four made-up business units - and the
+ * badges beside those figures said "(Firebase)", so they read as having come from the
+ * database. A customer could have believed their payroll cost was Rs 142.8 Lakhs.
+ *
+ * There is no safe number to invent here. Everything reads zero, and the screen says the
+ * figures could not be loaded, so nobody mistakes an outage for a quiet month.
+ */
 function renderFallbackLiveDashboard() {
-    const fallbackData = {
-        workforce: {
-            totalHeadcount: 950,
-            buDistribution: {
-                labels: ['Technology', 'Sales & Marketing', 'Operations', 'Finance & HR'],
-                datasets: [{
-                    data: [470, 240, 180, 60],
-                    backgroundColor: ['#6366f1', '#10b981', '#0ea5e9', '#f59e0b']
-                }]
-            },
-            newHiresQTD: 142,
-            attritionRate: '8.4%'
-        },
-        attendance: {
-            todayPresentPct: '94.2%',
-            absenteeismTotal: 142,
-            wfhUtilizationDays: 845,
-            lateArrivalsCount: 236,
-            chartAbsenteeism: {
-                labels: ['Engineering', 'Product', 'Sales', 'Customer Success', 'Operations', 'Finance', 'People Ops'],
-                datasets: [{
-                    label: 'Absenteeism Days',
-                    data: [38, 10, 52, 28, 20, 14, 8],
-                    backgroundColor: '#6366f1'
-                }]
-            }
-        },
-        payroll: {
-            grossCostTotal: '₹142.8 Lakhs',
-            variancePct: '+4.2%',
-            statutoryTotals: '₹18.4 Lakhs',
-            holdExceptionsCount: 11,
-            reconciliationHolds: 11,
-            chartGrossCost: {
-                labels: ['Technology', 'Sales & Marketing', 'Operations', 'Finance & HR'],
-                datasets: [{
-                    label: 'Payroll Cost (₹ Lakhs)',
-                    data: [68.5, 38.2, 21.4, 14.7],
-                    backgroundColor: '#0ea5e9'
-                }]
-            }
-        },
-        pms: {
-            goalVelocityPct: '84.5%',
-            reviewCompletionRate: '91.8%',
-            pendingManagerAppraisals: 18,
-            chartRatingBellCurve: {
-                labels: ['5 - Outstanding', '4 - Exceeds Expectations', '3 - Meets Expectations', '2 - Needs Improvement', '1 - Unsatisfactory'],
-                datasets: [{
-                    data: [95, 280, 410, 120, 45],
-                    backgroundColor: ['#6366f1', '#10b981', '#0ea5e9', '#f59e0b', '#ef4444']
-                }]
-            }
-        },
-        exit: {
-            totalDepartures: 82,
-            totalExitsQTD: 82,
-            averageTenureMonths: 24.5,
-            pendingFnFCount: 1,
-            chartReasons: {
-                labels: ['Career Growth', 'Compensation', 'Higher Studies', 'Relocation', 'Personal'],
-                datasets: [{
-                    data: [35, 24, 11, 8, 4],
-                    backgroundColor: ['#6366f1', '#10b981', '#0ea5e9', '#f59e0b', '#ef4444']
-                }]
-            }
-        },
-        policy: {
-            overallComplianceRate: '96.2%',
-            totalDistributed: 2150,
-            overdueSignatures: 14,
-            chartComplianceByDoc: {
-                labels: ['Code of Conduct', 'Data Privacy & GDPR', 'InfoSec Standards', 'POSH & Anti-Harassment', 'Remote Work Policy'],
-                datasets: [{
-                    label: 'Signed Documents',
-                    data: [920, 915, 890, 940, 930],
-                    backgroundColor: '#10b981'
-                }]
-            }
-        },
-        orgStructure: {
-            id: 'EMP-001',
-            name: 'Rajesh Subramanian',
-            role: 'Chief Executive Officer',
-            department: 'Executive Leadership',
-            avatar: 'RS',
-            directReportsCount: 4,
-            totalTeamSize: 950,
-            children: [
-                {
-                    id: 'EMP-010',
-                    name: 'Kavita Krishnan',
-                    role: 'Chief Technology Officer (CTO)',
-                    department: 'Technology',
-                    avatar: 'KK',
-                    directReportsCount: 2,
-                    totalTeamSize: 470,
-                    children: [
-                        { id: 'EMP-011', name: 'Naveen Jindal', role: 'VP of Engineering', department: 'Engineering', avatar: 'NJ', totalTeamSize: 405 },
-                        { id: 'EMP-012', name: 'Deepa Narang', role: 'VP of Product & Design', department: 'Product', avatar: 'DN', totalTeamSize: 65 }
-                    ]
-                },
-                {
-                    id: 'EMP-020',
-                    name: 'Sunil Manchanda',
-                    role: 'Chief Commercial Officer',
-                    department: 'Sales & Marketing',
-                    avatar: 'SM',
-                    directReportsCount: 2,
-                    totalTeamSize: 275,
-                    children: [
-                        { id: 'EMP-021', name: 'Ritu Phogat', role: 'Head of Enterprise Sales', department: 'Sales', avatar: 'RP', totalTeamSize: 195 },
-                        { id: 'EMP-022', name: 'Manish Malhotra', role: 'Head of Customer Success', department: 'Customer Success', avatar: 'MM', totalTeamSize: 80 }
-                    ]
-                },
-                {
-                    id: 'EMP-030',
-                    name: 'Amitabh Bhattacharya',
-                    role: 'Chief Operating Officer',
-                    department: 'Operations',
-                    avatar: 'AB',
-                    directReportsCount: 2,
-                    totalTeamSize: 130
-                },
-                {
-                    id: 'EMP-040',
-                    name: 'Swati Khandelwal',
-                    role: 'Chief People Officer (CPO)',
-                    department: 'Finance & HR',
-                    avatar: 'SK',
-                    directReportsCount: 2,
-                    totalTeamSize: 75
-                }
-            ]
-        },
-        criticalAlerts: [
-            {
-                id: 'ALT-ATT-301',
-                module: 'Attendance',
-                severity: 'critical',
-                title: '3 Consecutive Absences Breach',
-                employee: 'Priya Sharma (EMP-882)',
-                department: 'Engineering',
-                message: '3 unexcused absences recorded. Escalated to Manager & HR Operations.',
-                timestamp: '15 mins ago'
-            },
-            {
-                id: 'ALT-PAY-911',
-                module: 'Payroll',
-                severity: 'critical',
-                title: 'Variance > 10% Anomaly Alert',
-                employee: 'Batch SEP-FINAL',
-                department: 'Finance',
-                message: 'MoM Gross Variance calculated at 12.4% (Threshold: 10%). Pre-disbursement hold applied.',
-                timestamp: '1 hour ago'
-            },
-            {
-                id: 'ALT-EXIT-408',
-                module: 'Exit',
-                severity: 'critical',
-                title: 'Exit Clearance Delayed > 48 Hours',
-                employee: 'Ananya Rao (EMP-771)',
-                department: 'Finance & Accounts',
-                message: 'Department clearance inactive for 52 hours. Escalated to Head of HR.',
-                timestamp: '2 hours ago'
-            }
-        ],
-        approvals: [
-            {
-                id: 'APP-EXIT-801',
-                type: 'Exit Department Clearance',
-                entityId: 'EMP-771',
-                requester: 'Ananya Rao',
-                department: 'Finance & Accounts',
-                submittedAt: '2026-09-09T10:15:00Z',
-                slaHoursRemaining: 18,
-                priority: 'high',
-                description: 'Finance departmental clearance sign-off for asset handover & loan balance closure.'
-            },
-            {
-                id: 'APP-LEAVE-902',
-                type: 'Extended Medical Leave Request',
-                entityId: 'EMP-304',
-                requester: 'Vikramaditya Sen',
-                department: 'Engineering',
-                submittedAt: '2026-09-10T14:30:00Z',
-                slaHoursRemaining: 36,
-                priority: 'medium',
-                description: '14 days medical leave request requiring HR Business Partner exception sign-off.'
-            },
-            {
-                id: 'APP-SALARY-410',
-                type: 'Off-Cycle Mid-Year Adjustment',
-                entityId: 'EMP-119',
-                requester: 'Pooja Iyer',
-                department: 'Product',
-                submittedAt: '2026-09-11T08:00:00Z',
-                slaHoursRemaining: 24,
-                priority: 'high',
-                description: 'Grade promotion adjustment from L2 Senior to L3 Lead Engineer.'
-            }
-        ],
-        pendingActions: [
-            {
-                id: 'ACT-STAT-01',
-                category: 'Statutory Compliance',
-                title: 'PF ECR Monthly Challan Verification',
-                dueIn: '2 business days',
-                assignedTo: 'HR Operations',
-                status: 'pending',
-                actionUrl: 'admin-statutory-compliance.html'
-            },
-            {
-                id: 'ACT-ASSIGN-02',
-                category: 'Assignment Engine',
-                title: '3 New Hires Awaiting Location & BU Assignment Matrix',
-                dueIn: 'Today (4 hours)',
-                assignedTo: 'People Ops Lead',
-                status: 'urgent',
-                actionUrl: 'admin-assignment-matrix.html'
-            }
-        ],
-        recentAutomationActivity: [
-            { id: 'LOG-901', stage: 'Stage 8: Final Approvals', status: 'completed', event: 'Payroll Batch October Verified & Signed Off', timestamp: new Date(Date.now() - 120000).toISOString(), runId: 'RUN-OCT-9901' },
-            { id: 'LOG-902', stage: 'Stage 4: Validation Engine', status: 'approved', event: 'Attendance Discrepancy Gate passed for 942 records', timestamp: new Date(Date.now() - 480000).toISOString(), runId: 'RUN-OCT-9900' },
-            { id: 'LOG-903', stage: 'Stage 2: Ingestion & Sync', status: 'completed', event: 'Biometric swipe logs synced from 6 enterprise gateways', timestamp: new Date(Date.now() - 900000).toISOString(), runId: 'RUN-OCT-9899' },
-            { id: 'LOG-904', stage: 'Stage 6: SLA Escalation', status: 'executed', event: 'Manager notification dispatched for overdue probation review', timestamp: new Date(Date.now() - 1500000).toISOString(), runId: 'RUN-OCT-9898' }
-        ]
+    const emptySeries = { labels: [], datasets: [{ data: [], backgroundColor: [] }] };
+    const emptyData = {
+        workforce:  { totalHeadcount: 0, newHiresQTD: 0, attritionRate: '0.0%', buDistribution: emptySeries },
+        attendance: { todayPresentPct: '0.0%', absenteeismTotal: 0, wfhUtilizationDays: 0, lateArrivalsCount: 0, chartAbsenteeism: emptySeries },
+        payroll:    { grossCostTotal: '', variancePct: '0.0%', statutoryTotals: '', holdExceptionsCount: 0, reconciliationHolds: 0, chartGrossCost: emptySeries },
+        pms:        { goalVelocityPct: '0.0%', managerPendingCount: 0 },
+        exits:      { avgTenureMonths: 0, pendingFnFCount: 0, departuresCount: 0 },
+        policy:     { distributedCount: 0, signedPct: '0.0%', overdueCount: 0 },
+        alerts: [], approvals: [], actionItems: [],
+        orgTree:    { totalTeamSize: 0 },
+        unavailable: true
     };
-    dashboardData = fallbackData;
-    renderAllWidgets(fallbackData, ALL_11_WIDGETS.map(w => w.id));
-    updateFirebaseBadge(true, window.FIREBASE_PROJECT_ID || '', "Connected");
+
+    renderAllWidgets(emptyData, null);
+
+    // Say why the screen is empty. Zeroes with no explanation look like a real quiet day.
+    const notice = document.getElementById('dashboardUnavailableNotice');
+    if (notice) {
+        notice.style.display = 'block';
+        notice.textContent = 'Live figures could not be loaded just now. These are not your real numbers - refresh to try again.';
+    }
 }
 
 /**
@@ -669,7 +469,7 @@ function renderPayrollWidget(pay) {
     if (!pay) return;
     // Prefer the numeric value; the string check misreads amounts like ₹10.0 Lakhs as zero
     const isZero = dismissedPayroll || (typeof pay.grossCostValue === 'number' ? pay.grossCostValue === 0 : (pay.grossCostTotal && pay.grossCostTotal.includes('0.0')));
-    const rawCost = isZero ? '₹0.0 Lakhs' : (pay.grossCostTotal || '₹142.8 Lakhs');
+    const rawCost = isZero ? '₹0.0 Lakhs' : (pay.grossCostTotal || '₹0.0 Lakhs');
     const costTotal = `${rawCost} (Firebase)`;
     const variance = isZero ? '0.0%' : pay.variancePct;
     const stat = isZero ? '₹0.0L' : (pay.statutoryRemittances || pay.statutoryTotals);
@@ -909,8 +709,8 @@ function renderOrgStructureTree(tree) {
     if (!container || !tree) return;
 
     const isZero = dismissedOrgTree || tree.totalTeamSize === 0;
-    if (countBadge) countBadge.textContent = isZero ? 0 : (tree.totalTeamSize || 950);
-    if (badge) badge.textContent = isZero ? '0 Total Personnel (Firebase)' : `${tree.totalTeamSize || 950} Total Personnel (Firebase)`;
+    if (countBadge) countBadge.textContent = isZero ? 0 : (tree.totalTeamSize ?? 0);
+    if (badge) badge.textContent = isZero ? '0 Total Personnel (Firebase)' : `${tree.totalTeamSize ?? 0} Total Personnel (Firebase)`;
 
     if (isZero) {
         container.innerHTML = `
@@ -1250,9 +1050,11 @@ function zeroWorkforce() {
         newHiresQTD: 0,
         attritionRate: '0.0%',
         buDistribution: {
-            labels: ['Technology', 'Sales & Marketing', 'Operations', 'Finance & HR'],
+            // No invented unit names: an empty chart is honest, four fictional business
+            // units labelled zero are not.
+            labels: [],
             datasets: [{
-                data: [0, 0, 0, 0],
+                data: [],
                 backgroundColor: ['#6366f1', '#10b981', '#0ea5e9', '#f59e0b']
             }]
         }
@@ -1296,10 +1098,12 @@ function zeroPayroll() {
         statutoryRemittances: '₹0.0L',
         reconciliationHolds: 0,
         chartGrossCost: {
-            labels: ['Technology', 'Sales & Marketing', 'Operations', 'Finance & HR'],
+            // No invented unit names: an empty chart is honest, four fictional business
+            // units labelled zero are not.
+            labels: [],
             datasets: [{
                 label: 'Payroll Cost',
-                data: [0, 0, 0, 0],
+                data: [],
                 backgroundColor: '#cbd5e1'
             }]
         }

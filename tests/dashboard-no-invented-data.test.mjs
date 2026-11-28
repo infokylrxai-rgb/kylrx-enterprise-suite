@@ -67,3 +67,60 @@ describe('passwords generated in the browser are not predictable', () => {
     assert.match(app, /crypto\.getRandomValues/);
   });
 });
+
+/**
+ * The Command Centre was worse than the main dashboard. When its API could not be
+ * reached it rendered a complete invented organisation - 950 headcount, 142 new hires,
+ * 8.4% attrition, Rs 142.8 Lakhs of payroll across four made-up business units - and the
+ * badges beside those figures read "(Firebase)", so they looked like they had come from
+ * the database. A customer with two employees saw a company of 950.
+ */
+const central = fs.readFileSync(path.join(ROOT, 'admin-central-dashboard.js'), 'utf8');
+const centralHtml = fs.readFileSync(path.join(ROOT, 'admin-central-dashboard.html'), 'utf8');
+
+describe('the command centre invents no organisation', () => {
+  it('has no fabricated headcount, payroll or attrition', () => {
+    const code = central.replace(/\/\*[\s\S]*?\*\//g, '');   // ignore the comment explaining this
+    for (const figure of ['950', '142.8', "8.4%", "94.2%"]) {
+      assert.ok(!code.includes(figure), `the invented figure ${figure} is still present`);
+    }
+  });
+
+  it('invents no business units to put on a chart', () => {
+    assert.ok(!/'Technology', 'Sales & Marketing', 'Operations', 'Finance & HR'/.test(central));
+  });
+
+  it('says the figures could not be loaded, rather than showing silent zeroes', () => {
+    assert.match(central, /dashboardUnavailableNotice/);
+    assert.match(central, /not your real numbers/i);
+    assert.ok(centralHtml.includes('id="dashboardUnavailableNotice"'),
+      'the notice needs somewhere to appear');
+  });
+});
+
+describe('the greeting does not change under the reader', () => {
+  const theme = fs.readFileSync(path.join(ROOT, 'kylrx-theme.js'), 'utf8');
+
+  it('ships no placeholder word in the markup', () => {
+    for (const f of ['admin-dashboard.html', 'admin-pms.html']) {
+      const s = fs.readFileSync(path.join(ROOT, f), 'utf8');
+      assert.match(s, /<span id="welcomeUserName"><\/span>/,
+        f + ': a placeholder name is what flashes before the real one');
+    }
+  });
+
+  it('fills the name from the last session before the page paints', () => {
+    assert.match(theme, /paintGreeting/);
+    assert.match(theme, /welcomeUserName/);
+  });
+
+  it('never shows an email address as a name', () => {
+    assert.match(theme, /indexOf\('@'\) > -1/);
+  });
+
+  it('updates only the name, not the whole heading', () => {
+    // Replacing the <h1> swaps the element out and the greeting visibly jumps.
+    assert.ok(!/welcomeText\.innerHTML = \(firstName \?/.test(app),
+      'the heading must not be rewritten on load');
+  });
+});
