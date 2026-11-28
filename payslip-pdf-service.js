@@ -61,13 +61,13 @@ export function buildPayslipHtml(employee, period) {
     const pf = Math.round(e.basic * 0.12);
     const otherDed = Math.max(0, e.deductions - pf);
 
-    return `<div style="font-family:Arial,sans-serif;width:700px;padding:24px;background:#fff;color:#0f172a;">
-        <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #3b82f6;padding-bottom:12px;margin-bottom:16px;">
+    return `<div style="font-family:Arial,sans-serif;width:700px;padding:24px;background:var(--k-surface);color:var(--k-text);">
+        <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--k-accent);padding-bottom:12px;margin-bottom:16px;">
             <div>
                 <div style="font-size:1.1rem;font-weight:800;">Kylrx AI Enterprise</div>
-                <div style="font-size:0.8rem;color:#64748b;">Pay Slip for ${label}</div>
+                <div style="font-size:0.8rem;color:var(--k-muted);">Pay Slip for ${label}</div>
             </div>
-            <div style="text-align:right;font-size:0.8rem;color:#64748b;">
+            <div style="text-align:right;font-size:0.8rem;color:var(--k-muted);">
                 <div>Employee Code: <strong>${e.employeeCode}</strong></div>
                 <div>Dept: <strong>${e.department}</strong></div>
             </div>
@@ -75,35 +75,35 @@ export function buildPayslipHtml(employee, period) {
         <p style="font-size:0.9rem;font-weight:700;margin-bottom:12px;">${e.name}</p>
         <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
             <tr>
-                <th style="background:#f8fafc;padding:8px 12px;text-align:left;border:1px solid #e2e8f0;">Earnings</th>
-                <th style="background:#f8fafc;padding:8px 12px;text-align:left;border:1px solid #e2e8f0;">Amount</th>
-                <th style="background:#f8fafc;padding:8px 12px;text-align:left;border:1px solid #e2e8f0;">Deductions</th>
-                <th style="background:#f8fafc;padding:8px 12px;text-align:left;border:1px solid #e2e8f0;">Amount</th>
+                <th style="background:var(--k-subtle);padding:8px 12px;text-align:left;border:1px solid var(--k-border);">Earnings</th>
+                <th style="background:var(--k-subtle);padding:8px 12px;text-align:left;border:1px solid var(--k-border);">Amount</th>
+                <th style="background:var(--k-subtle);padding:8px 12px;text-align:left;border:1px solid var(--k-border);">Deductions</th>
+                <th style="background:var(--k-subtle);padding:8px 12px;text-align:left;border:1px solid var(--k-border);">Amount</th>
             </tr>
             <tr>
-                <td style="padding:8px 12px;border:1px solid #e2e8f0;">Basic Salary</td>
-                <td style="padding:8px 12px;border:1px solid #e2e8f0;">&#8377;${e.basic.toLocaleString("en-IN")}</td>
-                <td style="padding:8px 12px;border:1px solid #e2e8f0;">PF (12%)</td>
-                <td style="padding:8px 12px;border:1px solid #e2e8f0;">&#8377;${pf.toLocaleString("en-IN")}</td>
+                <td style="padding:8px 12px;border:1px solid var(--k-border);">Basic Salary</td>
+                <td style="padding:8px 12px;border:1px solid var(--k-border);">&#8377;${e.basic.toLocaleString("en-IN")}</td>
+                <td style="padding:8px 12px;border:1px solid var(--k-border);">PF (12%)</td>
+                <td style="padding:8px 12px;border:1px solid var(--k-border);">&#8377;${pf.toLocaleString("en-IN")}</td>
             </tr>
             <tr>
-                <td style="padding:8px 12px;border:1px solid #e2e8f0;">Incentives / Allowances</td>
-                <td style="padding:8px 12px;border:1px solid #e2e8f0;">&#8377;${e.incentives.toLocaleString("en-IN")}</td>
-                <td style="padding:8px 12px;border:1px solid #e2e8f0;">ESIC / TDS</td>
-                <td style="padding:8px 12px;border:1px solid #e2e8f0;">&#8377;${otherDed.toLocaleString("en-IN")}</td>
+                <td style="padding:8px 12px;border:1px solid var(--k-border);">Incentives / Allowances</td>
+                <td style="padding:8px 12px;border:1px solid var(--k-border);">&#8377;${e.incentives.toLocaleString("en-IN")}</td>
+                <td style="padding:8px 12px;border:1px solid var(--k-border);">ESIC / TDS</td>
+                <td style="padding:8px 12px;border:1px solid var(--k-border);">&#8377;${otherDed.toLocaleString("en-IN")}</td>
             </tr>
             <tr>
-                <td style="padding:8px 12px;border:1px solid #e2e8f0;"><strong>Gross</strong></td>
-                <td style="padding:8px 12px;border:1px solid #e2e8f0;"><strong>&#8377;${(e.basic + e.incentives).toLocaleString("en-IN")}</strong></td>
-                <td style="padding:8px 12px;border:1px solid #e2e8f0;"><strong>Total Deductions</strong></td>
-                <td style="padding:8px 12px;border:1px solid #e2e8f0;"><strong>&#8377;${e.deductions.toLocaleString("en-IN")}</strong></td>
+                <td style="padding:8px 12px;border:1px solid var(--k-border);"><strong>Gross</strong></td>
+                <td style="padding:8px 12px;border:1px solid var(--k-border);"><strong>&#8377;${(e.basic + e.incentives).toLocaleString("en-IN")}</strong></td>
+                <td style="padding:8px 12px;border:1px solid var(--k-border);"><strong>Total Deductions</strong></td>
+                <td style="padding:8px 12px;border:1px solid var(--k-border);"><strong>&#8377;${e.deductions.toLocaleString("en-IN")}</strong></td>
             </tr>
-            <tr style="background:#eff6ff;">
-                <td colspan="3" style="padding:8px 12px;border:1px solid #e2e8f0;font-weight:800;color:#1e40af;"><strong>Net Pay (Take Home)</strong></td>
-                <td style="padding:8px 12px;border:1px solid #e2e8f0;font-weight:800;color:#1e40af;"><strong>&#8377;${e.net.toLocaleString("en-IN")}</strong></td>
+            <tr style="background:var(--k-accent-soft);">
+                <td colspan="3" style="padding:8px 12px;border:1px solid var(--k-border);font-weight:800;color:var(--k-accent-text);"><strong>Net Pay (Take Home)</strong></td>
+                <td style="padding:8px 12px;border:1px solid var(--k-border);font-weight:800;color:var(--k-accent-text);"><strong>&#8377;${e.net.toLocaleString("en-IN")}</strong></td>
             </tr>
         </table>
-        <p style="font-size:0.7rem;color:#94a3b8;margin-top:12px;">Computer-generated pay slip. Kylrx AI Confidential.</p>
+        <p style="font-size:0.7rem;color:var(--k-muted);margin-top:12px;">Computer-generated pay slip. Kylrx AI Confidential.</p>
     </div>`;
 }
 

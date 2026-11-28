@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="kylrx-theme-init.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Assets | HRFlow</title>
@@ -59,9 +60,9 @@
         .asset-icon i { width: 24px; height: 24px; }
 
         .asset-status { display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px; border-radius: 100px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
-        .status-allocated { background: #dcfce7; color: #166534; }
-        .status-repair    { background: #fef3c7; color: #92400e; }
-        .status-missing   { background: #fee2e2; color: #991b1b; }
+        .status-allocated { background: var(--k-success-soft); color: var(--k-success-text); }
+        .status-repair    { background: var(--k-warning-soft); color: var(--k-warning-text); }
+        .status-missing   { background: var(--k-danger-soft); color: var(--k-danger-text); }
         .status-pending   { background: var(--primary-light); color: var(--primary); }
 
         .asset-name { font-size: 1.125rem; font-weight: 800; margin-bottom: 4px; }
@@ -113,7 +114,7 @@
         /* Issue Modal */
         .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.45); backdrop-filter: blur(8px); z-index: 9999; display: none; align-items: center; justify-content: center; }
         .modal-overlay.active { display: flex; }
-        .modal { background: white; border-radius: 28px; overflow: hidden; width: 90%; max-width: 460px; box-shadow: 0 20px 40px rgba(0,0,0,0.12); border: 1px solid var(--border); transform: scale(0.95); transition: 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+        .modal { background: var(--k-surface); border-radius: 28px; overflow: hidden; width: 90%; max-width: 460px; box-shadow: 0 20px 40px rgba(0,0,0,0.12); border: 1px solid var(--border); transform: scale(0.95); transition: 0.3s cubic-bezier(0.34,1.56,0.64,1); }
         .modal-overlay.active .modal { transform: scale(1); }
         .modal h3 { font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; }
         .modal p { color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.5rem; }
@@ -128,12 +129,12 @@
 
         /* Success modal */
         .success-modal { text-align: center; }
-        .success-icon { width: 64px; height: 64px; background: #dcfce7; color: var(--success); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; }
+        .success-icon { width: 64px; height: 64px; background: var(--k-success-soft); color: var(--success); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; }
         .btn-done { width: 100%; padding: 14px; border-radius: 12px; border: none; background: var(--primary); color: white; font-family: inherit; font-weight: 700; cursor: pointer; margin-top: 1.5rem; }
     
         .layout { display: grid; grid-template-columns: var(--sidebar-width, 280px) 1fr; height: 100vh; overflow: hidden; }
         .sidebar {
-            background: white;
+            background: var(--k-surface);
             border-right: 1px solid var(--border);
             padding: 1rem 0.75rem;
             display: flex;
@@ -167,7 +168,7 @@
             border: 1px solid var(--border);
             box-shadow: 0 8px 12px -3px rgba(0, 0, 0, 0.03);
         }
-        .dept-name { font-weight: 800; font-size: 1rem; margin-bottom: 2px; letter-spacing: -0.4px; color: var(--text-main, #0f172a); word-wrap: break-word; overflow-wrap: break-word; hyphens: auto; }
+        .dept-name { font-weight: 800; font-size: 1rem; margin-bottom: 2px; letter-spacing: -0.4px; color: var(--text-main, var(--k-text)); word-wrap: break-word; overflow-wrap: break-word; hyphens: auto; }
         .dept-code { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.2px; opacity: 0.7; }
 
         .nav-label { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.12em; margin: 0.5rem 0 0.25rem 0.5rem; opacity: 0.6; }
@@ -208,7 +209,7 @@
         }
         .avatar { width: 30px; height: 30px; border-radius: 8px; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.8rem; color: white; flex-shrink: 0; }
         .profile-info { flex: 1; min-width: 0; }
-        .profile-name { font-size: 0.8rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main, #0f172a); }
+        .profile-name { font-size: 0.8rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main, var(--k-text)); }
         /* Dual Tab Navigation */
         .assets-main-tab {
             padding: 10px 20px;
@@ -221,14 +222,14 @@
             gap: 8px;
             border: 1.5px solid var(--border);
             transition: all 0.2s ease;
-            background: white;
+            background: var(--k-surface);
             color: var(--text-muted);
             outline: none;
         }
         .assets-main-tab:hover {
             border-color: var(--primary);
             color: var(--primary);
-            background: var(--primary-light, #eff6ff);
+            background: var(--primary-light, var(--k-accent-soft));
         }
         .assets-main-tab.active {
             background: var(--primary) !important;
@@ -243,7 +244,7 @@
 
         /* Goal Stats & Toolbar (PRD 1.1) */
         .goal-stat-card {
-            background: white;
+            background: var(--k-surface);
             border: 1px solid var(--border);
             border-radius: 16px;
             padding: 1.25rem;
@@ -268,7 +269,7 @@
             font-weight: 700;
             cursor: pointer;
             border: 1px solid var(--border);
-            background: white;
+            background: var(--k-surface);
             color: var(--text-muted);
             transition: all 0.2s ease;
             white-space: nowrap;
@@ -295,7 +296,7 @@
             padding: 1.5rem;
         }
         .custom-alert-card {
-            background: white;
+            background: var(--k-surface);
             border-radius: 24px;
             padding: 2rem;
             width: 100%;
@@ -318,7 +319,7 @@
             font-family: inherit;
         }
         .btn-ghost {
-            background: #f8fafc;
+            background: var(--k-subtle);
             border: 1px solid var(--border);
             border-radius: 10px;
             padding: 6px;
@@ -330,11 +331,11 @@
             transition: 0.2s;
         }
         .btn-ghost:hover {
-            background: #f1f5f9;
+            background: var(--k-subtle);
             color: var(--text-main);
         }
         .card {
-            background: white;
+            background: var(--k-surface);
             border-radius: 20px;
             padding: 1.5rem;
             border: 1px solid var(--border);
@@ -342,6 +343,10 @@
         }
     </style>
     <link rel="stylesheet" href="sidebar-lock.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="kylrx-theme.css">
 </head>
 <body>
 
@@ -377,7 +382,7 @@
             <!-- Brand Header matching Admin Console -->
             <a href="manager-dashboard.html" class="logo" id="brandLogoLink">
                 <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
-                <span class="logo-text">Kylrx <span style="color: var(--primary, #2563eb);">AI</span></span>
+                <span class="logo-text">Kylrx <span style="color: var(--primary, var(--k-accent-text));">AI</span></span>
             </a>
 
             <!-- Top Department Card (Zero-Collision Flex Layout) -->
@@ -415,7 +420,7 @@
 
                 <div class="nav-label" style="display: flex; justify-content: space-between; align-items: center;">
                     <span>CUSTOM APPS</span>
-                    <button onclick="if(typeof openAppRegistryModal !== 'undefined') { openAppRegistryModal(); } else { window.location.href=new URLSearchParams(window.location.search).get('id') ? `manager-dashboard.html?id=${new URLSearchParams(window.location.search).get('id')}` : 'manager-dashboard.html'; }" style="background: none; border: none; color: var(--primary, #2563eb); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
+                    <button onclick="if(typeof openAppRegistryModal !== 'undefined') { openAppRegistryModal(); } else { window.location.href=new URLSearchParams(window.location.search).get('id') ? `manager-dashboard.html?id=${new URLSearchParams(window.location.search).get('id')}` : 'manager-dashboard.html'; }" style="background: none; border: none; color: var(--primary, var(--k-accent-text)); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
                         <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
                     </button>
                 </div>
@@ -441,9 +446,9 @@
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="#" class="nav-link" id="logoutBtn" onclick="logout()" style="color: var(--danger, #ef4444) !important;">
-                        <i data-lucide="log-out" style="color: var(--danger, #ef4444) !important;"></i>
-                        <span style="color: var(--danger, #ef4444) !important;">Logout</span>
+                    <a href="#" class="nav-link" id="logoutBtn" onclick="logout()" style="color: var(--danger, var(--k-danger-text)) !important;">
+                        <i data-lucide="log-out" style="color: var(--danger, var(--k-danger-text)) !important;"></i>
+                        <span style="color: var(--danger, var(--k-danger-text)) !important;">Logout</span>
                     </a>
                 </div>
                 <div class="profile-mini" style="margin-top: 6px;">
@@ -480,7 +485,7 @@
             <button id="tabBtnGoals" onclick="switchAssetsTab('goals')" class="assets-main-tab">
                 <i data-lucide="target" style="width: 18px; height: 18px;"></i>
                 <span>Manager Goal Management (PRD §1.1)</span>
-                <span id="tabGoalsCountBadge" style="background: #eff6ff; color: #2563eb; font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; font-weight: 800;">3</span>
+                <span id="tabGoalsCountBadge" style="background: var(--k-accent-soft); color: var(--k-accent-text); font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; font-weight: 800;">3</span>
             </button>
         </div>
 
@@ -522,13 +527,13 @@
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
                             <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin: 0;">Manager Goals & Objectives (PRD §1.1)</h2>
-                            <span style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; font-size: 0.7rem; font-weight: 800; padding: 3px 10px; border-radius: 20px; text-transform: uppercase;">Manager Workspace</span>
+                            <span style="background: var(--k-accent-soft); color: var(--k-accent-text); border: 1px solid var(--k-accent-border); font-size: 0.7rem; font-weight: 800; padding: 3px 10px; border-radius: 20px; text-transform: uppercase;">Manager Workspace</span>
                         </div>
                         <p style="font-size: 0.875rem; color: var(--text-muted); margin: 0;">Create and manage strategic department goals with outcome definitions, quantitative/milestone measurement, scheduling, active progress tracking, lifecycle controls, and complete audit history.</p>
                     </div>
 
                     <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                        <button onclick="window.openTemplatePickerModal('goals')" style="background: white; color: var(--text-main); border: 1.5px solid var(--border); padding: 10px 16px; border-radius: 12px; font-weight: 700; font-size: 0.875rem; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                        <button onclick="window.openTemplatePickerModal('goals')" style="background: var(--k-surface); color: var(--text-main); border: 1.5px solid var(--border); padding: 10px 16px; border-radius: 12px; font-weight: 700; font-size: 0.875rem; cursor: pointer; display: flex; align-items: center; gap: 8px;">
                             <i data-lucide="layout-template" style="width: 16px; height: 16px; color: var(--primary);"></i>
                             <span>Browse Goal Templates</span>
                         </button>
@@ -542,39 +547,39 @@
                 <!-- Manager Goal KPI Summary Row -->
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
                     <div class="goal-stat-card">
-                        <div class="goal-stat-icon" style="background: #eff6ff; color: #2563eb;">
+                        <div class="goal-stat-icon" style="background: var(--k-accent-soft); color: var(--k-accent-text);">
                             <i data-lucide="target" style="width: 22px; height: 22px;"></i>
                         </div>
                         <div>
-                            <div id="statGoalsTotal" style="font-size: 1.5rem; font-weight: 800; color: #0f172a;">--</div>
-                            <div style="font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Total Goals</div>
+                            <div id="statGoalsTotal" style="font-size: 1.5rem; font-weight: 800; color: var(--k-text);">--</div>
+                            <div style="font-size: 0.7rem; font-weight: 700; color: var(--k-muted); text-transform: uppercase;">Total Goals</div>
                         </div>
                     </div>
                     <div class="goal-stat-card">
-                        <div class="goal-stat-icon" style="background: #dcfce7; color: #15803d;">
+                        <div class="goal-stat-icon" style="background: var(--k-success-soft); color: var(--k-success-text);">
                             <i data-lucide="play-circle" style="width: 22px; height: 22px;"></i>
                         </div>
                         <div>
-                            <div id="statGoalsActive" style="font-size: 1.5rem; font-weight: 800; color: #15803d;">--</div>
-                            <div style="font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Active / In Progress</div>
+                            <div id="statGoalsActive" style="font-size: 1.5rem; font-weight: 800; color: var(--k-success-text);">--</div>
+                            <div style="font-size: 0.7rem; font-weight: 700; color: var(--k-muted); text-transform: uppercase;">Active / In Progress</div>
                         </div>
                     </div>
                     <div class="goal-stat-card">
-                        <div class="goal-stat-icon" style="background: #fef3c7; color: #b45309;">
+                        <div class="goal-stat-icon" style="background: var(--k-warning-soft); color: var(--k-warning-text);">
                             <i data-lucide="pause-circle" style="width: 22px; height: 22px;"></i>
                         </div>
                         <div>
-                            <div id="statGoalsPaused" style="font-size: 1.5rem; font-weight: 800; color: #b45309;">--</div>
-                            <div style="font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Paused</div>
+                            <div id="statGoalsPaused" style="font-size: 1.5rem; font-weight: 800; color: var(--k-warning-text);">--</div>
+                            <div style="font-size: 0.7rem; font-weight: 700; color: var(--k-muted); text-transform: uppercase;">Paused</div>
                         </div>
                     </div>
                     <div class="goal-stat-card">
-                        <div class="goal-stat-icon" style="background: #f0fdf4; color: #16a34a;">
+                        <div class="goal-stat-icon" style="background: var(--k-success-soft); color: var(--k-success-text);">
                             <i data-lucide="check-circle" style="width: 22px; height: 22px;"></i>
                         </div>
                         <div>
-                            <div id="statGoalsCompleted" style="font-size: 1.5rem; font-weight: 800; color: #16a34a;">--</div>
-                            <div style="font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Completed</div>
+                            <div id="statGoalsCompleted" style="font-size: 1.5rem; font-weight: 800; color: var(--k-success-text);">--</div>
+                            <div style="font-size: 0.7rem; font-weight: 700; color: var(--k-muted); text-transform: uppercase;">Completed</div>
                         </div>
                     </div>
                     <div class="goal-stat-card">
@@ -583,7 +588,7 @@
                         </div>
                         <div>
                             <div id="statGoalsAvgProgress" style="font-size: 1.5rem; font-weight: 800; color: #7c3aed;">--%</div>
-                            <div style="font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Avg Progress</div>
+                            <div style="font-size: 0.7rem; font-weight: 700; color: var(--k-muted); text-transform: uppercase;">Avg Progress</div>
                         </div>
                     </div>
                 </div>
@@ -599,7 +604,7 @@
                     </div>
 
                     <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                        <select id="goalCategoryFilter" style="padding: 8px 14px; border-radius: 10px; border: 1px solid var(--border); font-size: 0.8rem; font-weight: 600; outline: none; background: white; color: #334155;">
+                        <select id="goalCategoryFilter" style="padding: 8px 14px; border-radius: 10px; border: 1px solid var(--border); font-size: 0.8rem; font-weight: 600; outline: none; background: var(--k-surface); color: var(--k-text-2);">
                             <option value="all">All Strategic Categories</option>
                             <option value="Cybersecurity & Compliance">Cybersecurity & Compliance</option>
                             <option value="Operational Excellence">Operational Excellence</option>
@@ -608,8 +613,8 @@
                         </select>
 
                         <div style="position: relative; min-width: 220px;">
-                            <i data-lucide="search" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: #94a3b8;"></i>
-                            <input type="text" id="goalSearchInput" placeholder="Search goals or outcomes..." style="width: 100%; padding: 8px 12px 8px 32px; border-radius: 10px; border: 1px solid var(--border); font-size: 0.8rem; outline: none; background: white;">
+                            <i data-lucide="search" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--k-muted);"></i>
+                            <input type="text" id="goalSearchInput" placeholder="Search goals or outcomes..." style="width: 100%; padding: 8px 12px 8px 32px; border-radius: 10px; border: 1px solid var(--border); font-size: 0.8rem; outline: none; background: var(--k-surface);">
                         </div>
                     </div>
                 </div>
@@ -656,12 +661,12 @@
         <div class="custom-alert-card" style="max-width: 680px; text-align: left; max-height: 88vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="width: 42px; height: 42px; border-radius: 12px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                    <div style="width: 42px; height: 42px; border-radius: 12px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="target" style="width: 22px; height: 22px;"></i>
                     </div>
                     <div>
-                        <h2 id="goalModalTitle" style="font-weight: 800; font-size: 1.25rem; margin: 0; color: #0f172a;">Create Strategic Manager Goal</h2>
-                        <p style="font-size: 0.8rem; color: #64748b; margin-top: 2px;">Define outcome, measurement criteria, schedule, and milestones</p>
+                        <h2 id="goalModalTitle" style="font-weight: 800; font-size: 1.25rem; margin: 0; color: var(--k-text);">Create Strategic Manager Goal</h2>
+                        <p style="font-size: 0.8rem; color: var(--k-muted); margin-top: 2px;">Define outcome, measurement criteria, schedule, and milestones</p>
                     </div>
                 </div>
                 <button class="btn-ghost" onclick="closeManagerGoalModal()"><i data-lucide="x"></i></button>
@@ -673,12 +678,12 @@
                     <!-- Title & Category -->
                     <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px;">
                         <div>
-                            <label style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Goal Title *</label>
-                            <input type="text" id="goalFormTitle" placeholder="e.g. Zero-Trust Architecture & Threat Hardening" required style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.875rem; background: #f8fafc;">
+                            <label style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Goal Title *</label>
+                            <input type="text" id="goalFormTitle" placeholder="e.g. Zero-Trust Architecture & Threat Hardening" required style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.875rem; background: var(--k-subtle);">
                         </div>
                         <div>
-                            <label style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Strategic Category *</label>
-                            <select id="goalFormCategory" required style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.875rem; background: #f8fafc;">
+                            <label style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Strategic Category *</label>
+                            <select id="goalFormCategory" required style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.875rem; background: var(--k-subtle);">
                                 <option value="Cybersecurity & Compliance">Cybersecurity & Compliance</option>
                                 <option value="Operational Excellence">Operational Excellence</option>
                                 <option value="Team Development">Team Development</option>
@@ -689,23 +694,23 @@
 
                     <!-- Desired Outcome Statement (PRD 1.1) -->
                     <div>
-                        <label style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Desired Outcome Statement *</label>
-                        <textarea id="goalFormOutcome" rows="2" placeholder="Describe the concrete, high-impact business or technical outcome achieved upon completion..." required style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.875rem; background: #f8fafc; resize: vertical;"></textarea>
+                        <label style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Desired Outcome Statement *</label>
+                        <textarea id="goalFormOutcome" rows="2" placeholder="Describe the concrete, high-impact business or technical outcome achieved upon completion..." required style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.875rem; background: var(--k-subtle); resize: vertical;"></textarea>
                     </div>
 
                     <!-- Operational Description / Scope -->
                     <div>
-                        <label style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Operational Description / Scope</label>
-                        <textarea id="goalFormDesc" rows="2" placeholder="Specify tactical scope, team dependencies, or technical requirements..." style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.875rem; background: #f8fafc; resize: vertical;"></textarea>
+                        <label style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Operational Description / Scope</label>
+                        <textarea id="goalFormDesc" rows="2" placeholder="Specify tactical scope, team dependencies, or technical requirements..." style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.875rem; background: var(--k-subtle); resize: vertical;"></textarea>
                     </div>
 
                     <!-- Measurement Method, Target & Unit (PRD 1.1 Measure) -->
-                    <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 14px;">
-                        <h4 style="font-size: 0.75rem; font-weight: 800; color: #334155; text-transform: uppercase; margin-bottom: 10px;">Measurement Method & Targets</h4>
+                    <div style="background: var(--k-subtle); border: 1px solid var(--border); border-radius: 12px; padding: 14px;">
+                        <h4 style="font-size: 0.75rem; font-weight: 800; color: var(--k-text-2); text-transform: uppercase; margin-bottom: 10px;">Measurement Method & Targets</h4>
                         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px;">
                             <div>
-                                <label style="font-size: 0.7rem; font-weight: 700; color: #64748b;">Method</label>
-                                <select id="goalFormMethod" style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: white; font-size: 0.8rem; margin-top: 4px;">
+                                <label style="font-size: 0.7rem; font-weight: 700; color: var(--k-muted);">Method</label>
+                                <select id="goalFormMethod" style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--k-surface); font-size: 0.8rem; margin-top: 4px;">
                                     <option value="quantitative">Quantitative Target</option>
                                     <option value="milestone">Milestones-based</option>
                                     <option value="unit">Unit Reduction / SLA</option>
@@ -713,26 +718,26 @@
                                 </select>
                             </div>
                             <div>
-                                <label style="font-size: 0.7rem; font-weight: 700; color: #64748b;">Target Value *</label>
-                                <input type="number" step="any" id="goalFormTarget" value="100" required style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: white; font-size: 0.8rem; margin-top: 4px;">
+                                <label style="font-size: 0.7rem; font-weight: 700; color: var(--k-muted);">Target Value *</label>
+                                <input type="number" step="any" id="goalFormTarget" value="100" required style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--k-surface); font-size: 0.8rem; margin-top: 4px;">
                             </div>
                             <div>
-                                <label style="font-size: 0.7rem; font-weight: 700; color: #64748b;">Unit (e.g. %, Minutes) *</label>
-                                <input type="text" id="goalFormUnit" value="% Compliance" required style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: white; font-size: 0.8rem; margin-top: 4px;">
+                                <label style="font-size: 0.7rem; font-weight: 700; color: var(--k-muted);">Unit (e.g. %, Minutes) *</label>
+                                <input type="text" id="goalFormUnit" value="% Compliance" required style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--k-surface); font-size: 0.8rem; margin-top: 4px;">
                             </div>
                         </div>
 
                         <div>
-                            <label style="font-size: 0.7rem; font-weight: 700; color: #64748b;">Completion Criteria / Acceptance Rules</label>
-                            <input type="text" id="goalFormCriteria" placeholder="e.g. All 802 regional nodes pass automated vulnerability audit." style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: white; font-size: 0.8rem; margin-top: 4px;">
+                            <label style="font-size: 0.7rem; font-weight: 700; color: var(--k-muted);">Completion Criteria / Acceptance Rules</label>
+                            <input type="text" id="goalFormCriteria" placeholder="e.g. All 802 regional nodes pass automated vulnerability audit." style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--k-surface); font-size: 0.8rem; margin-top: 4px;">
                         </div>
                     </div>
 
                     <!-- Milestones Checklist Builder (PRD 1.1 Measure) -->
-                    <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 14px;">
+                    <div style="background: var(--k-surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <label style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Key Milestones</label>
-                            <button type="button" onclick="addMilestoneInputRow()" style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; border-radius: 8px; padding: 3px 10px; font-size: 0.7rem; font-weight: 700; cursor: pointer;">
+                            <label style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Key Milestones</label>
+                            <button type="button" onclick="addMilestoneInputRow()" style="background: var(--k-accent-soft); color: var(--k-accent-text); border: 1px solid var(--k-accent-border); border-radius: 8px; padding: 3px 10px; font-size: 0.7rem; font-weight: 700; cursor: pointer;">
                                 + Add Milestone
                             </button>
                         </div>
@@ -742,19 +747,19 @@
                     <!-- Schedule (PRD 1.1 Schedule) -->
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                         <div>
-                            <label style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Start Date *</label>
-                            <input type="date" id="goalFormStartDate" required style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.875rem; background: #f8fafc;">
+                            <label style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Start Date *</label>
+                            <input type="date" id="goalFormStartDate" required style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.875rem; background: var(--k-subtle);">
                         </div>
                         <div>
-                            <label style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Target Completion Date *</label>
-                            <input type="date" id="goalFormTargetDate" required style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.875rem; background: #f8fafc;">
+                            <label style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Target Completion Date *</label>
+                            <input type="date" id="goalFormTargetDate" required style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.875rem; background: var(--k-subtle);">
                         </div>
                     </div>
                 </div>
 
                 <div style="display: flex; gap: 10px;">
-                    <button type="button" class="alert-btn" style="background: #f1f5f9; color: #475569; margin: 0; flex: 1;" onclick="closeManagerGoalModal()">Cancel</button>
-                    <button type="submit" id="goalModalSubmitBtn" class="alert-btn" style="background: #2563eb; color: white; margin: 0; flex: 2;">Create Goal</button>
+                    <button type="button" class="alert-btn" style="background: var(--k-subtle); color: var(--k-text-2); margin: 0; flex: 1;" onclick="closeManagerGoalModal()">Cancel</button>
+                    <button type="submit" id="goalModalSubmitBtn" class="alert-btn" style="background: var(--k-accent); color: white; margin: 0; flex: 2;">Create Goal</button>
                 </div>
             </form>
         </div>
@@ -767,12 +772,12 @@
         <div class="custom-alert-card" style="max-width: 480px; text-align: left;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="width: 40px; height: 40px; border-radius: 12px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                    <div style="width: 40px; height: 40px; border-radius: 12px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="trending-up" style="width: 20px; height: 20px;"></i>
                     </div>
                     <div>
-                        <h2 style="font-weight: 800; font-size: 1.125rem; margin: 0; color: #0f172a;">Progress Check-in</h2>
-                        <p id="progressGoalTitle" style="font-size: 0.75rem; color: #64748b; margin: 2px 0 0; font-weight: 600;">Goal</p>
+                        <h2 style="font-weight: 800; font-size: 1.125rem; margin: 0; color: var(--k-text);">Progress Check-in</h2>
+                        <p id="progressGoalTitle" style="font-size: 0.75rem; color: var(--k-muted); margin: 2px 0 0; font-weight: 600;">Goal</p>
                     </div>
                 </div>
                 <button class="btn-ghost" onclick="closeUpdateProgressModal()"><i data-lucide="x"></i></button>
@@ -780,25 +785,25 @@
 
             <div style="margin-bottom: 1.5rem;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                    <label style="font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Update Completion Percentage</label>
-                    <span id="progressValueDisplay" style="font-size: 1.25rem; font-weight: 800; color: #2563eb;">50%</span>
+                    <label style="font-size: 0.75rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Update Completion Percentage</label>
+                    <span id="progressValueDisplay" style="font-size: 1.25rem; font-weight: 800; color: var(--k-accent-text);">50%</span>
                 </div>
                 <input type="range" id="progressSlider" min="0" max="100" value="50" oninput="handleProgressSliderInput(this.value)" style="width: 100%; accent-color: #2563eb; cursor: pointer; height: 8px;">
             </div>
 
             <div style="margin-bottom: 1.25rem;">
-                <label style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Current Metric Value (<span id="progressMetricUnitLabel">%</span>)</label>
-                <input type="number" step="any" id="progressCurrentMetric" placeholder="e.g. 85" style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-size: 0.875rem; background: #f8fafc;">
+                <label style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Current Metric Value (<span id="progressMetricUnitLabel">%</span>)</label>
+                <input type="number" step="any" id="progressCurrentMetric" placeholder="e.g. 85" style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-size: 0.875rem; background: var(--k-subtle);">
             </div>
 
             <div style="margin-bottom: 1.5rem;">
-                <label style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Check-in / Status Log Note</label>
-                <textarea id="progressCheckInNote" rows="2" placeholder="e.g. Sprint 2 deliverables completed; regional posture verified..." style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-size: 0.875rem; background: #f8fafc; font-family: inherit;"></textarea>
+                <label style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Check-in / Status Log Note</label>
+                <textarea id="progressCheckInNote" rows="2" placeholder="e.g. Sprint 2 deliverables completed; regional posture verified..." style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-size: 0.875rem; background: var(--k-subtle); font-family: inherit;"></textarea>
             </div>
 
             <div style="display: flex; gap: 10px;">
-                <button class="alert-btn" style="background: #f1f5f9; color: #475569; margin: 0; flex: 1;" onclick="closeUpdateProgressModal()">Cancel</button>
-                <button class="alert-btn" style="background: #2563eb; color: white; margin: 0; flex: 2;" onclick="submitGoalProgressUpdate()">Record Progress</button>
+                <button class="alert-btn" style="background: var(--k-subtle); color: var(--k-text-2); margin: 0; flex: 1;" onclick="closeUpdateProgressModal()">Cancel</button>
+                <button class="alert-btn" style="background: var(--k-accent); color: white; margin: 0; flex: 2;" onclick="submitGoalProgressUpdate()">Record Progress</button>
             </div>
         </div>
     </div>
@@ -810,12 +815,12 @@
         <div class="custom-alert-card" style="max-width: 620px; text-align: left; max-height: 85vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="width: 42px; height: 42px; border-radius: 12px; background: #f8fafc; color: #0f172a; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border);">
+                    <div style="width: 42px; height: 42px; border-radius: 12px; background: var(--k-subtle); color: var(--k-text); display: flex; align-items: center; justify-content: center; border: 1px solid var(--border);">
                         <i data-lucide="history" style="width: 20px; height: 20px;"></i>
                     </div>
                     <div>
-                        <h2 id="goalHistoryTitle" style="font-weight: 800; font-size: 1.125rem; margin: 0; color: #0f172a;">Audit History Trail</h2>
-                        <p style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">Immutable record of goal creation and subsequent changes</p>
+                        <h2 id="goalHistoryTitle" style="font-weight: 800; font-size: 1.125rem; margin: 0; color: var(--k-text);">Audit History Trail</h2>
+                        <p style="font-size: 0.75rem; color: var(--k-muted); margin-top: 2px;">Immutable record of goal creation and subsequent changes</p>
                     </div>
                 </div>
                 <button class="btn-ghost" onclick="closeGoalHistoryModal()"><i data-lucide="x"></i></button>
@@ -823,7 +828,7 @@
 
             <div id="goalHistoryTimeline" style="padding-top: 10px;"></div>
 
-            <button class="alert-btn" style="background: #f1f5f9; color: #475569; width: 100%; margin-top: 1.5rem;" onclick="closeGoalHistoryModal()">Close Audit Trail</button>
+            <button class="alert-btn" style="background: var(--k-subtle); color: var(--k-text-2); width: 100%; margin-top: 1.5rem;" onclick="closeGoalHistoryModal()">Close Audit Trail</button>
         </div>
     </div>
 
@@ -834,15 +839,15 @@
         <div class="custom-alert-card" style="max-width: 650px; text-align: left; max-height: 85vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <div>
-                    <h2 style="font-weight: 800; font-size: 1.25rem; margin: 0; color: #0f172a;">Choose an Existing Template</h2>
-                    <p style="font-size: 0.8rem; color: #64748b; margin-top: 2px;">Select a standardized template structure to instantiate your goal</p>
+                    <h2 style="font-weight: 800; font-size: 1.25rem; margin: 0; color: var(--k-text);">Choose an Existing Template</h2>
+                    <p style="font-size: 0.8rem; color: var(--k-muted); margin-top: 2px;">Select a standardized template structure to instantiate your goal</p>
                 </div>
                 <button class="btn-ghost" onclick="closeTemplatePickerModal()"><i data-lucide="x"></i></button>
             </div>
 
             <div id="templatePickerList" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.5rem;"></div>
 
-            <button class="alert-btn" style="background: #f1f5f9; color: #475569; width: 100%; margin: 0;" onclick="closeTemplatePickerModal()">Cancel</button>
+            <button class="alert-btn" style="background: var(--k-subtle); color: var(--k-text-2); width: 100%; margin: 0;" onclick="closeTemplatePickerModal()">Cancel</button>
         </div>
     </div>
 

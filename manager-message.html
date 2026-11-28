@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="kylrx-theme-init.js"></script>
     <script src="config.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -39,7 +40,7 @@
             z-index: 9999;
         }
         .custom-alert-card {
-            background: white;
+            background: var(--k-surface);
             padding: 2rem;
             border-radius: 28px;
             width: 90%;
@@ -80,14 +81,14 @@
             box-sizing: border-box;
         }
         .header { margin-bottom: 1.25rem; }
-        .header h1 { font-size: 1.875rem; font-weight: 800; letter-spacing: -0.5px; color: #0f172a; margin-bottom: 4px; }
-        .header p { color: var(--text-muted, #64748b); font-size: 0.875rem; font-weight: 500; }
+        .header h1 { font-size: 1.875rem; font-weight: 800; letter-spacing: -0.5px; color: var(--k-text); margin-bottom: 4px; }
+        .header p { color: var(--text-muted, var(--k-muted)); font-size: 0.875rem; font-weight: 500; }
 
         .chat-container {
             flex: 1;
-            background: #ffffff;
+            background: var(--k-surface);
             border-radius: 20px;
-            border: 1px solid var(--border, #e2e8f0);
+            border: 1px solid var(--border, var(--k-border));
             box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
             display: grid !important;
             grid-template-columns: 340px 1fr !important;
@@ -98,7 +99,7 @@
             box-sizing: border-box;
         }
         .contacts-list {
-            border-right: 1px solid var(--border, #e2e8f0);
+            border-right: 1px solid var(--border, var(--k-border));
             background: #fcfdfe;
             display: flex;
             flex-direction: column;
@@ -109,17 +110,17 @@
             flex: 1;
             overflow-y: auto;
         }
-        .contact-item { padding: 1rem 1.25rem; border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: 0.15s ease; display: flex; gap: 12px; align-items: center; }
-        .contact-item:hover { background: #f8fafc; }
-        .contact-item.active, .contact-item.selected { background: #eff6ff; border-left: 4px solid var(--primary, #2563eb); }
-        .contact-avatar { width: 40px; height: 40px; border-radius: 12px; background: var(--primary, #2563eb); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
+        .contact-item { padding: 1rem 1.25rem; border-bottom: 1px solid var(--k-border); cursor: pointer; transition: 0.15s ease; display: flex; gap: 12px; align-items: center; }
+        .contact-item:hover { background: var(--k-subtle); }
+        .contact-item.active, .contact-item.selected { background: var(--k-accent-soft); border-left: 4px solid var(--primary, var(--k-accent)); }
+        .contact-avatar { width: 40px; height: 40px; border-radius: 12px; background: var(--primary, var(--k-accent)); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
         .contact-info { flex: 1; min-width: 0; overflow: hidden; }
-        .contact-name { font-weight: 700; font-size: 0.875rem; margin-bottom: 2px; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .contact-last { font-size: 0.8rem; color: var(--text-muted, #64748b); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .contact-name { font-weight: 700; font-size: 0.875rem; margin-bottom: 2px; color: var(--k-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .contact-last { font-size: 0.8rem; color: var(--text-muted, var(--k-muted)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .chat-window {
             display: flex !important;
             flex-direction: column !important;
-            background: white;
+            background: var(--k-surface);
             min-width: 0;
             width: 100%;
             height: 100%;
@@ -128,11 +129,11 @@
         }
         .chat-header {
             padding: 1.25rem 1.5rem;
-            border-bottom: 1px solid var(--border, #e2e8f0);
+            border-bottom: 1px solid var(--border, var(--k-border));
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background: white;
+            background: var(--k-surface);
             flex-shrink: 0;
             min-height: 64px;
             box-sizing: border-box;
@@ -144,7 +145,7 @@
             display: flex;
             flex-direction: column;
             gap: 1rem;
-            background: #f8fafc;
+            background: var(--k-subtle);
             min-height: 0;
             box-sizing: border-box;
         }
@@ -158,15 +159,15 @@
             position: relative;
             word-wrap: break-word;
         }
-        .message.received { background: #ffffff; border: 1px solid #e2e8f0; align-self: flex-start; border-bottom-left-radius: 4px; color: #0f172a; }
-        .message.sent { background: #eff6ff; border: 1px solid #bfdbfe; align-self: flex-end; border-bottom-right-radius: 4px; color: #1e3a8a; }
+        .message.received { background: var(--k-surface); border: 1px solid var(--k-border); align-self: flex-start; border-bottom-left-radius: 4px; color: var(--k-text); }
+        .message.sent { background: var(--k-accent-soft); border: 1px solid var(--k-accent-border); align-self: flex-end; border-bottom-right-radius: 4px; color: var(--k-accent-text); }
         .chat-input {
             padding: 1rem 1.5rem;
-            border-top: 1px solid var(--border, #e2e8f0);
+            border-top: 1px solid var(--border, var(--k-border));
             display: flex;
             gap: 0.75rem;
             align-items: center;
-            background: white;
+            background: var(--k-surface);
             position: relative;
             flex-shrink: 0;
             box-sizing: border-box;
@@ -175,16 +176,16 @@
             flex: 1;
             padding: 12px 16px;
             border-radius: 12px;
-            border: 1px solid var(--border, #e2e8f0);
+            border: 1px solid var(--border, var(--k-border));
             outline: none;
             font-family: inherit;
             font-size: 0.875rem;
-            background: #f8fafc;
+            background: var(--k-subtle);
             transition: all 0.2s;
         }
         .input-box:focus {
-            background: #ffffff;
-            border-color: var(--primary, #2563eb);
+            background: var(--k-surface);
+            border-color: var(--primary, var(--k-accent));
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
         .ai-btn {
@@ -205,7 +206,7 @@
         }
         .ai-btn:hover { background: #fce7f3; transform: translateY(-1px); }
         .send-btn {
-            background: var(--primary, #2563eb);
+            background: var(--primary, var(--k-accent));
             color: white;
             border: none;
             height: 42px;
@@ -218,11 +219,11 @@
             justify-content: center;
             flex-shrink: 0;
         }
-        .send-btn:hover { background: #1d4ed8; transform: translateY(-1px); }
+        .send-btn:hover { background: var(--k-accent); transform: translateY(-1px); }
         .attach-btn {
-            background: #f8fafc;
-            color: var(--text-muted, #64748b);
-            border: 1px solid var(--border, #e2e8f0);
+            background: var(--k-subtle);
+            color: var(--text-muted, var(--k-muted));
+            border: 1px solid var(--border, var(--k-border));
             height: 42px;
             width: 42px;
             border-radius: 12px;
@@ -233,36 +234,36 @@
             justify-content: center;
             flex-shrink: 0;
         }
-        .attach-btn:hover { background: #e2e8f0; color: #1e293b; }
+        .attach-btn:hover { background: var(--k-border); color: var(--k-text); }
 
-        .file-pill { background: #f1f5f9; border: 1px solid var(--border); padding: 6px 12px; border-radius: 20px; display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 600; color: #334155; }
-        .file-pill .remove { cursor: pointer; color: #ef4444; width: 14px; height: 14px; transition: 0.2s; display: flex; align-items: center; justify-content: center;}
+        .file-pill { background: var(--k-subtle); border: 1px solid var(--border); padding: 6px 12px; border-radius: 20px; display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 600; color: var(--k-text-2); }
+        .file-pill .remove { cursor: pointer; color: var(--k-danger-text); width: 14px; height: 14px; transition: 0.2s; display: flex; align-items: center; justify-content: center;}
         .file-pill .remove:hover { transform: scale(1.1); }
 
         /* Mentions Dropdown */
         .mentions-dropdown {
-            position: absolute; bottom: 100%; left: 1.5rem; width: 240px; background: white;
+            position: absolute; bottom: 100%; left: 1.5rem; width: 240px; background: var(--k-surface);
             border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow);
             display: none; flex-direction: column; overflow: hidden; z-index: 1000; margin-bottom: 8px;
         }
         .mentions-dropdown.active { display: flex; }
         .mention-item { padding: 10px 16px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
-        .mention-item:hover { background: #f1f5f9; }
+        .mention-item:hover { background: var(--k-subtle); }
         .mention-avatar { width: 24px; height: 24px; border-radius: 6px; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; }
 
         /* New Filter & Selection Styles */
-        .contacts-header { padding: 1.25rem 1rem; border-bottom: 1px solid var(--border, #e2e8f0); background: white; }
+        .contacts-header { padding: 1.25rem 1rem; border-bottom: 1px solid var(--border, var(--k-border)); background: var(--k-surface); }
         .bulk-options { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 0.75rem; }
         .bulk-btn {
             padding: 7px 2px;
             border-radius: 9px;
-            border: 1px solid var(--border, #e2e8f0);
-            background: #f8fafc;
+            border: 1px solid var(--border, var(--k-border));
+            background: var(--k-subtle);
             font-size: 0.7rem;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.15s ease;
-            color: var(--text-muted, #64748b);
+            color: var(--text-muted, var(--k-muted));
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -285,9 +286,9 @@
             max-width: 100%;
         }
         .bulk-btn:hover, .bulk-btn.active {
-            background: #eff6ff;
-            color: var(--primary, #2563eb);
-            border-color: var(--primary, #2563eb);
+            background: var(--k-accent-soft);
+            color: var(--primary, var(--k-accent-text));
+            border-color: var(--primary, var(--k-accent));
         }
         
         .search-filter {
@@ -301,18 +302,18 @@
             width: 100%;
             padding: 9px 36px 9px 36px;
             border-radius: 12px;
-            border: 1px solid var(--border, #e2e8f0);
+            border: 1px solid var(--border, var(--k-border));
             font-size: 0.875rem;
             outline: none;
             transition: all 0.2s ease;
             box-sizing: border-box;
-            background: #f8fafc;
-            color: #0f172a;
+            background: var(--k-subtle);
+            color: var(--k-text);
             line-height: 1.4;
         }
         .search-filter input:focus {
-            background: #ffffff;
-            border-color: var(--primary, #2563eb);
+            background: var(--k-surface);
+            border-color: var(--primary, var(--k-accent));
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
         .search-filter i,
@@ -325,7 +326,7 @@
             transform: translateY(-50%);
             width: 16px;
             height: 16px;
-            color: #94a3b8;
+            color: var(--k-muted);
             pointer-events: none;
             z-index: 2;
         }
@@ -335,14 +336,14 @@
             right: 8px;
             top: 50%;
             transform: translateY(-50%); 
-            background: #ffffff;
-            border: 1px solid var(--border, #e2e8f0);
+            background: var(--k-surface);
+            border: 1px solid var(--border, var(--k-border));
             border-radius: 8px; 
             width: 26px;
             height: 26px;
             padding: 0;
             cursor: pointer;
-            color: var(--text-muted, #64748b);
+            color: var(--text-muted, var(--k-muted));
             transition: all 0.15s ease;
             display: flex;
             align-items: center;
@@ -350,9 +351,9 @@
             z-index: 2;
         }
         .filter-btn:hover {
-            color: var(--primary, #2563eb);
-            border-color: var(--primary, #2563eb);
-            background: #eff6ff;
+            color: var(--primary, var(--k-accent-text));
+            border-color: var(--primary, var(--k-accent));
+            background: var(--k-accent-soft);
         }
         .filter-btn i,
         .filter-btn svg {
@@ -361,24 +362,24 @@
             stroke-width: 2px;
         }
         
-        .selection-info { padding: 10px 1.5rem; background: #eff6ff; border-bottom: 1px solid var(--border); display: none; align-items: center; justify-content: space-between; font-size: 0.875rem; animation: slideDown 0.3s ease; }
+        .selection-info { padding: 10px 1.5rem; background: var(--k-accent-soft); border-bottom: 1px solid var(--border); display: none; align-items: center; justify-content: space-between; font-size: 0.875rem; animation: slideDown 0.3s ease; }
         .selection-info.active { display: flex; }
         .clear-selection { color: var(--primary); font-weight: 700; cursor: pointer; text-decoration: underline; }
         
-        .contact-item.selected { background: #eff6ff; border-left: 4px solid var(--primary); }
+        .contact-item.selected { background: var(--k-accent-soft); border-left: 4px solid var(--primary); }
         
         .badge { font-size: 0.7rem; padding: 2px 8px; border-radius: 20px; font-weight: 600; margin-top: 4px; display: inline-block; }
-        .badge.manager { background: #fee2e2; color: #ef4444; }
-        .badge.employee { background: #dcfce7; color: #10b981; }
-        .badge.admin { background: #eff6ff; color: #3b82f6; }
+        .badge.manager { background: var(--k-danger-soft); color: var(--k-danger-text); }
+        .badge.employee { background: var(--k-success-soft); color: var(--k-success-text); }
+        .badge.admin { background: var(--k-accent-soft); color: var(--k-accent-text); }
         .badge.hrms { background: #faf5ff; color: #a855f7; }
 
         .icon-btn { 
-            background: #eff6ff; border: 1px solid #dbeafe; width: 44px; height: 44px; 
+            background: var(--k-accent-soft); border: 1px solid var(--k-accent-border); width: 44px; height: 44px; 
             border-radius: 14px; display: flex; align-items: center; justify-content: center; 
-            color: #475569; cursor: pointer; transition: all 0.2s; position: relative;
+            color: var(--k-text-2); cursor: pointer; transition: all 0.2s; position: relative;
         }
-        .icon-btn:hover { background: #dbeafe; transform: scale(1.05); }
+        .icon-btn:hover { background: var(--k-accent-soft); transform: scale(1.05); }
 
         .action-icon {
             width: 42px;
@@ -396,7 +397,7 @@
         }
 
         .action-icon:hover {
-            background: white;
+            background: var(--k-surface);
             color: var(--primary);
             border-color: var(--border);
             transform: translateY(-2px);
@@ -422,19 +423,19 @@
         .config-header h2 { font-weight: 800; font-size: 1.25rem; }
         .config-section { margin-bottom: 2rem; }
         .config-section h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--primary); margin-bottom: 1.25rem; font-weight: 800; }
-        .config-option { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 0.75rem; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border); }
+        .config-option { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 0.75rem; background: var(--k-subtle); border-radius: 12px; border: 1px solid var(--border); }
         .config-option span { font-size: 0.875rem; font-weight: 600; }
 
         /* Switches */
         .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 20px; }
-        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: var(--k-surface); transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: var(--primary); }
         input:checked + .slider:before { transform: translateX(20px); }
 
-        .btn-theme { padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: white; cursor: pointer; font-size: 0.8rem; font-weight: 700; transition: 0.3s; text-align: center; }
-        .btn-theme.active { border-color: var(--primary); background: #eff6ff; color: var(--primary); }
+        .btn-theme { padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--k-surface); cursor: pointer; font-size: 0.8rem; font-weight: 700; transition: 0.3s; text-align: center; }
+        .btn-theme.active { border-color: var(--primary); background: var(--k-accent-soft); color: var(--primary); }
 
         /* Chat Modern Style */
         .modern-bubbles .message { border-radius: 20px !important; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
@@ -446,36 +447,40 @@
         /* Toasts */
         .toast-notification {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: white; border-radius: 20px; padding: 1.5rem 2rem;
+            background: var(--k-surface); border-radius: 20px; padding: 1.5rem 2rem;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2);
             display: none; align-items: center; gap: 12px; z-index: 5000;
             border: 1px solid var(--border); animation: toastIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         .toast-notification.active { display: flex; }
-        .toast-notification i { color: #10b981; width: 24px; height: 24px; }
-        .toast-notification span { font-weight: 700; color: #1e293b; font-size: 1rem; }
+        .toast-notification i { color: var(--k-success-text); width: 24px; height: 24px; }
+        .toast-notification span { font-weight: 700; color: var(--k-text); font-size: 1rem; }
         @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -40%) scale(0.9); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
 
         /* Dept Dropdown */
         .dept-dropdown {
-            position: absolute; top: 100%; right: 0; width: 220px; background: white;
+            position: absolute; top: 100%; right: 0; width: 220px; background: var(--k-surface);
             border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-lg);
             display: none; flex-direction: column; overflow: hidden; z-index: 1000; margin-top: 8px;
             animation: slideDown 0.2s ease;
         }
         .dept-dropdown.active { display: flex; }
-        .dept-item { padding: 12px 16px; cursor: pointer; font-size: 0.875rem; font-weight: 600; color: var(--text-main); transition: 0.2s; border-bottom: 1px solid #f1f5f9; }
+        .dept-item { padding: 12px 16px; cursor: pointer; font-size: 0.875rem; font-weight: 600; color: var(--text-main); transition: 0.2s; border-bottom: 1px solid var(--k-border); }
         .dept-item:last-child { border-bottom: none; }
-        .dept-item:hover { background: #eff6ff; color: var(--primary); }
-        .dept-item.active { background: #eff6ff; color: var(--primary); border-left: 3px solid var(--primary); }
+        .dept-item:hover { background: var(--k-accent-soft); color: var(--primary); }
+        .dept-item.active { background: var(--k-accent-soft); color: var(--primary); border-left: 3px solid var(--primary); }
 
         .sidebar-footer { margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border); }
-        .profile-mini { margin-top: auto; background: var(--primary-light, #eff6ff); padding: 0.75rem 1rem; border-radius: 16px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--border, #e2e8f0); }
-        .avatar { width: 40px; height: 40px; border-radius: 10px; background: var(--primary, #3b82f6); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; flex-shrink: 0; }
+        .profile-mini { margin-top: auto; background: var(--primary-light, var(--k-accent-soft)); padding: 0.75rem 1rem; border-radius: 16px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--border, var(--k-border)); }
+        .avatar { width: 40px; height: 40px; border-radius: 10px; background: var(--primary, var(--k-accent)); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; flex-shrink: 0; }
         .profile-info { flex: 1; min-width: 0; }
-        .profile-name { font-size: 0.875rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main, #0f172a); }
-        .profile-role { font-size: 0.7rem; color: var(--text-muted, #64748b); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .profile-name { font-size: 0.875rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main, var(--k-text)); }
+        .profile-role { font-size: 0.7rem; color: var(--text-muted, var(--k-muted)); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="kylrx-theme.css">
 </head>
 <body>
     <!-- Toasts -->
@@ -491,7 +496,7 @@
             <!-- Brand Header matching Admin Console -->
             <a href="manager-dashboard.html" class="logo" id="brandLogoLink">
                 <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
-                <span class="logo-text">Kylrx <span style="color: var(--primary, #2563eb);">AI</span></span>
+                <span class="logo-text">Kylrx <span style="color: var(--primary, var(--k-accent-text));">AI</span></span>
             </a>
 
             <!-- Top Department Card (Zero-Collision Flex Layout) -->
@@ -528,7 +533,7 @@
 
                 <div class="nav-label" style="display: flex; justify-content: space-between; align-items: center;">
                     <span>CUSTOM APPS</span>
-                    <button onclick="if(typeof openAppRegistryModal !== 'undefined') { openAppRegistryModal(); } else { window.location.href=new URLSearchParams(window.location.search).get('id') ? `manager-dashboard.html?id=${new URLSearchParams(window.location.search).get('id')}` : 'manager-dashboard.html'; }" style="background: none; border: none; color: var(--primary, #2563eb); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
+                    <button onclick="if(typeof openAppRegistryModal !== 'undefined') { openAppRegistryModal(); } else { window.location.href=new URLSearchParams(window.location.search).get('id') ? `manager-dashboard.html?id=${new URLSearchParams(window.location.search).get('id')}` : 'manager-dashboard.html'; }" style="background: none; border: none; color: var(--primary, var(--k-accent-text)); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
                         <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
                     </button>
                 </div>
@@ -554,9 +559,9 @@
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="#" class="nav-link" id="logoutBtn" onclick="logout()" style="color: var(--danger, #ef4444) !important;">
-                        <i data-lucide="log-out" style="color: var(--danger, #ef4444) !important;"></i>
-                        <span style="color: var(--danger, #ef4444) !important;">Logout</span>
+                    <a href="#" class="nav-link" id="logoutBtn" onclick="logout()" style="color: var(--danger, var(--k-danger-text)) !important;">
+                        <i data-lucide="log-out" style="color: var(--danger, var(--k-danger-text)) !important;"></i>
+                        <span style="color: var(--danger, var(--k-danger-text)) !important;">Logout</span>
                     </a>
                 </div>
                 <div class="profile-mini" style="margin-top: 6px;">
@@ -574,7 +579,7 @@
                     <h1 style="font-size: 2.25rem; font-weight: 800; letter-spacing: -1px;">Manager Communications</h1>
                     <p style="color: var(--text-muted); font-weight: 500;">Secure messaging with departments, managers, and personnel</p>
                 </div>
-                <div style="display: flex; align-items: center; gap: 0.75rem; background: white; padding: 6px; border-radius: 14px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                <div style="display: flex; align-items: center; gap: 0.75rem; background: var(--k-surface); padding: 6px; border-radius: 14px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
                     <button class="action-icon" title="Messages" onclick="window.location.href='manager-message.html?id=' + new URLSearchParams(window.location.search).get('id')">
                         <i data-lucide="message-square"></i>
                         <span class="action-icon-badge" id="headerMsgBadge"></span>
@@ -634,26 +639,26 @@
                 <div class="chat-window">
                     <div class="chat-header" id="chatWindowHeader">
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="width: 38px; height: 38px; border-radius: 10px; background: #eff6ff; display: flex; align-items: center; justify-content: center; color: var(--primary, #2563eb);">
+                            <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--k-accent-soft); display: flex; align-items: center; justify-content: center; color: var(--primary, var(--k-accent-text));">
                                 <i data-lucide="message-square" style="width: 18px; height: 18px;"></i>
                             </div>
                             <div>
-                                <h4 style="margin: 0; font-size: 1rem; font-weight: 700; color: #0f172a;">Conversations</h4>
-                                <p style="color: var(--text-muted, #64748b); font-size: 0.8rem; margin: 0; font-weight: 500;">Select a contact or team to open messaging</p>
+                                <h4 style="margin: 0; font-size: 1rem; font-weight: 700; color: var(--k-text);">Conversations</h4>
+                                <p style="color: var(--text-muted, var(--k-muted)); font-size: 0.8rem; margin: 0; font-weight: 500;">Select a contact or team to open messaging</p>
                             </div>
                         </div>
                     </div>
                     <div class="chat-messages" id="chatMessages">
                         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); text-align: center; padding: 2rem;">
-                            <div style="width: 56px; height: 56px; border-radius: 16px; background: #ffffff; border: 1px solid var(--border, #e2e8f0); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; color: var(--primary, #2563eb); box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                            <div style="width: 56px; height: 56px; border-radius: 16px; background: var(--k-surface); border: 1px solid var(--border, var(--k-border)); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; color: var(--primary, var(--k-accent-text)); box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                                 <i data-lucide="messages-square" style="width: 26px; height: 26px;"></i>
                             </div>
-                            <h3 style="font-size: 1.125rem; font-weight: 700; color: #1e293b; margin-bottom: 6px;">Manager Communications Hub</h3>
-                            <p style="font-size: 0.875rem; max-width: 360px; line-height: 1.5; color: var(--text-muted, #64748b); margin: 0;">Select a team member, employee, or department on the left to start a real-time conversation or broadcast an announcement.</p>
+                            <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--k-text); margin-bottom: 6px;">Manager Communications Hub</h3>
+                            <p style="font-size: 0.875rem; max-width: 360px; line-height: 1.5; color: var(--text-muted, var(--k-muted)); margin: 0;">Select a team member, employee, or department on the left to start a real-time conversation or broadcast an announcement.</p>
                         </div>
                     </div>
                     
-                    <div id="attachmentPreview" style="padding: 1rem 1.5rem 0; display: none; gap: 8px; flex-wrap: wrap; background: white; border-top: 1px solid var(--border);"></div>
+                    <div id="attachmentPreview" style="padding: 1rem 1.5rem 0; display: none; gap: 8px; flex-wrap: wrap; background: var(--k-surface); border-top: 1px solid var(--border);"></div>
                     
                     <div class="chat-input" id="chatInputArea" style="border-top: 1px solid var(--border);">
                         <div class="mentions-dropdown" id="mentionsDropdown">
@@ -665,7 +670,7 @@
                         </button>
                         <input type="text" class="input-box" id="messageInput" placeholder="Type @ to mention someone...">
                         
-                        <button class="ai-btn" id="clearChatHistoryBtn" title="Clear All Chat History" onclick="clearAllChatHistory()" style="color: #ef4444; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); width: auto; padding: 0 14px; gap: 6px; display: flex; align-items: center;">
+                        <button class="ai-btn" id="clearChatHistoryBtn" title="Clear All Chat History" onclick="clearAllChatHistory()" style="color: var(--k-danger-text); background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); width: auto; padding: 0 14px; gap: 6px; display: flex; align-items: center;">
                             <i data-lucide="trash-2" style="pointer-events: none; width: 16px; height: 16px;"></i>
                             Clear All
                         </button>
@@ -715,7 +720,7 @@
                     <span>Auto-Correct Tone</span>
                     <label class="switch"><input type="checkbox"><span class="slider"></span></label>
                 </div>
-                <div style="padding: 1rem; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border);">
+                <div style="padding: 1rem; background: var(--k-subtle); border-radius: 12px; border: 1px solid var(--border);">
                     <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; margin-bottom: 8px;">
                         <span>AI Formality Level</span>
                         <span>High</span>
@@ -1119,15 +1124,15 @@
 
                     if (msg.attachments && msg.attachments.length > 0) {
                         const attHtml = msg.attachments.map(att => `
-                            <div style="display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.85); padding:10px 14px; border-radius:10px; border:1px solid rgba(0,0,0,0.1); margin-top:8px; font-size: 0.8rem; font-weight:600; color:#1e293b; flex-wrap:wrap;">
+                            <div style="display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.85); padding:10px 14px; border-radius:10px; border:1px solid rgba(0,0,0,0.1); margin-top:8px; font-size: 0.8rem; font-weight:600; color:var(--k-text); flex-wrap:wrap;">
                                 <span style="display:flex; align-items:center; gap:6px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
                                     📎 <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(att.name || 'Attachment')}</span>
                                 </span>
                                 <div style="display:flex; gap:6px; flex-shrink:0;">
-                                    <a href="#" onclick="window.openAttachment(this); return false;" data-url="${esc(att.dataUrl || '')}" data-name="${esc(att.name || 'attachment')}" style="display:inline-flex; align-items:center; gap:4px; background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; padding:5px 11px; border-radius:6px; font-size: 0.75rem; font-weight:700; text-decoration:none; cursor:pointer; transition:0.2s;" onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">
+                                    <a href="#" onclick="window.openAttachment(this); return false;" data-url="${esc(att.dataUrl || '')}" data-name="${esc(att.name || 'attachment')}" style="display:inline-flex; align-items:center; gap:4px; background:var(--k-accent-soft); color:var(--k-accent-text); border:1px solid var(--k-accent-border); padding:5px 11px; border-radius:6px; font-size: 0.75rem; font-weight:700; text-decoration:none; cursor:pointer; transition:0.2s;" onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">
                                         <i data-lucide="eye" style="width:14px; height:14px;"></i> Open
                                     </a>
-                                    <a href="${esc(att.dataUrl || '')}" download="${esc(att.name || 'download')}" style="display:inline-flex; align-items:center; gap:4px; background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; padding:5px 11px; border-radius:6px; font-size: 0.75rem; font-weight:700; text-decoration:none; cursor:pointer; transition:0.2s;" onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#f0fdf4'">
+                                    <a href="${esc(att.dataUrl || '')}" download="${esc(att.name || 'download')}" style="display:inline-flex; align-items:center; gap:4px; background:var(--k-success-soft); color:var(--k-success-text); border:1px solid var(--k-success-border); padding:5px 11px; border-radius:6px; font-size: 0.75rem; font-weight:700; text-decoration:none; cursor:pointer; transition:0.2s;" onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#f0fdf4'">
                                         <i data-lucide="download" style="width:14px; height:14px;"></i> Download
                                     </a>
                                 </div>
@@ -1141,7 +1146,7 @@
                         const safeMsgId = esc(msg.id || '');
                         htmlContent += `<div style="display:flex; gap:12px; margin-top:8px; font-size: 0.7rem; opacity:0.8; justify-content:center;">
                             <span style="cursor:pointer; color: var(--primary); text-decoration: underline;" onclick="window.editMessage('${safeMsgId}', \`${(msg.text || '').replace(/`/g, '\\`').replace(/"/g, '&quot;')}\`)">Edit</span>
-                            <span style="cursor:pointer; color: #ef4444; text-decoration: underline;" onclick="window.clearMessage('${safeMsgId}')">Clear</span>
+                            <span style="cursor:pointer; color: var(--k-danger-text); text-decoration: underline;" onclick="window.clearMessage('${safeMsgId}')">Clear</span>
                         </div>`;
                     }
                     msgDiv.innerHTML = htmlContent;
@@ -1493,7 +1498,7 @@
                     const esc = (typeof escapeHtml === 'function') ? escapeHtml : (window.escapeHtml || ((s) => String(s || '')));
                     chatHeader.innerHTML = `
                         <div class="contact-avatar" style="background: ${esc(entity.color)}">${esc(entity.initials)}</div>
-                        <div><div class="contact-name">${esc(entity.name)}</div><div style="font-size: 0.75rem; color:#10b981; font-weight:600;">${entity.type === 'team' ? 'Team Broadcast' : 'Direct Message'}</div></div>
+                        <div><div class="contact-name">${esc(entity.name)}</div><div style="font-size: 0.75rem; color:var(--k-success-text); font-weight:600;">${entity.type === 'team' ? 'Team Broadcast' : 'Direct Message'}</div></div>
                     `;
                     fetchMessages(entity.id);
                 } else {
@@ -1509,22 +1514,22 @@
                 selectionInfo.classList.remove('active');
                 chatHeader.innerHTML = `
                     <div style="display: flex; align-items: center; gap: 10px;">
-                        <div style="width: 38px; height: 38px; border-radius: 10px; background: #eff6ff; display: flex; align-items: center; justify-content: center; color: var(--primary, #2563eb);">
+                        <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--k-accent-soft); display: flex; align-items: center; justify-content: center; color: var(--primary, var(--k-accent-text));">
                             <i data-lucide="message-square" style="width: 18px; height: 18px;"></i>
                         </div>
                         <div>
-                            <h4 style="margin: 0; font-size: 1rem; font-weight: 700; color: #0f172a;">Conversations</h4>
-                            <p style="color: var(--text-muted, #64748b); font-size: 0.8rem; margin: 0; font-weight: 500;">Select a contact or team to open messaging</p>
+                            <h4 style="margin: 0; font-size: 1rem; font-weight: 700; color: var(--k-text);">Conversations</h4>
+                            <p style="color: var(--text-muted, var(--k-muted)); font-size: 0.8rem; margin: 0; font-weight: 500;">Select a contact or team to open messaging</p>
                         </div>
                     </div>
                 `;
                 chatMessages.innerHTML = `
                     <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); text-align: center; padding: 2rem;">
-                        <div style="width: 56px; height: 56px; border-radius: 16px; background: #ffffff; border: 1px solid var(--border, #e2e8f0); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; color: var(--primary, #2563eb); box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                        <div style="width: 56px; height: 56px; border-radius: 16px; background: var(--k-surface); border: 1px solid var(--border, var(--k-border)); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; color: var(--primary, var(--k-accent-text)); box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                             <i data-lucide="messages-square" style="width: 26px; height: 26px;"></i>
                         </div>
-                        <h3 style="font-size: 1.125rem; font-weight: 700; color: #1e293b; margin-bottom: 6px;">Manager Communications Hub</h3>
-                        <p style="font-size: 0.875rem; max-width: 360px; line-height: 1.5; color: var(--text-muted, #64748b); margin: 0;">Select a team member, employee, or department on the left to start a real-time conversation or broadcast an announcement.</p>
+                        <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--k-text); margin-bottom: 6px;">Manager Communications Hub</h3>
+                        <p style="font-size: 0.875rem; max-width: 360px; line-height: 1.5; color: var(--text-muted, var(--k-muted)); margin: 0;">Select a team member, employee, or department on the left to start a real-time conversation or broadcast an announcement.</p>
                     </div>
                 `;
                 if (unsubscribeMessages) unsubscribeMessages();
@@ -1540,7 +1545,7 @@
             if (document.getElementById('customEditModal')) return;
             
             const modalStyle = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center; z-index:9999; backdrop-filter:blur(2px);';
-            const contentStyle = 'background:white; padding:24px; border-radius:12px; width: 100%; max-width: min(400px, 90%); box-shadow:0 10px 25px rgba(0,0,0,0.1); font-family:inherit; text-align:left;';
+            const contentStyle = 'background:var(--k-surface); color:var(--k-text); padding:24px; border-radius:12px; width: 100%; max-width: min(400px, 90%); box-shadow:0 10px 25px rgba(0,0,0,0.1); font-family:inherit; text-align:left;';
             const btnStyle = 'padding:8px 16px; border-radius:6px; cursor:pointer; font-weight:500; font-family:inherit;';
             
             // Edit Modal
@@ -1549,14 +1554,14 @@
             editModal.style.cssText = modalStyle;
             editModal.innerHTML = `
                 <div style="${contentStyle}">
-                    <h3 style="margin-top:0; margin-bottom:12px; color:#1e293b; font-size: 1.125rem; font-weight:700;">Edit Message</h3>
-                    <textarea id="customEditInput" style="width:100%; height:100px; padding:12px; border:1px solid #cbd5e1; border-radius:8px; resize:none; font-family:inherit; box-sizing:border-box; outline:none; font-size: 0.875rem;"></textarea>
+                    <h3 style="margin-top:0; margin-bottom:12px; color:var(--k-text); font-size: 1.125rem; font-weight:700;">Edit Message</h3>
+                    <textarea id="customEditInput" style="width:100%; height:100px; padding:12px; border:1px solid var(--k-border); border-radius:8px; resize:none; font-family:inherit; box-sizing:border-box; outline:none; font-size: 0.875rem;"></textarea>
                     <button id="customEditAIFix" style="margin-top:10px; width:100%; padding:10px 16px; border-radius:8px; border:none; background:linear-gradient(135deg,#db2777,#9333ea); color:white; font-weight:700; font-size: 0.875rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:0.2s; font-family:inherit;">
                         <span style="font-size: 1rem;">✨</span> AI Fix
                     </button>
                     <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:12px;">
-                        <button id="customEditCancel" style="${btnStyle} border:1px solid #cbd5e1; background:white; color:#475569;">Cancel</button>
-                        <button id="customEditSave" style="${btnStyle} border:none; background:var(--primary, #3b82f6); color:white;">Save Changes</button>
+                        <button id="customEditCancel" style="${btnStyle} border:1px solid #cbd5e1; background:var(--k-surface); color:var(--k-text-2);">Cancel</button>
+                        <button id="customEditSave" style="${btnStyle} border:none; background:var(--primary, var(--k-accent)); color:white;">Save Changes</button>
                     </div>
                 </div>
             `;
@@ -1567,11 +1572,11 @@
             delModal.style.cssText = modalStyle;
             delModal.innerHTML = `
                 <div style="${contentStyle}">
-                    <h3 style="margin-top:0; margin-bottom:8px; color:#ef4444; font-size: 1.125rem; font-weight:700;">Clear Message</h3>
-                    <p style="color:#475569; margin-bottom:20px; font-size: 0.875rem;">Are you sure you want to permanently clear this message? This action cannot be undone.</p>
+                    <h3 style="margin-top:0; margin-bottom:8px; color:var(--k-danger-text); font-size: 1.125rem; font-weight:700;">Clear Message</h3>
+                    <p style="color:var(--k-text-2); margin-bottom:20px; font-size: 0.875rem;">Are you sure you want to permanently clear this message? This action cannot be undone.</p>
                     <div style="display:flex; justify-content:flex-end; gap:12px;">
-                        <button id="customDelCancel" style="${btnStyle} border:1px solid #cbd5e1; background:white; color:#475569;">Cancel</button>
-                        <button id="customDelConfirm" style="${btnStyle} border:none; background:#ef4444; color:white;">Clear Message</button>
+                        <button id="customDelCancel" style="${btnStyle} border:1px solid #cbd5e1; background:var(--k-surface); color:var(--k-text-2);">Cancel</button>
+                        <button id="customDelConfirm" style="${btnStyle} border:none; background:var(--k-danger); color:white;">Clear Message</button>
                     </div>
                 </div>
             `;
@@ -1620,11 +1625,11 @@
             clearAllModal.style.cssText = modalStyle;
             clearAllModal.innerHTML = `
                 <div style="${contentStyle}">
-                    <h3 style="margin-top:0; margin-bottom:8px; color:#ef4444; font-size: 1.125rem; font-weight:700;">Clear All History</h3>
-                    <p style="color:#475569; margin-bottom:20px; font-size: 0.875rem;">Are you sure you want to permanently clear the entire conversation? This action cannot be undone.</p>
+                    <h3 style="margin-top:0; margin-bottom:8px; color:var(--k-danger-text); font-size: 1.125rem; font-weight:700;">Clear All History</h3>
+                    <p style="color:var(--k-text-2); margin-bottom:20px; font-size: 0.875rem;">Are you sure you want to permanently clear the entire conversation? This action cannot be undone.</p>
                     <div style="display:flex; justify-content:flex-end; gap:12px;">
-                        <button id="customClearAllCancel" style="${btnStyle} border:1px solid #cbd5e1; background:white; color:#475569;">Cancel</button>
-                        <button id="customClearAllConfirm" style="${btnStyle} border:none; background:#ef4444; color:white;">Clear Chat</button>
+                        <button id="customClearAllCancel" style="${btnStyle} border:1px solid #cbd5e1; background:var(--k-surface); color:var(--k-text-2);">Cancel</button>
+                        <button id="customClearAllConfirm" style="${btnStyle} border:none; background:var(--k-danger); color:white;">Clear Chat</button>
                     </div>
                 </div>
             `;

@@ -238,7 +238,7 @@
 
         if (!Array.isArray(history) || history.length === 0) {
             container.innerHTML = `
-                <div style="text-align: center; padding: 1.5rem; color: #94a3b8; font-size: 0.8rem; background: #f8fafc; border-radius: 8px; border: 1px dashed #cbd5e1;">
+                <div style="text-align: center; padding: 1.5rem; color: var(--k-muted); font-size: 0.8rem; background: var(--k-subtle); border-radius: 8px; border: 1px dashed var(--k-border);">
                     <i data-lucide="history" style="width: 24px; height: 24px; margin: 0 auto 6px; display: block; color: #cbd5e1;"></i>
                     No previous managerial hierarchy changes recorded.
                 </div>
@@ -262,19 +262,19 @@
             }) : '---';
 
             return `
-                <tr style="border-bottom: 1px solid #f1f5f9; font-size: 0.78rem;">
+                <tr style="border-bottom: 1px solid var(--k-border); font-size: 0.78rem;">
                     <td style="padding: 10px 12px;">
                         <span style="font-weight: 800; font-size: 0.7rem; padding: 2px 8px; border-radius: 6px; ${levelStyle}">
                             ${item.level || 'L1'}
                         </span>
                     </td>
-                    <td style="padding: 10px 12px; color: #64748b; font-family: monospace;">${oldMgr}</td>
-                    <td style="padding: 10px 12px; color: #0f172a; font-weight: 700; font-family: monospace;">
-                        <i data-lucide="arrow-right" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; color: #10b981; margin-right: 4px;"></i>
+                    <td style="padding: 10px 12px; color: var(--k-muted); font-family: monospace;">${oldMgr}</td>
+                    <td style="padding: 10px 12px; color: var(--k-text); font-weight: 700; font-family: monospace;">
+                        <i data-lucide="arrow-right" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; color: var(--k-success-text); margin-right: 4px;"></i>
                         ${newMgr}
                     </td>
-                    <td style="padding: 10px 12px; color: #475569;">${item.changedBy || 'Super Admin'}</td>
-                    <td style="padding: 10px 12px; color: #94a3b8; font-size: 0.74rem;">${dateStr}</td>
+                    <td style="padding: 10px 12px; color: var(--k-text-2);">${item.changedBy || 'Super Admin'}</td>
+                    <td style="padding: 10px 12px; color: var(--k-muted); font-size: 0.74rem;">${dateStr}</td>
                 </tr>
             `;
         }).join('');
@@ -282,7 +282,7 @@
         container.innerHTML = `
             <table style="width: 100%; border-collapse: collapse; text-align: left;">
                 <thead>
-                    <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; font-size: 0.7rem; color: #64748b; text-transform: uppercase;">
+                    <tr style="background: var(--k-subtle); border-bottom: 1px solid var(--k-border); font-size: 0.7rem; color: var(--k-muted); text-transform: uppercase;">
                         <th style="padding: 8px 12px;">Tier</th>
                         <th style="padding: 8px 12px;">Previous Manager</th>
                         <th style="padding: 8px 12px;">New Assigned Manager</th>
@@ -419,37 +419,90 @@
             updatedAt: now
         };
 
+        /*
+         * This used to report success whatever happened. A Firestore failure was logged as a
+         * "notice", the API call swallowed every error and never checked res.ok - so a 403 or
+         * 500 counted as saved - and the screen was updated and "successfully updated with
+         * audit trail" shown regardless. A reassignment could fail at both stores and every
+         * audit write, and the admin would be told it had worked.
+         *
+         * Each step now records whether it actually succeeded, and the message says exactly
+         * that. Nothing on screen changes unless at least one store accepted the change.
+         */
+        let firestoreSaved = false;
+        let apiSaved = false;
+        let auditSaved = 0;
+        let auditFailed = 0;
+        const failures = [];
+
         try {
             // 1. Write to Firestore employees/{empId} and users/{empId}
             const fb = await import('./firebase-config.js');
             if (fb && fb.db && fb.doc && fb.setDoc) {
                 await fb.setDoc(fb.doc(fb.db, 'employees', empId), updatePayload, { merge: true });
                 await fb.setDoc(fb.doc(fb.db, 'users', empId), updatePayload, { merge: true });
+                firestoreSaved = true;
 
-                // Also persist to audit_logs collection
+                // An audit write failing must be visible: otherwise a reporting-line change
+                // stands with no record of who made it.
                 if (fb.addDoc && fb.collection) {
                     for (const entry of auditLogEntries) {
                         try {
                             await fb.addDoc(fb.collection(fb.db, 'audit_logs'), entry);
-                        } catch (_) {}
+                            auditSaved++;
+                        } catch (auditErr) {
+                            auditFailed++;
+                            console.error('[ManagerAssignment] audit log write failed for ' + empId + ':', auditErr);
+                        }
                     }
                 }
             }
         } catch (fsErr) {
-            console.warn('[Firestore] Manager assignment write notice:', fsErr.message);
+            failures.push('database');
+            console.error('[ManagerAssignment] Firestore write failed for ' + empId + ':', fsErr);
         }
 
-        // 2. Dual-save to backend API
+        // 2. Dual-save to backend API. A response that is not ok is a failure, not a save.
         try {
             const token = (typeof window !== 'undefined' && window.auth && window.auth.currentUser) ? await window.auth.currentUser.getIdToken() : localStorage.getItem('access_token');
-            await fetch(`${typeof API_BASE !== 'undefined' ? API_BASE : (typeof window !== 'undefined' && window.API_BASE ? window.API_BASE : (typeof window !== 'undefined' && window.location ? window.location.origin : ''))}/api/admin/employees/${empId}/managers`, {
+            const base = typeof API_BASE !== 'undefined' ? API_BASE : (typeof window !== 'undefined' && window.API_BASE ? window.API_BASE : (typeof window !== 'undefined' && window.location ? window.location.origin : ''));
+            const res = await fetch(base + '/api/admin/employees/' + encodeURIComponent(empId) + '/managers', {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
+                headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': 'Bearer ' + token } : {}) },
                 body: JSON.stringify({ l1ManagerId: newL1, l2ManagerId: newL2, changedBy: assignedBy })
             });
-        } catch (_) {}
+            if (res.ok) {
+                apiSaved = true;
+            } else {
+                failures.push('server (HTTP ' + res.status + ')');
+                console.error('[ManagerAssignment] API rejected the change for ' + empId + ': HTTP ' + res.status);
+            }
+        } catch (apiErr) {
+            failures.push('server');
+            console.error('[ManagerAssignment] API call failed for ' + empId + ':', apiErr);
+        }
 
-        // 3. Update in-memory state and refresh directory table immediately
+        const notify = (kind, title, message) => {
+            if (kind === 'error' && window.showError) window.showError(title, message);
+            else if (kind !== 'error' && window.showSuccess) window.showSuccess(title, message);
+            else if (window.showToast) window.showToast(message, kind);
+            else alert(title + ': ' + message);
+        };
+        const who = currentEmp.fullName || currentEmp.name || empId;
+
+        // Neither store took the change: say so, keep the modal open so nothing typed is
+        // lost, and leave the screen showing what is actually saved.
+        if (!firestoreSaved && !apiSaved) {
+            notify('error', 'Hierarchy not updated',
+                'The reporting line for ' + who + ' could not be saved (' + failures.join(', ') + '). Nothing was changed - please try again.');
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i data-lucide="check"></i> Save &amp; Update Hierarchy';
+            }
+            return;
+        }
+
+        // 3. Update in-memory state and refresh directory table, now that it is saved
         if (window.state && Array.isArray(window.state.employees)) {
             window.state.employees = window.state.employees.map(e => {
                 if (e.id === empId || e.uid === empId || e.employeeId === empId) {
@@ -472,15 +525,19 @@
             window.EmployeeProfileController.updateManagerBadges();
         }
 
-        // Success notification & close
         closeAssignmentModal();
 
-        if (window.showSuccess) {
-            window.showSuccess('Hierarchy Updated', `Reporting hierarchy for ${currentEmp.fullName || currentEmp.name || empId} successfully updated with audit trail.`);
-        } else if (window.showToast) {
-            window.showToast('✅ Manager assignments updated successfully!', 'success');
+        // Claim only what happened. "With audit trail" is said only when every entry saved.
+        if (auditFailed > 0) {
+            notify('warning', 'Hierarchy updated - audit record incomplete',
+                'The reporting line for ' + who + ' was saved, but ' + auditFailed + ' of ' + (auditSaved + auditFailed) +
+                ' audit entries could not be recorded. Note this change manually.');
+        } else if (failures.length) {
+            notify('warning', 'Hierarchy updated - partly saved',
+                'The reporting line for ' + who + ' was saved, but the ' + failures.join(', ') + ' did not accept it and may show the old value until it is retried.');
         } else {
-            alert('Manager assignments updated successfully.');
+            notify('success', 'Hierarchy updated',
+                'Reporting hierarchy for ' + who + ' updated' + (auditSaved ? ' with audit trail.' : '.'));
         }
 
         if (saveBtn) {
@@ -510,7 +567,7 @@
 
         const employees = window.state?.employees || [];
         if (employees.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding: 3rem; color: #94a3b8;">No personnel records available for organizational hierarchy.</div>';
+            container.innerHTML = '<div style="text-align:center; padding: 3rem; color: var(--k-muted);">No personnel records available for organizational hierarchy.</div>';
             modal.style.display = 'flex';
             setTimeout(() => modal.classList.add('active'), 10);
             return;
@@ -554,35 +611,35 @@
             const l2Display = getManagerDisplayString(l2, employees);
 
             const childrenHtml = node.children.length > 0 
-                ? `<div class="org-children" style="display: flex; gap: 16px; margin-top: 16px; padding-left: 20px; border-left: 2px dashed #cbd5e1;">
+                ? `<div class="org-children" style="display: flex; gap: 16px; margin-top: 16px; padding-left: 20px; border-left: 2px dashed var(--k-border);">
                     ${node.children.map(c => renderNodeHtml(c)).join('')}
                    </div>`
                 : '';
 
             return `
-                <div class="org-node" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 18px; min-width: 250px; max-width: 320px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 12px;">
+                <div class="org-node" style="background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 12px; padding: 14px 18px; min-width: 250px; max-width: 320px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 12px;">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                         <div>
-                            <div style="font-weight: 800; font-size: 0.9rem; color: #0f172a;">${name}</div>
-                            <div style="font-size: 0.72rem; color: #64748b; font-family: monospace;">${id} • ${desig}</div>
+                            <div style="font-weight: 800; font-size: 0.9rem; color: var(--k-text);">${name}</div>
+                            <div style="font-size: 0.72rem; color: var(--k-muted); font-family: monospace;">${id} • ${desig}</div>
                         </div>
-                        <button type="button" class="btn btn-secondary" onclick="ManagerAssignmentController.openAssignmentModal('${id}')" title="Reassign Managers" style="padding: 4px 8px; font-size: 0.7rem; border-radius: 6px; background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; cursor: pointer;">
+                        <button type="button" class="btn btn-secondary" onclick="ManagerAssignmentController.openAssignmentModal('${id}')" title="Reassign Managers" style="padding: 4px 8px; font-size: 0.7rem; border-radius: 6px; background: var(--k-accent-soft); color: var(--k-accent-text); border: 1px solid var(--k-accent-border); cursor: pointer;">
                             <i data-lucide="git-pull-request" style="width: 12px; height: 12px;"></i> Assign
                         </button>
                     </div>
-                    <div style="font-size: 0.72rem; color: #64748b; margin-bottom: 8px;">
-                        <span style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-weight: 600;">${dept}</span>
-                        ${node.children.length > 0 ? `<span style="background: #ecfdf5; color: #059669; padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-left: 4px;">${node.children.length} Reports</span>` : ''}
+                    <div style="font-size: 0.72rem; color: var(--k-muted); margin-bottom: 8px;">
+                        <span style="background: var(--k-subtle); padding: 2px 6px; border-radius: 4px; font-weight: 600;">${dept}</span>
+                        ${node.children.length > 0 ? `<span style="background: var(--k-success-soft); color: var(--k-success-text); padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-left: 4px;">${node.children.length} Reports</span>` : ''}
                     </div>
-                    <div style="display: flex; flex-direction: column; gap: 4px; border-top: 1px solid #f1f5f9; padding-top: 6px;">
+                    <div style="display: flex; flex-direction: column; gap: 4px; border-top: 1px solid var(--k-border); padding-top: 6px;">
                         <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.7rem;">
-                            <span style="font-weight: 800; color: #1d4ed8; background: #eff6ff; padding: 1px 6px; border-radius: 4px;">L1</span>
-                            <span style="color: #475569; font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 170px;" title="${l1Display}">${l1Display}</span>
+                            <span style="font-weight: 800; color: var(--k-accent-text); background: var(--k-accent-soft); padding: 1px 6px; border-radius: 4px;">L1</span>
+                            <span style="color: var(--k-text-2); font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 170px;" title="${l1Display}">${l1Display}</span>
                         </div>
                         ${l2 ? `
                         <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.7rem;">
                             <span style="font-weight: 800; color: #6d28d9; background: #f5f3ff; padding: 1px 6px; border-radius: 4px;">L2</span>
-                            <span style="color: #475569; font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 170px;" title="${l2Display}">${l2Display}</span>
+                            <span style="color: var(--k-text-2); font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 170px;" title="${l2Display}">${l2Display}</span>
                         </div>
                         ` : ''}
                     </div>

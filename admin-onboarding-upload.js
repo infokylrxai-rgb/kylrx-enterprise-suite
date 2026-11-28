@@ -26,13 +26,19 @@
  */
 
 import { auth, db, getActiveOrgId } from "./firebase-config.js";
-import { 
-    doc, 
-    getDoc, 
-    setDoc, 
-    serverTimestamp 
+// getDocs and collection were used ten times without being imported. Each use threw a
+// ReferenceError that a catch reported as "will fall back", so every check that an
+// uploaded Employee_ID belongs to a real employee was silently skipped.
+import {
+    doc,
+    getDoc,
+    getDocs,
+    collection,
+    setDoc,
+    serverTimestamp
 } from "./firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+import { kindForSheet, parseReferenceRows, saveReferenceRecords, previewHtml, REFERENCE_KINDS } from "./onboarding-reference-import.js";
 
 // Exact 21 Attributes Schema Definition (PRD Section 1 & 'Organization' Sheet)
 export const ORGANIZATION_ATTRIBUTES = [
@@ -108,19 +114,13 @@ const state = {
 const statusBadge = document.getElementById('statusBadge');
 const tabManual = document.getElementById('tabManual');
 const tabBulk = document.getElementById('tabBulk');
-// The three bulk tabs: buttons present in the markup, never looked up here, so they
-// could not be registered and clicking them did nothing.
 const tabStatutoryMasters = document.getElementById('tabStatutoryMasters');
 const statutoryMastersView = document.getElementById('statutoryMastersView');
-const tabUnifiedJobRoster = document.getElementById('tabUnifiedJobRoster');
-const tabUnifiedEmployeeFinance = document.getElementById('tabUnifiedEmployeeFinance');
-const tabUnifiedOrgCompliance = document.getElementById('tabUnifiedOrgCompliance');
 const tabBusinessUnits = document.getElementById('tabBusinessUnits');
 const manualView = document.getElementById('manualView');
 const uploadView = document.getElementById('uploadView');
 const buManagementView = document.getElementById('buManagementView');
 const manualOrgForm = document.getElementById('manualOrgForm');
-const btnFillDemoData = document.getElementById('btnFillDemoData');
 const btnManualClear = document.getElementById('btnManualClear');
 const btnManualSubmit = document.getElementById('btnManualSubmit');
 
@@ -321,6 +321,9 @@ const btnCancelStatutoryComplianceIngest = document.getElementById('btnCancelSta
 const btnConfirmStatutoryComplianceIngest = document.getElementById('btnConfirmStatutoryComplianceIngest');
 const statutoryTotalRowsDisplay = document.getElementById('statutoryTotalRowsDisplay');
 const statutoryTotalApplicableDisplay = document.getElementById('statutoryTotalApplicableDisplay');
+// Was used but never looked up: the ReferenceError stopped the whole upload at the
+// Statutory Compliance sheet, so the sheets after it were never read.
+const statutoryTotalStatesDisplay = document.getElementById('statutoryTotalStatesDisplay');
 const statutoryTotalDueRemindersDisplay = document.getElementById('statutoryTotalDueRemindersDisplay');
 
 // Role Permissions & Employee Overrides Elements (PRD Sections 1, 14, 17, & 18)
@@ -354,11 +357,6 @@ const wfModulesCoveredDisplay = document.getElementById('wfModulesCoveredDisplay
 const tabPayrollComponents = document.getElementById('tabPayrollComponents');
 const payrollComponentsManagementView = document.getElementById('payrollComponentsManagementView');
 
-// These three panels are fully present in the markup but were never looked up, so they
-// were never registered as tabs and clicking their buttons did nothing at all.
-const unifiedJobRosterView = document.getElementById('unifiedJobRosterView');
-const unifiedEmployeeFinanceView = document.getElementById('unifiedEmployeeFinanceView');
-const unifiedOrgComplianceView = document.getElementById('unifiedOrgComplianceView');
 const payrollComponentsParseResultsContainer = document.getElementById('payrollComponentsParseResultsContainer');
 const payrollComponentsParseResultTitle = document.getElementById('payrollComponentsParseResultTitle');
 const payrollComponentsParseResultMeta = document.getElementById('payrollComponentsParseResultMeta');
@@ -427,7 +425,7 @@ async function checkExistingOrganizationStatus() {
                 localStorage.setItem('orgConfigured', 'true');
                 if (statusBadge) {
                     statusBadge.className = 'badge-verified';
-                    statusBadge.innerHTML = '<i data-lucide="check-circle" style="width: 14px;"></i> Organization Configured (orgConfigured: true)';
+                    statusBadge.innerHTML = '<i data-lucide="check-circle" style="width: 14px;"></i> Organization configured';
                 }
                 populateManualFormWithExistingData(data);
                 console.log(`✅ Organization ${state.orgId} is configured:`, data);
@@ -442,7 +440,7 @@ async function checkExistingOrganizationStatus() {
         if (localStorage.getItem('orgConfigured') === 'true') {
             if (statusBadge) {
                 statusBadge.className = 'badge-verified';
-                statusBadge.innerHTML = '<i data-lucide="check-circle" style="width: 14px;"></i> Organization Configured (orgConfigured: true)';
+                statusBadge.innerHTML = '<i data-lucide="check-circle" style="width: 14px;"></i> Organization configured';
             }
         }
     }
@@ -453,7 +451,7 @@ function markPendingStatus() {
     state.isConfigured = false;
     if (statusBadge) {
         statusBadge.className = 'badge-pending';
-        statusBadge.innerHTML = '<i data-lucide="shield-alert" style="width: 14px;"></i> Setup Required (orgConfigured: false)';
+        statusBadge.innerHTML = '<i data-lucide="shield-alert" style="width: 14px;"></i> Setup required';
     }
 }
 
@@ -503,12 +501,6 @@ function setupNavigationTabs() {
     const TABS = {
         manual: [tabManual, manualView],
         bulk: [tabBulk, uploadView],
-        // Registered so the tabs open. The panels themselves are markup only - none of
-        // their controls has ever been wired - so each says so rather than presenting a
-        // file picker that silently does nothing.
-        unifiedJobRoster: [tabUnifiedJobRoster, unifiedJobRosterView, () => markBulkPanelUnavailable('jobRoster', 'Job & Rosters')],
-        unifiedEmployeeFinance: [tabUnifiedEmployeeFinance, unifiedEmployeeFinanceView, () => markBulkPanelUnavailable('employeeFinance', 'Finance & Statutory IDs')],
-        unifiedOrgCompliance: [tabUnifiedOrgCompliance, unifiedOrgComplianceView, () => markBulkPanelUnavailable('orgCompliance', 'Org Statutory Registrations')],
         businessUnits: [tabBusinessUnits, buManagementView, () => window.KylrxBuRules && typeof window.KylrxBuRules.renderAdminRulesTable === 'function' && window.KylrxBuRules.renderAdminRulesTable('onboardingBuTableContainer')],
         costCenters: [tabCostCenters, ccManagementView, () => window.KylrxCostCenterService && typeof window.KylrxCostCenterService.renderAdminConsole === 'function' && window.KylrxCostCenterService.renderAdminConsole('onboardingCcTableContainer')],
         subDepartments: [tabSubDepartments, subDeptManagementView, () => window.KylrxSubDepartmentService && typeof window.KylrxSubDepartmentService.renderAdminConsole === 'function' && window.KylrxSubDepartmentService.renderAdminConsole('onboardingSubDeptTableContainer')],
@@ -524,44 +516,6 @@ function setupNavigationTabs() {
         statutoryMasters: [tabStatutoryMasters, statutoryMastersView, () => showStatutoryMaster(currentStatutoryMaster)],
         payrollComponents: [tabPayrollComponents, payrollComponentsManagementView, () => window.KylrxPayrollComponentsUIController && typeof window.KylrxPayrollComponentsUIController.renderAdminConsole === 'function' && window.KylrxPayrollComponentsUIController.renderAdminConsole('onboardingPayrollComponentsTableContainer', state.orgId)]
     };
-
-    /**
-     * These three bulk panels were built as markup and never implemented: the template
-     * button, the drop zone, the file input and the ingest button exist in the HTML and
-     * are referenced nowhere in script. Opening the tab used to be impossible; now that
-     * it opens, a dead file picker would be worse than the dead tab, because a person
-     * would drop a file in and wait for something to happen.
-     *
-     * The controls are disabled and the panel says where to do the same work today.
-     */
-    function markBulkPanelUnavailable(prefix, label) {
-        const dropZone = document.getElementById(prefix + 'DropZone');
-        const fileInput = document.getElementById(prefix + 'FileInput');
-        const confirmBtn = document.getElementById('btnConfirm' + prefix.charAt(0).toUpperCase() + prefix.slice(1) + 'Ingest');
-        const templateBtn = document.getElementById('btnDownload' + prefix.charAt(0).toUpperCase() + prefix.slice(1) + 'Template');
-
-        for (const el of [confirmBtn, templateBtn]) {
-            if (!el) continue;
-            el.disabled = true;
-            el.style.opacity = '0.5';
-            el.style.cursor = 'not-allowed';
-            el.title = label + ' bulk import is not available yet';
-        }
-        if (fileInput) fileInput.disabled = true;
-
-        if (dropZone && !dropZone.dataset.unavailableShown) {
-            dropZone.dataset.unavailableShown = 'true';
-            dropZone.style.opacity = '0.55';
-            dropZone.style.pointerEvents = 'none';
-            const note = document.createElement('div');
-            note.setAttribute('role', 'status');
-            note.style.cssText = 'margin: 0 0 1rem; padding: 0.75rem 1rem; border-radius: 12px;' +
-                'background: #fffbeb; color: #b45309; border: 1px solid #fde68a; font-size: 0.875rem; font-weight: 600;';
-            note.textContent = label + ' bulk import is not built yet. Use the Bulk File Upload tab for the sheets it supports, ' +
-                'or the matching console tab to enter these records directly.';
-            dropZone.parentElement.insertBefore(note, dropZone);
-        }
-    }
 
     /*
      * The six statutory masters used to be six chips in the main bar, differing only by
@@ -636,12 +590,12 @@ function setupInAppDownload() {
     const triggerInAppDownload = (e) => {
         e.preventDefault();
         const link = document.createElement('a');
-        link.href = 'assets/Templates.xlsx';
-        link.download = 'Templates.xlsx';
+        link.href = 'assets/Kylrx-Import-Template.xlsx';
+        link.download = 'Kylrx-Import-Template.xlsx';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        console.log("📥 Direct in-app download initiated for official 27-sheet Templates.xlsx (Never distributed via email per PRD Section 1).");
+        
     };
 
     if (btnDownloadTemplate) btnDownloadTemplate.onclick = triggerInAppDownload;
@@ -652,41 +606,6 @@ function setupInAppDownload() {
  * Sets up Tab A: Manual Data Entry Form logic
  */
 function setupManualForm() {
-    // Fill sample demo data for rapid testing
-    if (btnFillDemoData) {
-        btnFillDemoData.onclick = () => {
-            const demoData = {
-                manualLegalName: "Kylrx Technologies Private Limited",
-                manualDisplayName: "Kylrx AI",
-                manualOrgType: "Private Limited",
-                manualIndustry: "Technology & HR Automation SaaS",
-                manualWebsite: "https://kylrx.ai",
-                manualOfficialEmail: "admin@kylrx.ai",
-                manualOfficialPhone: "+91 80 4123 4567",
-                manualCountry: "India",
-                manualState: "Karnataka",
-                manualCity: "Bengaluru",
-                manualPinCode: "560103",
-                manualRegisteredAddress: "Outer Ring Road, Bellandur, Bengaluru, Karnataka 560103",
-                manualCorporateAddress: "Floor 9, Tower C, Global Tech Park, Bellandur, Bengaluru, Karnataka 560103",
-                manualTimeZone: "Asia/Kolkata",
-                manualCurrency: "INR",
-                manualFyStart: "04-01",
-                manualPan: "AAACK1234F",
-                manualTan: "BLRK12345D",
-                manualCin: "U72200KA2026PTC123456",
-                manualGstin: "29AAACK1234F1Z5",
-                manualLogoUrl: "https://kylrx.ai/logo.jpg"
-            };
-
-            for (const [id, value] of Object.entries(demoData)) {
-                const el = document.getElementById(id);
-                if (el) el.value = value;
-            }
-            window.showCustomAlert("Demo Data Populated", "The exact 21 organization attributes have been auto-populated with Kylrx Enterprise defaults.", "success");
-        };
-    }
-
     if (btnManualClear) {
         btnManualClear.onclick = () => {
             if (manualOrgForm) manualOrgForm.reset();
@@ -754,7 +673,7 @@ async function processManualSubmission() {
         window.showCustomAlert("Setup Error", "Failed to save organization: " + err.message, "error");
         if (btnManualSubmit) {
             btnManualSubmit.disabled = false;
-            btnManualSubmit.innerHTML = '<i data-lucide="check-circle-2"></i> Save Organization & Set orgConfigured: true';
+            btnManualSubmit.innerHTML = '<i data-lucide="check-circle-2"></i> Save Organization';
             if (window.lucide) lucide.createIcons();
         }
     } finally {
@@ -802,12 +721,38 @@ function validateOrganizationAttributes(data) {
  * Sets up Tab B: Bulk File Upload (.xlsx / .csv parser)
  */
 function setupFileUpload() {
+    // Save buttons rendered inside the Departments / Designations / Locations / Employees previews.
+    const referenceContainer = document.getElementById('referenceImportResults');
+    if (referenceContainer) {
+        referenceContainer.onclick = async (e) => {
+            const btn = e && e.target && typeof e.target.closest === 'function' ? e.target.closest('[data-reference-save]') : null;
+            if (!btn || btn.disabled) return;
+            const kind = btn.getAttribute('data-reference-save');
+            await saveReference(kind, btn);
+        };
+    }
     if (dropZone && fileInput) {
+        // A div is not reachable by keyboard; this makes the drop zone a real button.
+        dropZone.setAttribute('role', 'button');
+        dropZone.setAttribute('tabindex', '0');
+        dropZone.setAttribute('aria-label', 'Choose a spreadsheet to upload');
         dropZone.onclick = () => fileInput.click();
+        dropZone.onkeydown = (e) => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); }
+        };
         fileInput.onchange = (e) => {
-            if (e.target.files && e.target.files[0]) {
-                handleUploadedFile(e.target.files[0]);
-            }
+            const file = e.target.files && e.target.files[0];
+            // Cleared at once so choosing the same file again - after correcting it, which
+            // is the usual next step - fires change. Otherwise the re-upload does nothing.
+            e.target.value = '';
+            if (file) handleUploadedFile(file);
+        };
+
+        // Highlight while dragging, then hand the colours back to the stylesheet. Setting
+        // a literal white here left the zone white in the dark theme after every drop.
+        const resetZone = () => {
+            dropZone.style.borderColor = '';
+            dropZone.style.backgroundColor = '';
         };
 
         dropZone.ondragover = (e) => {
@@ -818,14 +763,12 @@ function setupFileUpload() {
 
         dropZone.ondragleave = (e) => {
             e.preventDefault();
-            dropZone.style.borderColor = 'var(--border)';
-            dropZone.style.backgroundColor = '#ffffff';
+            resetZone();
         };
 
         dropZone.ondrop = (e) => {
             e.preventDefault();
-            dropZone.style.borderColor = 'var(--border)';
-            dropZone.style.backgroundColor = '#ffffff';
+            resetZone();
             if (e.dataTransfer.files && e.dataTransfer.files[0]) {
                 handleUploadedFile(e.dataTransfer.files[0]);
             }
@@ -864,7 +807,7 @@ function setupFileUpload() {
                 console.error("Bulk spreadsheet ingest failed:", err);
                 window.showCustomAlert("Ingest Error", "Failed to ingest organization: " + err.message, "error");
                 btnConfirmIngest.disabled = false;
-                btnConfirmIngest.innerHTML = '<i data-lucide="lock"></i> Ingest 21 Attributes & Set orgConfigured: true';
+                btnConfirmIngest.innerHTML = '<i data-lucide="lock"></i> Save Organization';
                 if (window.lucide) lucide.createIcons();
             } finally {
                 state.isProcessing = false;
@@ -1482,9 +1425,126 @@ function handleUploadedFile(file) {
             const workbook = XLSX.read(data, { type: 'array' });
             let parsedAny = false;
 
+            /*
+             * Each section below looks for its sheet by name. Two things went wrong with a
+             * plain SheetNames.find:
+             *  - the names were compared with only spaces, "_" and "-" removed, so
+             *    "Shifts & Week-offs" became "shifts&weekoffs" and never matched. Shifts
+             *    filled into the template's own Shifts sheet were silently not imported;
+             *  - the template carries several spellings of one sheet ("Cost Center" and
+             *    "Cost Centre"), and find returns the first even when it is the empty one,
+             *    so the copy somebody actually filled in was ignored.
+             * pickSheet also tries the name with symbols removed, prefers a matching sheet
+             * that has rows, and records what it used so unread sheets can be reported.
+             */
+            const usedSheets = new Set();
+            // Sheets that were read but every row of which was rejected. They used to show
+            // no preview and no message - the rows simply did not appear.
+            const rejectedSheets = [];
+            const rowCounts = new Map();
+            const hasRows = (name) => {
+                if (!rowCounts.has(name)) rowCounts.set(name, XLSX.utils.sheet_to_json(workbook.Sheets[name], { defval: '' }).length);
+                return rowCounts.get(name) > 0;
+            };
+            const pickSheet = (predicate) => {
+                const hits = workbook.SheetNames.filter(name =>
+                    predicate(name) ||
+                    predicate(name.replace(/&/g, ' and ')) ||
+                    predicate(name.replace(/[^A-Za-z0-9]+/g, ' ')));
+                const chosen = hits.find(hasRows) || hits[0];
+                if (chosen) usedSheets.add(chosen);
+                return chosen;
+            };
+
+            /*
+             * Every sheet is looked up by name before any section runs. A lone sheet whose
+             * name is not recognised (a CSV, or "Sheet1") is then identified by its headers.
+             * The header check used to run section by section, before later sections had
+             * looked for their names, so a file holding only "PF Details" was also claimed
+             * by Employee Finance - whose check accepted any sheet with an Employee ID - and
+             * PF rows were offered for import as bank details.
+             */
+            let orgSheetName = pickSheet(s => s.trim().toLowerCase().replace(/[\s_-]+/g, '') === 'organization');
+            let buSheetName = pickSheet(s => s.trim().toLowerCase().replace(/[\s_-]+/g, '') === 'businessunit');
+            let ccSheetName = pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
+                return norm === 'costcenter' || norm === 'costcentre';
+            });
+            let subDeptSheetName = pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
+                return norm === 'subdepartments' || norm === 'subdepartment' || norm === 'subdepts';
+            });
+            let shiftSheetName = pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
+                return norm === 'shiftsweekoffs' || norm === 'shiftsandweekoffs' || norm === 'shifts' || norm === 'shiftroster' || norm === 'shift_roster' || norm === 'shiftspolicies';
+            });
+            let policySheetName = pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
+                return norm === 'attendancerules' || norm === 'attendancepolicies' || norm === 'attendancepolicy' || norm === 'attendance_rules' || norm === 'attendance_policies' || norm === 'attendance';
+            });
+            let empTypeSheetName = pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
+                return norm === 'employeetype' || norm === 'employeetypes';
+            }) || pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
+                return norm === 'employmenttype' || norm === 'employmenttypes' || norm === 'categories';
+            });
+            let empFinanceSheetName = pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
+                return norm === 'employeefinancedeatils' || norm === 'employeefinancedetails' || norm === 'employeefinance' || norm === 'financedetails' || norm === 'finance_details' || norm === 'finance';
+            });
+            let pfMasterSheetName = pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
+                return norm === 'pfdetails' || norm === 'epfomaster' || norm === 'pfmaster' || norm === 'epfodetails' || norm === 'epfo' || norm === 'pf';
+            });
+            let esicMasterSheetName = pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
+                return norm === 'esicdetails' || norm === 'esicmaster' || norm === 'esidetails' || norm === 'esimaster' || norm === 'esic' || norm === 'esi';
+            });
+            let ptMasterSheetName = pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
+                return norm === 'ptdetails' || norm === 'ptmaster' || norm === 'professionaltax' || norm === 'professionaltaxdetails' || norm === 'pt';
+            });
+            let lwfMasterSheetName = pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
+                return norm === 'lwfdetails' || norm === 'lwfmaster' || norm === 'labourwelfarefund' || norm === 'labourwelfarefunddetails' || norm === 'lwf';
+            });
+            let npsMasterSheetName = pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
+                return norm === 'npsdetails' || norm === 'npsmaster' || norm === 'nationalpensionsystem' || norm === 'nationalpensionsystemdetails' || norm === 'nps';
+            });
+            let gratuityMasterSheetName = pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
+                return norm === 'gratuitydetails' || norm === 'gratuitymaster' || norm === 'gratuity' || norm === 'paymentofgratuity' || norm === 'paymentofgratuitydetails';
+            });
+            let salaryStructureSheetName = pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
+                return norm === 'salarystcruture' || norm === 'salarystructure' || norm === 'salary_structure' || norm === 'salary' || norm === 'salaries';
+            });
+            let holidaySheetName = pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
+                return norm === 'holidaycalendar' || norm === 'holidays' || norm === 'holiday_calendar' || norm === 'holiday';
+            });
+            let statutorySheetName = pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
+                return norm === 'statuatorycompliance' || norm === 'statutorycompliance' || norm === 'compliance' || norm === 'statutory' || norm === 'compliancerules';
+            });
+            let rolePermSheetName = pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s/_-]+/g, '');
+                return norm === 'rolecodeemployeecod' || norm === 'rolecodeemployeecode' || norm === 'rolespermissions' || norm === 'rolepermissions' || norm === 'permissions' || norm === 'rbac';
+            });
+            let workflowSheetName = pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s/_-]+/g, '');
+                return norm === 'workflowrules' || norm === 'workflowchain' || norm === 'workflows' || norm === 'workflow' || norm === 'approvalrules' || norm === 'multistep';
+            });
+            let payrollCompSheetName = pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s/_-]+/g, '');
+                return norm === 'payrollcomponents' || norm === 'payrollcomponent' || norm === 'salarycomponents' || norm === 'salarycomponent' || norm === 'components';
+            });
+            const singleUnnamedSheet = workbook.SheetNames.length === 1 && usedSheets.size === 0;
+
             // ── 1. Target the 'Organization' sheet ──────────────────────────────────
-            let orgSheetName = workbook.SheetNames.find(s => s.trim().toLowerCase().replace(/[\s_-]+/g, '') === 'organization');
-            if (!orgSheetName && workbook.SheetNames.length === 1) {
+            if (!orgSheetName && singleUnnamedSheet) {
                 // If single sheet, probe headers to check if it's organization
                 const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                 const probeRows = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
@@ -1507,8 +1567,7 @@ function handleUploadedFile(file) {
             }
 
             // ── 2. Target the 'Business Unit' sheet (PRD Section 1 & Section 10) ────
-            let buSheetName = workbook.SheetNames.find(s => s.trim().toLowerCase().replace(/[\s_-]+/g, '') === 'businessunit');
-            if (!buSheetName && workbook.SheetNames.length === 1 && !orgSheetName) {
+            if (!buSheetName && singleUnnamedSheet && !orgSheetName) {
                 // Single-sheet CSV or workbook that wasn't Organization
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
@@ -1528,16 +1587,14 @@ function handleUploadedFile(file) {
                         state.parsedBuDocs = buParsed.firestoreDocs;
                         renderParsedBuPreview(file.name, buSheetName, buParsed.records, buParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: buSheetName, errors: buParsed.errors || [] });
                     }
                 }
             }
 
             // ── 3. Target the 'Cost Center' / 'Cost Centre' sheet (PRD Sections 1 & 13) ──
-            let ccSheetName = workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
-                return norm === 'costcenter' || norm === 'costcentre';
-            });
-            if (!ccSheetName && workbook.SheetNames.length === 1 && !orgSheetName && !buSheetName) {
+            if (!ccSheetName && singleUnnamedSheet && !orgSheetName && !buSheetName) {
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
                     const firstKeys = Object.keys(probeRows[0]).map(k => k.toLowerCase().replace(/[\s_-]+/g, ''));
@@ -1556,16 +1613,14 @@ function handleUploadedFile(file) {
                         state.parsedCcDocs = ccParsed.firestoreDocs;
                         renderParsedCcPreview(file.name, ccSheetName, ccParsed.records, ccParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: ccSheetName, errors: ccParsed.errors || [] });
                     }
                 }
             }
 
             // ── 4. Target the 'Sub-Departments' sheet (PRD Sections 1, 10 & 13) ────
-            let subDeptSheetName = workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
-                return norm === 'subdepartments' || norm === 'subdepartment' || norm === 'subdepts';
-            });
-            if (!subDeptSheetName && workbook.SheetNames.length === 1 && !orgSheetName && !buSheetName && !ccSheetName) {
+            if (!subDeptSheetName && singleUnnamedSheet && !orgSheetName && !buSheetName && !ccSheetName) {
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
                     const firstKeys = Object.keys(probeRows[0]).map(k => k.toLowerCase().replace(/[\s_-]+/g, ''));
@@ -1584,16 +1639,14 @@ function handleUploadedFile(file) {
                         state.parsedSubDeptDocs = subDeptParsed.firestoreDocs;
                         renderParsedSubDeptPreview(file.name, subDeptSheetName, subDeptParsed.records, subDeptParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: subDeptSheetName, errors: subDeptParsed.errors || [] });
                     }
                 }
             }
 
             // ── 5. Target the 'Shifts & Week-offs' sheet (PRD Sections 1, 13 & 16) ────
-            let shiftSheetName = workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
-                return norm === 'shiftsweekoffs' || norm === 'shiftsandweekoffs' || norm === 'shifts' || norm === 'shiftroster' || norm === 'shift_roster' || norm === 'shiftspolicies';
-            });
-            if (!shiftSheetName && workbook.SheetNames.length === 1 && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName) {
+            if (!shiftSheetName && singleUnnamedSheet && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName) {
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
                     const firstKeys = Object.keys(probeRows[0]).map(k => k.toLowerCase().replace(/[\s_-]+/g, ''));
@@ -1612,16 +1665,14 @@ function handleUploadedFile(file) {
                         state.parsedShiftDocs = shiftParsed.firestoreDocs;
                         renderParsedShiftPreview(file.name, shiftSheetName, shiftParsed.records, shiftParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: shiftSheetName, errors: shiftParsed.errors || [] });
                     }
                 }
             }
 
             // ── 6. Target the 'Attendance Rules' sheet (PRD Sections 1, 15 & 16) ────
-            let policySheetName = workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
-                return norm === 'attendancerules' || norm === 'attendancepolicies' || norm === 'attendancepolicy' || norm === 'attendance_rules' || norm === 'attendance_policies' || norm === 'attendance';
-            });
-            if (!policySheetName && workbook.SheetNames.length === 1 && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName) {
+            if (!policySheetName && singleUnnamedSheet && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName) {
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
                     const firstKeys = Object.keys(probeRows[0]).map(k => k.toLowerCase().replace(/[\s_-]+/g, ''));
@@ -1640,19 +1691,14 @@ function handleUploadedFile(file) {
                         state.parsedPolicyDocs = policyParsed.firestoreDocs;
                         renderParsedPolicyPreview(file.name, policySheetName, policyParsed.records, policyParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: policySheetName, errors: policyParsed.errors || [] });
                     }
                 }
             }
 
             // ── 7. Target the 'Employee Type' sheet (PRD Sections 1, 10 & 13) ──────
-            let empTypeSheetName = workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
-                return norm === 'employeetype' || norm === 'employeetypes';
-            }) || workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
-                return norm === 'employmenttype' || norm === 'employmenttypes' || norm === 'categories';
-            });
-            if (!empTypeSheetName && workbook.SheetNames.length === 1 && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName) {
+            if (!empTypeSheetName && singleUnnamedSheet && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName) {
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
                     const firstKeys = Object.keys(probeRows[0]).map(k => k.toLowerCase().replace(/[\s_-]+/g, ''));
@@ -1671,20 +1717,18 @@ function handleUploadedFile(file) {
                         state.parsedEmployeeTypeDocs = typeParsed.firestoreDocs;
                         renderParsedEmployeeTypePreview(file.name, empTypeSheetName, typeParsed.records, typeParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: empTypeSheetName, errors: typeParsed.errors || [] });
                     }
                 }
             }
 
             // ── 8. Target the 'Employee Finance Deatils' sheet (PRD Sections 1, 4 & 13) ────
-            let empFinanceSheetName = workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
-                return norm === 'employeefinancedeatils' || norm === 'employeefinancedetails' || norm === 'employeefinance' || norm === 'financedetails' || norm === 'finance_details' || norm === 'finance';
-            });
-            if (!empFinanceSheetName && workbook.SheetNames.length === 1 && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName) {
+            if (!empFinanceSheetName && singleUnnamedSheet && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName) {
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
                     const firstKeys = Object.keys(probeRows[0]).map(k => k.toLowerCase().replace(/[\s_-]+/g, ''));
-                    if (firstKeys.includes('accountholdername') || firstKeys.includes('accountnumber') || firstKeys.includes('ifsc') || firstKeys.includes('uanno') || firstKeys.includes('employeeid')) {
+                    if (firstKeys.includes('accountholdername') || firstKeys.includes('accountnumber') || firstKeys.includes('ifsc') || firstKeys.includes('uanno')) {
                         empFinanceSheetName = workbook.SheetNames[0];
                     }
                 }
@@ -1699,16 +1743,14 @@ function handleUploadedFile(file) {
                         state.parsedFinanceDocs = financeParsed.firestoreDocs;
                         renderParsedEmployeeFinancePreview(file.name, empFinanceSheetName, financeParsed.records, financeParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: empFinanceSheetName, errors: financeParsed.errors || [] });
                     }
                 }
             }
 
             // ── 8.5. Target the 'PF Details' / 'EPFO Master' sheet (PRD Sections 1, 4, 11 & 13) ────
-            let pfMasterSheetName = workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
-                return norm === 'pfdetails' || norm === 'epfomaster' || norm === 'pfmaster' || norm === 'epfodetails' || norm === 'epfo' || norm === 'pf';
-            });
-            if (!pfMasterSheetName && workbook.SheetNames.length === 1 && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName) {
+            if (!pfMasterSheetName && singleUnnamedSheet && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName) {
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
                     const firstKeys = Object.keys(probeRows[0]).map(k => k.toLowerCase().replace(/[\s_-]+/g, ''));
@@ -1727,16 +1769,14 @@ function handleUploadedFile(file) {
                         state.parsedEpfoDocs = epfoParsed.firestoreDocs;
                         renderParsedEpfoMasterPreview(file.name, pfMasterSheetName, epfoParsed.records, epfoParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: pfMasterSheetName, errors: epfoParsed.errors || [] });
                     }
                 }
             }
 
             // ── Target the 'ESIC Details' / 'ESIC Master' sheet (PRD Sections 1, 4, 11 & 13) ────
-            let esicMasterSheetName = workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
-                return norm === 'esicdetails' || norm === 'esicmaster' || norm === 'esidetails' || norm === 'esimaster' || norm === 'esic' || norm === 'esi';
-            });
-            if (!esicMasterSheetName && workbook.SheetNames.length === 1 && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !pfMasterSheetName) {
+            if (!esicMasterSheetName && singleUnnamedSheet && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !pfMasterSheetName) {
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
                     const firstKeys = Object.keys(probeRows[0]).map(k => k.toLowerCase().replace(/[\s_-]+/g, ''));
@@ -1755,16 +1795,14 @@ function handleUploadedFile(file) {
                         state.parsedEsicDocs = esicParsed.firestoreDocs;
                         renderParsedEsicMasterPreview(file.name, esicMasterSheetName, esicParsed.records, esicParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: esicMasterSheetName, errors: esicParsed.errors || [] });
                     }
                 }
             }
 
             // ── Target the 'PT Details' / 'PT Master' sheet (PRD Sections 1, 4, 11 & 13) ────
-            let ptMasterSheetName = workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
-                return norm === 'ptdetails' || norm === 'ptmaster' || norm === 'professionaltax' || norm === 'professionaltaxdetails' || norm === 'pt';
-            });
-            if (!ptMasterSheetName && workbook.SheetNames.length === 1 && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !pfMasterSheetName && !esicMasterSheetName) {
+            if (!ptMasterSheetName && singleUnnamedSheet && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !pfMasterSheetName && !esicMasterSheetName) {
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
                     const firstKeys = Object.keys(probeRows[0]).map(k => k.toLowerCase().replace(/[\s_-]+/g, ''));
@@ -1783,16 +1821,14 @@ function handleUploadedFile(file) {
                         state.parsedPtDocs = ptParsed.firestoreDocs;
                         renderParsedPtMasterPreview(file.name, ptMasterSheetName, ptParsed.records, ptParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: ptMasterSheetName, errors: ptParsed.errors || [] });
                     }
                 }
             }
 
             // ── Target the 'LWF Details' / 'LWF Master' sheet (PRD Sections 1, 4, 11 & 13) ────
-            let lwfMasterSheetName = workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
-                return norm === 'lwfdetails' || norm === 'lwfmaster' || norm === 'labourwelfarefund' || norm === 'labourwelfarefunddetails' || norm === 'lwf';
-            });
-            if (!lwfMasterSheetName && workbook.SheetNames.length === 1 && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !pfMasterSheetName && !esicMasterSheetName && !ptMasterSheetName) {
+            if (!lwfMasterSheetName && singleUnnamedSheet && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !pfMasterSheetName && !esicMasterSheetName && !ptMasterSheetName) {
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
                     const firstKeys = Object.keys(probeRows[0]).map(k => k.toLowerCase().replace(/[\s_-]+/g, ''));
@@ -1811,16 +1847,14 @@ function handleUploadedFile(file) {
                         state.parsedLwfDocs = lwfParsed.firestoreDocs;
                         renderParsedLwfMasterPreview(file.name, lwfMasterSheetName, lwfParsed.records, lwfParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: lwfMasterSheetName, errors: lwfParsed.errors || [] });
                     }
                 }
             }
 
             // ── Target the 'NPS Details' / 'NPS Master' sheet (PRD Sections 1, 4, 11 & 13) ────
-            let npsMasterSheetName = workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
-                return norm === 'npsdetails' || norm === 'npsmaster' || norm === 'nationalpensionsystem' || norm === 'nationalpensionsystemdetails' || norm === 'nps';
-            });
-            if (!npsMasterSheetName && workbook.SheetNames.length === 1 && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !pfMasterSheetName && !esicMasterSheetName && !ptMasterSheetName && !lwfMasterSheetName) {
+            if (!npsMasterSheetName && singleUnnamedSheet && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !pfMasterSheetName && !esicMasterSheetName && !ptMasterSheetName && !lwfMasterSheetName) {
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
                     const firstKeys = Object.keys(probeRows[0]).map(k => k.toLowerCase().replace(/[\s_-]+/g, ''));
@@ -1839,16 +1873,14 @@ function handleUploadedFile(file) {
                         state.parsedNpsDocs = npsParsed.firestoreDocs;
                         renderParsedNpsMasterPreview(file.name, npsMasterSheetName, npsParsed.records, npsParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: npsMasterSheetName, errors: npsParsed.errors || [] });
                     }
                 }
             }
 
             // ── Target the 'Gratuity Details' / 'Gratuity Master' sheet (PRD Sections 1, 4, 11 & 13) ────
-            let gratuityMasterSheetName = workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
-                return norm === 'gratuitydetails' || norm === 'gratuitymaster' || norm === 'gratuity' || norm === 'paymentofgratuity' || norm === 'paymentofgratuitydetails';
-            });
-            if (!gratuityMasterSheetName && workbook.SheetNames.length === 1 && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !pfMasterSheetName && !esicMasterSheetName && !ptMasterSheetName && !lwfMasterSheetName && !npsMasterSheetName) {
+            if (!gratuityMasterSheetName && singleUnnamedSheet && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !pfMasterSheetName && !esicMasterSheetName && !ptMasterSheetName && !lwfMasterSheetName && !npsMasterSheetName) {
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
                     const firstKeys = Object.keys(probeRows[0]).map(k => k.toLowerCase().replace(/[\s_-]+/g, ''));
@@ -1867,20 +1899,18 @@ function handleUploadedFile(file) {
                         state.parsedGratuityDocs = gratuityParsed.firestoreDocs;
                         renderParsedGratuityMasterPreview(file.name, gratuityMasterSheetName, gratuityParsed.records, gratuityParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: gratuityMasterSheetName, errors: gratuityParsed.errors || [] });
                     }
                 }
             }
 
             // ── 9. Target the 'Salary Stcruture' sheet (PRD Sections 1 & 4) ────
-            let salaryStructureSheetName = workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
-                return norm === 'salarystcruture' || norm === 'salarystructure' || norm === 'salary_structure' || norm === 'salary' || norm === 'salaries';
-            });
-            if (!salaryStructureSheetName && workbook.SheetNames.length === 1 && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName) {
+            if (!salaryStructureSheetName && singleUnnamedSheet && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName) {
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
                     const firstKeys = Object.keys(probeRows[0]).map(k => k.toLowerCase().replace(/[\s_-]+/g, ''));
-                    if (firstKeys.includes('salarystructurecode') || firstKeys.includes('componentcode') || firstKeys.includes('calculationbasis')) {
+                    if (firstKeys.includes('salarystructurecode') || firstKeys.includes('calculationbasis')) {
                         salaryStructureSheetName = workbook.SheetNames[0];
                     }
                 }
@@ -1895,16 +1925,14 @@ function handleUploadedFile(file) {
                         state.parsedSalaryStructureDocs = salaryParsed.firestoreDocs;
                         renderParsedSalaryStructurePreview(file.name, salaryStructureSheetName, salaryParsed.records, salaryParsed.firestoreDocs, salaryParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: salaryStructureSheetName, errors: salaryParsed.errors || [] });
                     }
                 }
             }
 
             // ── 10. Target the 'Holiday Calendar' sheet (PRD Sections 1, 4, 15, & 16) ────
-            let holidaySheetName = workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
-                return norm === 'holidaycalendar' || norm === 'holidays' || norm === 'holiday_calendar' || norm === 'holiday';
-            });
-            if (!holidaySheetName && workbook.SheetNames.length === 1 && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !salaryStructureSheetName) {
+            if (!holidaySheetName && singleUnnamedSheet && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !salaryStructureSheetName) {
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
                     const firstKeys = Object.keys(probeRows[0]).map(k => k.toLowerCase().replace(/[\s_-]+/g, ''));
@@ -1923,16 +1951,14 @@ function handleUploadedFile(file) {
                         state.parsedHolidayDocs = holidayParsed.firestoreDocs;
                         renderParsedHolidayCalendarPreview(file.name, holidaySheetName, holidayParsed.records, holidayParsed.firestoreDocs, holidayParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: holidaySheetName, errors: holidayParsed.errors || [] });
                     }
                 }
             }
 
             // ── 11. Target the 'Statuatory Compliance' / 'Statutory Compliance' sheet (PRD Sections 1, 4, 11, & 13) ────
-            let statutorySheetName = workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
-                return norm === 'statuatorycompliance' || norm === 'statutorycompliance' || norm === 'compliance' || norm === 'statutory' || norm === 'compliancerules';
-            });
-            if (!statutorySheetName && workbook.SheetNames.length === 1 && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !salaryStructureSheetName && !holidaySheetName) {
+            if (!statutorySheetName && singleUnnamedSheet && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !salaryStructureSheetName && !holidaySheetName) {
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
                     const firstKeys = Object.keys(probeRows[0]).map(k => k.toLowerCase().replace(/[\s_-]+/g, ''));
@@ -1951,16 +1977,14 @@ function handleUploadedFile(file) {
                         state.parsedStatutoryDocs = statutoryParsed.firestoreDocs;
                         renderParsedStatutoryCompliancePreview(file.name, statutorySheetName, statutoryParsed.records, statutoryParsed.firestoreDocs, statutoryParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: statutorySheetName, errors: statutoryParsed.errors || [] });
                     }
                 }
             }
 
             // ── 12. Target the 'Role_Code/Employee Cod' / 'Role_Code_Employee_Code' sheet (PRD Sections 1, 14, 17, & 18) ────
-            let rolePermSheetName = workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s/_-]+/g, '');
-                return norm === 'rolecodeemployeecod' || norm === 'rolecodeemployeecode' || norm === 'rolespermissions' || norm === 'rolepermissions' || norm === 'permissions' || norm === 'rbac';
-            });
-            if (!rolePermSheetName && workbook.SheetNames.length === 1 && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !salaryStructureSheetName && !holidaySheetName && !statutorySheetName) {
+            if (!rolePermSheetName && singleUnnamedSheet && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !salaryStructureSheetName && !holidaySheetName && !statutorySheetName) {
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
                     const firstKeys = Object.keys(probeRows[0]).map(k => k.toLowerCase().replace(/[\s/_-]+/g, ''));
@@ -1979,16 +2003,14 @@ function handleUploadedFile(file) {
                         state.parsedRoleDocs = roleParsed.firestoreDocs;
                         renderParsedRolePermissionPreview(file.name, rolePermSheetName, roleParsed.records, roleParsed.firestoreDocs, roleParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: rolePermSheetName, errors: roleParsed.errors || [] });
                     }
                 }
             }
 
             // ── 13. Target the 'Workflow Rules' / 'Workflow_Rules' sheet (PRD Sections 1, 9, 12, 14, & 18) ────
-            let workflowSheetName = workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s/_-]+/g, '');
-                return norm === 'workflowrules' || norm === 'workflowchain' || norm === 'workflows' || norm === 'workflow' || norm === 'approvalrules' || norm === 'multistep';
-            });
-            if (!workflowSheetName && workbook.SheetNames.length === 1 && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !salaryStructureSheetName && !holidaySheetName && !statutorySheetName && !rolePermSheetName) {
+            if (!workflowSheetName && singleUnnamedSheet && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !salaryStructureSheetName && !holidaySheetName && !statutorySheetName && !rolePermSheetName) {
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
                     const firstKeys = Object.keys(probeRows[0]).map(k => k.toLowerCase().replace(/[\s/_-]+/g, ''));
@@ -2007,16 +2029,14 @@ function handleUploadedFile(file) {
                         state.parsedWorkflowDocs = wfParsed.workflowDocuments;
                         renderParsedWorkflowRulesPreview(file.name, workflowSheetName, wfParsed.records, wfParsed.workflowDocuments, wfParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: workflowSheetName, errors: wfParsed.errors || [] });
                     }
                 }
             }
 
             // ── 14. Target the 'Payroll Components' / 'Payroll_Components' sheet (PRD Sections 1 & 4) ────
-            let payrollCompSheetName = workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s/_-]+/g, '');
-                return norm === 'payrollcomponents' || norm === 'payrollcomponent' || norm === 'salarycomponents' || norm === 'salarycomponent' || norm === 'components';
-            });
-            if (!payrollCompSheetName && workbook.SheetNames.length === 1 && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !salaryStructureSheetName && !holidaySheetName && !statutorySheetName && !rolePermSheetName && !workflowSheetName) {
+            if (!payrollCompSheetName && singleUnnamedSheet && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !salaryStructureSheetName && !holidaySheetName && !statutorySheetName && !rolePermSheetName && !workflowSheetName) {
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
                     const firstKeys = Object.keys(probeRows[0]).map(k => k.toLowerCase().replace(/[\s/_-]+/g, ''));
@@ -2035,19 +2055,115 @@ function handleUploadedFile(file) {
                         state.parsedPayrollComponentDocs = compParsed.firestoreDocs;
                         renderParsedPayrollComponentPreview(file.name, payrollCompSheetName, compParsed.records, compParsed.firestoreDocs, compParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: payrollCompSheetName, errors: compParsed.errors || [] });
                     }
                 }
             }
 
+            // Departments, Designations, Locations and Employees (onboarding-reference-import.js).
+            const referenceContainer = document.getElementById('referenceImportResults');
+            if (referenceContainer) referenceContainer.innerHTML = '';
+            state.referenceParsed = {};
+            for (const kind of Object.keys(REFERENCE_KINDS)) {
+                const sheetName = pickSheet(n => kindForSheet(n) === kind);
+                if (!sheetName || !hasRows(sheetName)) continue;
+                const parsedRef = parseReferenceRows(kind, XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: '', raw: true }));
+                state.referenceParsed[kind] = parsedRef.records;
+                if (referenceContainer) referenceContainer.innerHTML += previewHtml(kind, sheetName, parsedRef);
+                if (parsedRef.records.length > 0) parsedAny = true;
+                else rejectedSheets.push({ sheet: sheetName, errors: parsedRef.errors });
+            }
+
+            /*
+             * What the person is told once the file has been read. Everything goes into one
+             * message, because a second alert replaces the first one on screen.
+             */
+            const errorText = (e) => (typeof e === 'string' ? e : (e && (e.message || e.error)) || JSON.stringify(e));
+            const rejectedLines = rejectedSheets.map(r => {
+                const first = r.errors.slice(0, 3).map(e => '   - ' + errorText(e)).join('\n');
+                const more = r.errors.length > 3 ? '\n   - and ' + (r.errors.length - 3) + ' more' : '';
+                return '"' + r.sheet + '": no row could be used.' + (first ? '\n' + first + more : '');
+            });
+            // Rows somebody typed into a sheet that was not read must not vanish quietly.
+            const unread = workbook.SheetNames.length > 1
+                ? workbook.SheetNames.filter(n => !usedSheets.has(n) && hasRows(n) && !/^read\s*me$/i.test(n.trim()))
+                : [];
+
             if (!parsedAny) {
-                throw new Error("Could not find 'Organization', 'Business Unit', 'Cost Center', 'Sub-Departments', 'Shifts & Week-offs', 'Attendance Rules', 'Employee Type', 'Employee Finance Deatils', 'Salary Stcruture', 'Holiday Calendar', 'Statuatory Compliance', 'Role_Code/Employee Cod', 'Workflow Rules', or 'Payroll Components' sheets with data in the uploaded file.");
+                if (rejectedLines.length) {
+                    window.showCustomAlert(
+                        "Nothing Could Be Imported",
+                        "Every row was rejected, so nothing is ready to save.\n\n" + rejectedLines.join('\n\n') +
+                        "\n\nCorrect the rows and choose the file again.",
+                        "error"
+                    );
+                    return;
+                }
+                // Sheets are recognised by name. Saying which names the file had is what
+                // lets someone see a renamed or misspelt tab, instead of a list of fourteen.
+                const found = workbook.SheetNames.slice(0, 8).join(', ') + (workbook.SheetNames.length > 8 ? ', ...' : '');
+                window.showCustomAlert(
+                    "Nothing To Import",
+                    "None of the sheets in this file are ones this page imports, so nothing was read.\n\n" +
+                    "Start from Download Template and keep its sheet names. Empty sheets are skipped.\n\n" +
+                    "Sheets in your file: " + (found || 'none'),
+                    "error"
+                );
+                return;
+            }
+
+            const notes = [];
+            if (rejectedLines.length) notes.push(rejectedLines.join('\n\n'));
+            if (unread.length) {
+                notes.push('These sheets have rows but were not read: ' + unread.join(', ') + '. Either this page ' +
+                    'does not import that kind of record, or another sheet of the same kind in this file was used instead.');
+            }
+            if (notes.length) {
+                window.showCustomAlert(
+                    "Some Rows Were Not Imported",
+                    notes.join('\n\n') + '\n\nThe rest is shown below for review. Nothing is saved until you press Ingest.',
+                    "warning"
+                );
             }
         } catch (err) {
             console.error("File parsing error:", err);
-            window.showCustomAlert("Parsing Error", "Failed to parse spreadsheet: " + err.message, "error");
+            window.showCustomAlert("Could Not Read File", "This file could not be read as a spreadsheet: " + err.message, "error");
         }
     };
     reader.readAsArrayBuffer(file);
+}
+
+/**
+ * Saves one of the reference sheets parsed into state.referenceParsed.
+ */
+async function saveReference(kind, btn) {
+    const records = (state.referenceParsed && state.referenceParsed[kind]) || [];
+    const label = REFERENCE_KINDS[kind].title;
+    if (!records.length) return;
+    if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+    let result;
+    try {
+        result = await saveReferenceRecords(kind, records, {
+            db, doc, setDoc, getDocs, collection, serverTimestamp,
+            orgId: state.orgId || getActiveOrgId() || missingOrg()
+        });
+    } catch (err) {
+        console.error('[ONBOARDING] ' + label + ' could not be saved:', err);
+        window.showCustomAlert('Nothing Was Saved', label + ' could not be saved: ' + err.message, 'error');
+        if (btn) { btn.disabled = false; btn.textContent = 'Try Again'; }
+        return;
+    }
+    const errs = result.errors || [];
+    const next = kind === 'employees' && result.saved ? '\n\nUse Issue Logins & Invites to give them access.' : '';
+    if (!result.saved) {
+        window.showCustomAlert('Nothing Was Saved', 'None of the ' + label.toLowerCase() + ' could be saved.\n\n' + errs.slice(0, 10).join('\n'), 'error');
+    } else if (errs.length) {
+        window.showCustomAlert('Partial Ingest', 'Saved ' + result.saved + ' of ' + records.length + ' ' + label.toLowerCase() + '.\n\nNot saved:\n' + errs.slice(0, 10).join('\n') + next, 'warning');
+    } else {
+        window.showCustomAlert(label + ' Saved', 'Saved all ' + result.saved + ' ' + label.toLowerCase() + '.' + next, 'success');
+    }
+    if (btn) { btn.disabled = false; btn.textContent = errs.length ? 'Try Again' : 'Saved'; }
 }
 
 /**
@@ -2174,23 +2290,23 @@ function renderParsedBuPreview(fileName, sheetName, records, errors = []) {
     if (parsedBuTableBody) {
         parsedBuTableBody.innerHTML = records.map((bu, idx) => {
             const activeBadge = bu.isActive
-                ? `<span style="color: #166534; background: #dcfce7; font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid #bbf7d0;">Yes (Active)</span>`
-                : `<span style="color: #991b1b; background: #fee2e2; font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid #fecaca;">No (Inactive)</span>`;
+                ? `<span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">Yes (Active)</span>`
+                : `<span style="color: var(--k-danger-text); background: var(--k-danger-soft); font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid var(--k-danger-border);">No (Inactive)</span>`;
 
             return `
                 <tr>
                     <td style="font-weight: 700; color: var(--text-muted);">${idx + 1}</td>
-                    <td style="font-family: monospace; font-weight: 800; color: #2563eb;">${escapeHtml(bu.Business_Unit_Code)}</td>
-                    <td style="font-weight: 600; color: #0f172a;">${escapeHtml(bu.Business_Unit_Name)}</td>
+                    <td style="font-family: monospace; font-weight: 800; color: var(--k-accent-text);">${escapeHtml(bu.Business_Unit_Code)}</td>
+                    <td style="font-weight: 600; color: var(--k-text);">${escapeHtml(bu.Business_Unit_Name)}</td>
                     <td>
-                        <span style="font-family: monospace; font-weight: 700; font-size: 0.78rem; background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">
+                        <span style="font-family: monospace; font-weight: 700; font-size: 0.78rem; background: var(--k-subtle); padding: 2px 6px; border-radius: 4px;">
                             ${escapeHtml(bu.Head_Employee_ID || 'None')}
                         </span>
-                        ${bu.headEmployeeName ? `<span style="font-size: 0.78rem; color: #64748b; margin-left: 4px;">(${escapeHtml(bu.headEmployeeName)})</span>` : ''}
+                        ${bu.headEmployeeName ? `<span style="font-size: 0.78rem; color: var(--k-muted); margin-left: 4px;">(${escapeHtml(bu.headEmployeeName)})</span>` : ''}
                     </td>
                     <td style="text-align: center;">${activeBadge}</td>
                     <td style="text-align: center;">
-                        <span style="color: #166534; background: #dcfce7; font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid #bbf7d0;">
+                        <span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">
                             Valid
                         </span>
                     </td>
@@ -2240,7 +2356,9 @@ async function executeBusinessUnitIngest(buDocs) {
         }
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && ingestedCount === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${ingestedCount} of ${buDocs.length} Business Units.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -2252,7 +2370,7 @@ async function executeBusinessUnitIngest(buDocs) {
 
     if (btnConfirmBuIngest) {
         btnConfirmBuIngest.disabled = false;
-        btnConfirmBuIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmBuIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 
@@ -2401,24 +2519,24 @@ function renderParsedCcPreview(fileName, sheetName, records, errors = []) {
     if (parsedCcTableBody) {
         parsedCcTableBody.innerHTML = records.map((cc, idx) => {
             const activeBadge = cc.isActive
-                ? `<span style="color: #166534; background: #dcfce7; font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid #bbf7d0;">Yes (Active)</span>`
-                : `<span style="color: #991b1b; background: #fee2e2; font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid #fecaca;">No (Inactive)</span>`;
+                ? `<span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">Yes (Active)</span>`
+                : `<span style="color: var(--k-danger-text); background: var(--k-danger-soft); font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid var(--k-danger-border);">No (Inactive)</span>`;
 
             return `
                 <tr>
-                    <td style="font-weight: 700; color: #64748b;">${idx + 1}</td>
-                    <td style="font-family: monospace; font-weight: 700; color: #2563eb;">${escapeHtml(cc.Cost_Center_Code)}</td>
-                    <td style="font-weight: 600; color: #0f172a;">${escapeHtml(cc.Cost_Center_Name)}</td>
+                    <td style="font-weight: 700; color: var(--k-muted);">${idx + 1}</td>
+                    <td style="font-family: monospace; font-weight: 700; color: var(--k-accent-text);">${escapeHtml(cc.Cost_Center_Code)}</td>
+                    <td style="font-weight: 600; color: var(--k-text);">${escapeHtml(cc.Cost_Center_Name)}</td>
                     <td>
-                        <span style="font-family: monospace; font-weight: 700; font-size: 0.78rem; background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">
+                        <span style="font-family: monospace; font-weight: 700; font-size: 0.78rem; background: var(--k-subtle); padding: 2px 6px; border-radius: 4px;">
                             ${escapeHtml(cc.Owner_Employee_ID || 'None')}
                         </span>
-                        ${cc.ownerEmployeeName ? `<span style="font-size: 0.78rem; color: #334155; font-weight: 600; margin-left: 4px;">${escapeHtml(cc.ownerEmployeeName)}</span>` : ''}
-                        ${cc.ownerDesignation ? `<span style="font-size: 0.72rem; color: #64748b; margin-left: 4px;">(${escapeHtml(cc.ownerDesignation)})</span>` : ''}
+                        ${cc.ownerEmployeeName ? `<span style="font-size: 0.78rem; color: var(--k-text-2); font-weight: 600; margin-left: 4px;">${escapeHtml(cc.ownerEmployeeName)}</span>` : ''}
+                        ${cc.ownerDesignation ? `<span style="font-size: 0.72rem; color: var(--k-muted); margin-left: 4px;">(${escapeHtml(cc.ownerDesignation)})</span>` : ''}
                     </td>
                     <td style="text-align: center;">${activeBadge}</td>
                     <td style="text-align: center;">
-                        <span style="color: #166534; background: #dcfce7; font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid #bbf7d0;">
+                        <span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">
                             Valid
                         </span>
                     </td>
@@ -2467,7 +2585,9 @@ async function executeCostCenterIngest(ccDocs) {
         }
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && ingestedCount === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${ingestedCount} of ${ccDocs.length} Cost Centers.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -2479,7 +2599,7 @@ async function executeCostCenterIngest(ccDocs) {
 
     if (btnConfirmCcIngest) {
         btnConfirmCcIngest.disabled = false;
-        btnConfirmCcIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmCcIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 
@@ -2693,8 +2813,8 @@ function renderParsedSubDeptPreview(fileName, sheetName, records, errors = []) {
     if (parsedSubDeptTableBody) {
         parsedSubDeptTableBody.innerHTML = records.map((sub, idx) => {
             const activeBadge = sub.isActive
-                ? `<span style="color: #166534; background: #dcfce7; font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid #bbf7d0;">Yes (Active)</span>`
-                : `<span style="color: #991b1b; background: #fee2e2; font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid #fecaca;">No (Inactive)</span>`;
+                ? `<span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">Yes (Active)</span>`
+                : `<span style="color: var(--k-danger-text); background: var(--k-danger-soft); font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid var(--k-danger-border);">No (Inactive)</span>`;
 
             const inheritedTag = (sub.sameAsDeptHead || sub.inheritedFromDeptHead)
                 ? `<span style="background: #e0e7ff; color: #3730a3; padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; margin-left: 4px;">Inherited</span>`
@@ -2702,24 +2822,24 @@ function renderParsedSubDeptPreview(fileName, sheetName, records, errors = []) {
 
             return `
                 <tr>
-                    <td style="font-weight: 700; color: #64748b;">${idx + 1}</td>
+                    <td style="font-weight: 700; color: var(--k-muted);">${idx + 1}</td>
                     <td style="font-family: monospace; font-weight: 700; color: #7e22ce;">${escapeHtml(sub['Sub-Department_Code'] || sub.subDepartmentCode)}</td>
-                    <td style="font-weight: 600; color: #0f172a;">${escapeHtml(sub['Sub-Department_Name'] || sub.subDepartmentName)}</td>
+                    <td style="font-weight: 600; color: var(--k-text);">${escapeHtml(sub['Sub-Department_Name'] || sub.subDepartmentName)}</td>
                     <td>
-                        <span style="font-family: monospace; font-weight: 700; font-size: 0.78rem; background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">
+                        <span style="font-family: monospace; font-weight: 700; font-size: 0.78rem; background: var(--k-subtle); padding: 2px 6px; border-radius: 4px;">
                             ${escapeHtml(sub.subDepartmentHeadEmployeeId || sub.headEmployeeId || sub['Sub-Department_Head_Employee_ID'] || 'None')}
                         </span>
                         ${inheritedTag}
-                        ${sub.subDepartmentHeadName || sub.headEmployeeName ? `<span style="font-size: 0.78rem; color: #334155; font-weight: 600; margin-left: 4px;">(${escapeHtml(sub.subDepartmentHeadName || sub.headEmployeeName)})</span>` : ''}
+                        ${sub.subDepartmentHeadName || sub.headEmployeeName ? `<span style="font-size: 0.78rem; color: var(--k-text-2); font-weight: 600; margin-left: 4px;">(${escapeHtml(sub.subDepartmentHeadName || sub.headEmployeeName)})</span>` : ''}
                     </td>
                     <td>
-                        <span style="font-family: monospace; font-weight: 700; font-size: 0.78rem; background: #eff6ff; color: #1d4ed8; padding: 2px 6px; border-radius: 4px;">
+                        <span style="font-family: monospace; font-weight: 700; font-size: 0.78rem; background: var(--k-accent-soft); color: var(--k-accent-text); padding: 2px 6px; border-radius: 4px;">
                             ${escapeHtml(sub['Cost_Center_Code'] || sub.costCenterCode)}
                         </span>
                     </td>
                     <td style="text-align: center;">${activeBadge}</td>
                     <td style="text-align: center;">
-                        <span style="color: #166534; background: #dcfce7; font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid #bbf7d0;">
+                        <span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">
                             Valid
                         </span>
                     </td>
@@ -2768,7 +2888,9 @@ async function executeSubDepartmentIngest(subDocs) {
         }
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && ingestedCount === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${ingestedCount} of ${subDocs.length} Sub-Departments.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -2780,7 +2902,7 @@ async function executeSubDepartmentIngest(subDocs) {
 
     if (btnConfirmSubDeptIngest) {
         btnConfirmSubDeptIngest.disabled = false;
-        btnConfirmSubDeptIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmSubDeptIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 
@@ -2982,40 +3104,40 @@ function renderParsedShiftPreview(fileName, sheetName, records, errors = []) {
     if (parsedShiftTableBody) {
         parsedShiftTableBody.innerHTML = records.map((s, idx) => {
             const activeBadge = s.isActive
-                ? `<span style="color: #166534; background: #dcfce7; font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid #bbf7d0;">Yes</span>`
-                : `<span style="color: #991b1b; background: #fee2e2; font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid #fecaca;">No</span>`;
+                ? `<span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">Yes</span>`
+                : `<span style="color: var(--k-danger-text); background: var(--k-danger-soft); font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid var(--k-danger-border);">No</span>`;
 
             const nightBadge = (s.isNightShift === true || s.nightShift === true || s['Night_Shift'] === 'Yes')
                 ? `<span style="background: #312e81; color: #e0e7ff; padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; font-weight: 700;">Night</span>`
-                : `<span style="background: #f1f5f9; color: #475569; padding: 2px 6px; border-radius: 4px; font-size: 0.68rem;">Day</span>`;
+                : `<span style="background: var(--k-subtle); color: var(--k-text-2); padding: 2px 6px; border-radius: 4px; font-size: 0.68rem;">Day</span>`;
 
             const otBadge = (s.isOvertimeEligible !== false && s['Overtime_Eligible'] !== 'No')
-                ? `<span style="background: #eff6ff; color: #1d4ed8; padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; margin-left: 2px;">OT</span>`
+                ? `<span style="background: var(--k-accent-soft); color: var(--k-accent-text); padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; margin-left: 2px;">OT</span>`
                 : '';
 
             return `
                 <tr>
-                    <td style="font-weight: 700; color: #64748b;">${idx + 1}</td>
-                    <td style="font-family: monospace; font-weight: 700; color: #2563eb;">${escapeHtml(s['Shift_Code'] || s.shiftCode)}</td>
-                    <td style="font-weight: 600; color: #0f172a;">${escapeHtml(s['Shift_Name'] || s.shiftName)}</td>
-                    <td style="font-family: monospace; font-size: 0.8rem; font-weight: 700; color: #1e293b;">
+                    <td style="font-weight: 700; color: var(--k-muted);">${idx + 1}</td>
+                    <td style="font-family: monospace; font-weight: 700; color: var(--k-accent-text);">${escapeHtml(s['Shift_Code'] || s.shiftCode)}</td>
+                    <td style="font-weight: 600; color: var(--k-text);">${escapeHtml(s['Shift_Name'] || s.shiftName)}</td>
+                    <td style="font-family: monospace; font-size: 0.8rem; font-weight: 700; color: var(--k-text);">
                         ${s['Start_Time'] || s.startTime} - ${s['End_Time'] || s.endTime}
                     </td>
-                    <td style="font-size: 0.75rem; color: #64748b;">
+                    <td style="font-size: 0.75rem; color: var(--k-muted);">
                         ${s['Break_Minutes'] || s.breakMinutes}m | +${s['Grace_In_Minutes'] || s.graceInMinutes}/-${s['Grace_Out_Minutes'] || s.graceOutMinutes}m
                     </td>
-                    <td style="font-size: 0.75rem; font-weight: 600; color: #334155;">
+                    <td style="font-size: 0.75rem; font-weight: 600; color: var(--k-text-2);">
                         ${s['Half_Day_Minutes'] || s.halfDayMinutes}m / ${s['Full_Day_Minutes'] || s.fullDayMinutes}m
                     </td>
                     <td>
-                        <span style="font-family: monospace; font-size: 0.75rem; background: #f8fafc; padding: 2px 6px; border-radius: 4px; font-weight: 700;">
+                        <span style="font-family: monospace; font-size: 0.75rem; background: var(--k-subtle); padding: 2px 6px; border-radius: 4px; font-weight: 700;">
                             ${escapeHtml(s['Weekly_Off_Pattern'] || s.weeklyOffPattern)}
                         </span>
                     </td>
                     <td style="text-align: center;">${nightBadge}${otBadge}</td>
                     <td style="text-align: center;">${activeBadge}</td>
                     <td style="text-align: center;">
-                        <span style="color: #166534; background: #dcfce7; font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid #bbf7d0;">
+                        <span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">
                             Valid
                         </span>
                     </td>
@@ -3071,7 +3193,9 @@ async function executeShiftIngest(shiftDocs) {
         }
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && ingestedCount === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${ingestedCount} of ${shiftDocs.length} Shifts.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -3083,7 +3207,7 @@ async function executeShiftIngest(shiftDocs) {
 
     if (btnConfirmShiftIngest) {
         btnConfirmShiftIngest.disabled = false;
-        btnConfirmShiftIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmShiftIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 
@@ -3247,38 +3371,38 @@ function renderParsedPolicyPreview(fileName, sheetName, records, errors = []) {
     if (parsedPolicyTableBody) {
         parsedPolicyTableBody.innerHTML = records.map((p, idx) => {
             const activeBadge = p.isActive
-                ? `<span style="color: #166534; background: #dcfce7; font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid #bbf7d0;">Yes</span>`
-                : `<span style="color: #991b1b; background: #fee2e2; font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid #fecaca;">No</span>`;
+                ? `<span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">Yes</span>`
+                : `<span style="color: var(--k-danger-text); background: var(--k-danger-soft); font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid var(--k-danger-border);">No</span>`;
 
             const geoBadge = p.geoFenceRequired
-                ? `<span style="background: #eff6ff; color: #1d4ed8; padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; margin-right: 2px;">Geo</span>`
+                ? `<span style="background: var(--k-accent-soft); color: var(--k-accent-text); padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; margin-right: 2px;">Geo</span>`
                 : '';
             const ipBadge = p.ipRestricted
-                ? `<span style="background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; margin-right: 2px;">IP</span>`
+                ? `<span style="background: var(--k-warning-soft); color: var(--k-warning-text); padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; margin-right: 2px;">IP</span>`
                 : '';
             const wfhBadge = p.wfhAllowed
-                ? `<span style="background: #dcfce7; color: #166534; padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; font-weight: 700;">WFH</span>`
+                ? `<span style="background: var(--k-success-soft); color: var(--k-success-text); padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; font-weight: 700;">WFH</span>`
                 : '';
 
             return `
                 <tr>
-                    <td style="font-weight: 700; color: #64748b;">${idx + 1}</td>
-                    <td style="font-family: monospace; font-weight: 700; color: #059669;">${escapeHtml(p.attendancePolicyCode || p['Attendance_Policy_Code'])}</td>
-                    <td style="font-weight: 600; color: #0f172a;">${escapeHtml(p.policyName || p['Policy_Name'])}</td>
-                    <td style="font-size: 0.75rem; color: #334155;">
+                    <td style="font-weight: 700; color: var(--k-muted);">${idx + 1}</td>
+                    <td style="font-family: monospace; font-weight: 700; color: var(--k-success-text);">${escapeHtml(p.attendancePolicyCode || p['Attendance_Policy_Code'])}</td>
+                    <td style="font-weight: 600; color: var(--k-text);">${escapeHtml(p.policyName || p['Policy_Name'])}</td>
+                    <td style="font-size: 0.75rem; color: var(--k-text-2);">
                         Late &gt;${p.lateAfterMinutes}m • Early &gt;${p.earlyLeavingGraceMinute}m<br>
-                        <span style="color: #b91c1c; font-weight: 700;">Absent &gt;${p.absentAfterHours}h</span>
+                        <span style="color: var(--k-danger-text); font-weight: 700;">Absent &gt;${p.absentAfterHours}h</span>
                     </td>
-                    <td style="font-size: 0.75rem; color: #334155;">
-                        ${p.regularizationAllowed ? `<span style="color: #166534; font-weight: 700;">Allowed</span> (${p.regularizationWindowDays}d max)` : '<span style="color: #94a3b8;">Disabled</span>'}
+                    <td style="font-size: 0.75rem; color: var(--k-text-2);">
+                        ${p.regularizationAllowed ? `<span style="color: var(--k-success-text); font-weight: 700;">Allowed</span> (${p.regularizationWindowDays}d max)` : '<span style="color: var(--k-muted);">Disabled</span>'}
                     </td>
-                    <td style="font-size: 0.75rem; color: #334155;">
-                        Min ${p.otMinimumMinutes}m • ${p.otApprovalRequired ? '<span style="color: #b45309; font-weight: 700;">L1 Required</span>' : 'Auto'}
+                    <td style="font-size: 0.75rem; color: var(--k-text-2);">
+                        Min ${p.otMinimumMinutes}m • ${p.otApprovalRequired ? '<span style="color: var(--k-warning-text); font-weight: 700;">L1 Required</span>' : 'Auto'}
                     </td>
-                    <td style="text-align: center;">${geoBadge}${ipBadge}${wfhBadge || '<span style="color:#94a3b8; font-size:0.7rem;">None</span>'}</td>
+                    <td style="text-align: center;">${geoBadge}${ipBadge}${wfhBadge || '<span style="color:var(--k-muted); font-size:0.7rem;">None</span>'}</td>
                     <td style="text-align: center;">${activeBadge}</td>
                     <td style="text-align: center;">
-                        <span style="color: #166534; background: #dcfce7; font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid #bbf7d0;">
+                        <span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">
                             Valid
                         </span>
                     </td>
@@ -3421,29 +3545,29 @@ function renderParsedEmployeeTypePreview(fileName, sheetName, records, errors = 
     if (parsedEmployeeTypeTableBody) {
         parsedEmployeeTypeTableBody.innerHTML = records.map((t, idx) => {
             const activeBadge = t.isActive
-                ? `<span style="color: #166534; background: #dcfce7; font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid #bbf7d0;">Yes</span>`
-                : `<span style="color: #991b1b; background: #fee2e2; font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid #fecaca;">No</span>`;
+                ? `<span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">Yes</span>`
+                : `<span style="color: var(--k-danger-text); background: var(--k-danger-soft); font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; border: 1px solid var(--k-danger-border);">No</span>`;
 
             return `
                 <tr>
                     <td style="font-weight: 700; color: var(--text-muted);">${idx + 1}</td>
                     <td style="font-family: monospace; font-weight: 800; color: #7c3aed;">${escapeHtml(t.categoryCode)}</td>
-                    <td style="font-weight: 700; color: #1e293b;">${escapeHtml(t.categoryName)}</td>
+                    <td style="font-weight: 700; color: var(--k-text);">${escapeHtml(t.categoryName)}</td>
                     <td>
                         <span style="font-size: 0.75rem; font-weight: 700; background: #ede9fe; color: #6d28d9; padding: 2px 8px; border-radius: 6px;">
                             ${escapeHtml(t.employmentType)}
                         </span>
                     </td>
                     <td>
-                        <span style="font-size: 0.75rem; font-weight: 700; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 6px;">
+                        <span style="font-size: 0.75rem; font-weight: 700; background: var(--k-subtle); color: var(--k-text-2); padding: 2px 8px; border-radius: 6px;">
                             ${escapeHtml(t.workerType)}
                         </span>
                     </td>
-                    <td style="font-weight: 600; color: #334155;">${t.probationDays} days</td>
-                    <td style="font-weight: 600; color: #334155;">${t.noticePeriodDays} days</td>
+                    <td style="font-weight: 600; color: var(--k-text-2);">${t.probationDays} days</td>
+                    <td style="font-weight: 600; color: var(--k-text-2);">${t.noticePeriodDays} days</td>
                     <td style="text-align: center;">${activeBadge}</td>
                     <td style="text-align: center;">
-                        <span style="color: #166534; background: #dcfce7; font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid #bbf7d0;">
+                        <span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">
                             Valid
                         </span>
                     </td>
@@ -3493,7 +3617,9 @@ async function executeEmployeeTypeIngest(typeDocs) {
         }
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && ingestedCount === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${ingestedCount} of ${typeDocs.length} Employee Types.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -3505,7 +3631,7 @@ async function executeEmployeeTypeIngest(typeDocs) {
 
     if (btnConfirmEmployeeTypeIngest) {
         btnConfirmEmployeeTypeIngest.disabled = false;
-        btnConfirmEmployeeTypeIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmEmployeeTypeIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 
@@ -3574,14 +3700,14 @@ function renderParsedEmployeeFinancePreview(fileName, sheetName, records, errors
         parsedEmployeeFinanceTableBody.innerHTML = records.map((r, idx) => {
             const isPrimary = r.Is_Primary === 'Yes' || r.isPrimary === true;
             const isPrimaryBadge = isPrimary
-                ? `<span style="color: #166534; background: #dcfce7; font-weight: 800; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem; border: 1px solid #bbf7d0;">Primary</span>`
-                : `<span style="color: #64748b; background: #f1f5f9; font-weight: 600; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem;">Secondary</span>`;
+                ? `<span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 800; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem; border: 1px solid var(--k-success-border);">Primary</span>`
+                : `<span style="color: var(--k-muted); background: var(--k-subtle); font-weight: 600; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem;">Secondary</span>`;
 
             const uanPill = (r.UAN === 'Yes' || r.uanApplicable)
-                ? `<span style="font-size: 0.68rem; font-weight: 700; background: #eff6ff; color: #1d4ed8; padding: 1px 5px; border-radius: 4px; margin-right: 2px;" title="UAN: ${escapeHtml(r['UAN No (If Applicable)'] || '')}">UAN</span>`
+                ? `<span style="font-size: 0.68rem; font-weight: 700; background: var(--k-accent-soft); color: var(--k-accent-text); padding: 1px 5px; border-radius: 4px; margin-right: 2px;" title="UAN: ${escapeHtml(r['UAN No (If Applicable)'] || '')}">UAN</span>`
                 : '';
             const esicPill = (r.ESIC === 'Yes' || r.esicApplicable)
-                ? `<span style="font-size: 0.68rem; font-weight: 700; background: #fef3c7; color: #92400e; padding: 1px 5px; border-radius: 4px; margin-right: 2px;" title="ESIC: ${escapeHtml(r['ESIC No (If Applicable)'] || '')}">ESIC</span>`
+                ? `<span style="font-size: 0.68rem; font-weight: 700; background: var(--k-warning-soft); color: var(--k-warning-text); padding: 1px 5px; border-radius: 4px; margin-right: 2px;" title="ESIC: ${escapeHtml(r['ESIC No (If Applicable)'] || '')}">ESIC</span>`
                 : '';
             const npsPill = (r.NPS === 'Yes' || r.npsApplicable)
                 ? `<span style="font-size: 0.68rem; font-weight: 700; background: #f3e8ff; color: #7e22ce; padding: 1px 5px; border-radius: 4px; margin-right: 2px;" title="NPS: ${escapeHtml(r['NPS No (If Applicable)'] || '')}">NPS</span>`
@@ -3589,7 +3715,7 @@ function renderParsedEmployeeFinancePreview(fileName, sheetName, records, errors
             const gratPill = (r.Gratuity === 'Yes' || r.gratuityApplicable)
                 ? `<span style="font-size: 0.68rem; font-weight: 700; background: #e0e7ff; color: #3730a3; padding: 1px 5px; border-radius: 4px;" title="Gratuity: ${escapeHtml(r['Gratuity No (If Applicable)'] || '')}">Grat</span>`
                 : '';
-            const statutoryBadges = (uanPill + esicPill + npsPill + gratPill) || '<span style="color: #94a3b8; font-size: 0.7rem;">None</span>';
+            const statutoryBadges = (uanPill + esicPill + npsPill + gratPill) || '<span style="color: var(--k-muted); font-size: 0.7rem;">None</span>';
 
             const rawAcc = r.Account_Number || (r.banking && r.banking.accountNumber) || '';
             const maskedAcc = r.maskedAccountNumber || (rawAcc ? ('••••••••••' + String(rawAcc).slice(-4)) : '—');
@@ -3599,23 +3725,23 @@ function renderParsedEmployeeFinancePreview(fileName, sheetName, records, errors
                     <td style="font-weight: 700; color: var(--text-muted);">${idx + 1}</td>
                     <td style="font-family: monospace; font-weight: 800; color: #0284c7;">${escapeHtml(r.Employee_ID || r.employeeId)}</td>
                     <td>
-                        <strong style="color: #0f172a;">${escapeHtml(r.Account_Holder_Name || r.accountHolderName)}</strong>
+                        <strong style="color: var(--k-text);">${escapeHtml(r.Account_Holder_Name || r.accountHolderName)}</strong>
                     </td>
                     <td>
-                        <div style="font-size: 0.78rem; font-weight: 600; color: #1e293b;">${escapeHtml(r.Bank_Name || r.bankName)}</div>
-                        <div style="font-size: 0.7rem; color: #64748b;">${escapeHtml(r.Branch_Name || r.branchName || '—')}</div>
+                        <div style="font-size: 0.78rem; font-weight: 600; color: var(--k-text);">${escapeHtml(r.Bank_Name || r.bankName)}</div>
+                        <div style="font-size: 0.7rem; color: var(--k-muted);">${escapeHtml(r.Branch_Name || r.branchName || '—')}</div>
                     </td>
                     <td style="font-family: monospace; font-size: 0.78rem; font-weight: 600;">${escapeHtml(maskedAcc)}</td>
-                    <td style="font-family: monospace; font-weight: 700; color: #059669; font-size: 0.78rem;">${escapeHtml(r.IFSC || r.ifsc)}</td>
+                    <td style="font-family: monospace; font-weight: 700; color: var(--k-success-text); font-size: 0.78rem;">${escapeHtml(r.IFSC || r.ifsc)}</td>
                     <td>
-                        <span style="font-size: 0.72rem; font-weight: 700; background: #f1f5f9; color: #334155; padding: 2px 6px; border-radius: 6px; display: inline-block; margin-bottom: 2px;">
+                        <span style="font-size: 0.72rem; font-weight: 700; background: var(--k-subtle); color: var(--k-text-2); padding: 2px 6px; border-radius: 6px; display: inline-block; margin-bottom: 2px;">
                             ${escapeHtml(r.Account_Type || r.accountType)}
                         </span><br>
                         ${isPrimaryBadge}
                     </td>
                     <td>${statutoryBadges}</td>
                     <td style="text-align: center;">
-                        <span style="color: #166534; background: #dcfce7; font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid #bbf7d0;">
+                        <span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">
                             Valid
                         </span>
                     </td>
@@ -3658,7 +3784,9 @@ async function executeEmployeeFinanceIngest(financeDocs) {
         }
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && ingestedCount === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${ingestedCount} of ${financeDocs.length} Finance records.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -3670,7 +3798,7 @@ async function executeEmployeeFinanceIngest(financeDocs) {
 
     if (btnConfirmLegacyEmpFinanceIngest) {
         btnConfirmLegacyEmpFinanceIngest.disabled = false;
-        btnConfirmLegacyEmpFinanceIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmLegacyEmpFinanceIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 
@@ -3744,36 +3872,36 @@ function renderParsedEpfoMasterPreview(fileName, sheetName, records, errors = []
 
             const kycStatus = r['KYC Status'] || r.kyc?.overallStatus || 'PENDING';
             const kycPill = kycStatus === 'VERIFIED'
-                ? `<span style="color: #166534; background: #dcfce7; font-weight: 800; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem; border: 1px solid #bbf7d0;">Verified</span>`
-                : `<span style="color: #b45309; background: #fef3c7; font-weight: 700; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem; border: 1px solid #fde68a;">${escapeHtml(kycStatus)}</span>`;
+                ? `<span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 800; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem; border: 1px solid var(--k-success-border);">Verified</span>`
+                : `<span style="color: var(--k-warning-text); background: var(--k-warning-soft); font-weight: 700; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem; border: 1px solid var(--k-warning-border);">${escapeHtml(kycStatus)}</span>`;
 
             const uanVerify = r['UAN Verification Status'] || r.verification?.status || 'PENDING';
             const verifyPill = uanVerify === 'SUCCESS'
-                ? `<span style="color: #1d4ed8; background: #eff6ff; font-weight: 800; padding: 2px 6px; border-radius: 6px; font-size: 0.7rem;">SUCCESS</span>`
-                : `<span style="color: #64748b; background: #f1f5f9; font-weight: 600; padding: 2px 6px; border-radius: 6px; font-size: 0.7rem;">${escapeHtml(uanVerify)}</span>`;
+                ? `<span style="color: var(--k-accent-text); background: var(--k-accent-soft); font-weight: 800; padding: 2px 6px; border-radius: 6px; font-size: 0.7rem;">SUCCESS</span>`
+                : `<span style="color: var(--k-muted); background: var(--k-subtle); font-weight: 600; padding: 2px 6px; border-radius: 6px; font-size: 0.7rem;">${escapeHtml(uanVerify)}</span>`;
 
             const epsBadge = (r['EPS Applicable'] === 'Yes' || r.isEpsApplicable)
                 ? `<span style="font-size: 0.68rem; font-weight: 700; background: #e0e7ff; color: #3730a3; padding: 1px 5px; border-radius: 4px; margin-right: 2px;">EPS</span>`
                 : '';
             const edliBadge = (r['EDLI Applicable'] === 'Yes' || r.isEdliApplicable)
-                ? `<span style="font-size: 0.68rem; font-weight: 700; background: #f0fdf4; color: #166534; padding: 1px 5px; border-radius: 4px;">EDLI</span>`
+                ? `<span style="font-size: 0.68rem; font-weight: 700; background: var(--k-success-soft); color: var(--k-success-text); padding: 1px 5px; border-radius: 4px;">EDLI</span>`
                 : '';
 
             return `
                 <tr>
                     <td style="font-weight: 700; color: var(--text-muted);">${idx + 1}</td>
                     <td style="font-family: monospace; font-weight: 800; color: #4338ca;">${escapeHtml(r['Employee ID'] || r.employeeId)}</td>
-                    <td style="font-family: monospace; font-weight: 700; color: #1e293b;">${escapeHtml(uan)}</td>
+                    <td style="font-family: monospace; font-weight: 700; color: var(--k-text);">${escapeHtml(uan)}</td>
                     <td>
-                        <code style="font-size: 0.75rem; color: #334155;">${escapeHtml(memberId)}</code>
+                        <code style="font-size: 0.75rem; color: var(--k-text-2);">${escapeHtml(memberId)}</code>
                     </td>
-                    <td style="font-size: 0.72rem; color: #64748b; font-family: monospace;">${escapeHtml(estId)}</td>
-                    <td style="font-size: 0.75rem; color: #334155;">${escapeHtml(doj)}</td>
-                    <td>${epsBadge}${edliBadge || '<span style="color:#94a3b8;font-size:0.7rem;">None</span>'}</td>
+                    <td style="font-size: 0.72rem; color: var(--k-muted); font-family: monospace;">${escapeHtml(estId)}</td>
+                    <td style="font-size: 0.75rem; color: var(--k-text-2);">${escapeHtml(doj)}</td>
+                    <td>${epsBadge}${edliBadge || '<span style="color:var(--k-muted);font-size:0.7rem;">None</span>'}</td>
                     <td>${kycPill}</td>
                     <td>${verifyPill}</td>
                     <td style="text-align: center;">
-                        <span style="color: #166534; background: #dcfce7; font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid #bbf7d0;">
+                        <span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">
                             Valid
                         </span>
                     </td>
@@ -3815,7 +3943,9 @@ async function executeEpfoMasterIngest(epfoDocs) {
         }
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && ingestedCount === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${ingestedCount} of ${epfoDocs.length} EPFO profiles.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -3827,7 +3957,7 @@ async function executeEpfoMasterIngest(epfoDocs) {
 
     if (btnConfirmEpfoMasterIngest) {
         btnConfirmEpfoMasterIngest.disabled = false;
-        btnConfirmEpfoMasterIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmEpfoMasterIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 
@@ -3853,16 +3983,16 @@ async function renderOnboardingEpfoMasterTable() {
     }
 
     container.innerHTML = `
-        <div style="background: white; border-radius: 20px; padding: 2rem; border: 1px solid var(--border); box-shadow: var(--shadow);">
+        <div style="background: var(--k-surface); border-radius: 20px; padding: 2rem; border: 1px solid var(--border); box-shadow: var(--shadow);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 12px;">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div style="width: 44px; height: 44px; border-radius: 12px; background: #e0e7ff; color: #4338ca; display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="shield-check" style="width: 24px; height: 24px;"></i>
                     </div>
                     <div>
-                        <h2 style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin: 0;">EPFO / PF Statutory Master Console</h2>
+                        <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--k-text); margin: 0;">EPFO / PF Statutory Master Console</h2>
                         <p style="font-size: 0.82rem; color: var(--text-muted); margin: 2px 0 0 0;">
-                            Cloud Firestore: <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #4338ca; font-weight: 700;">organizations/{orgId}/employee_pf_details/{employeeId}</code>
+                            Cloud Firestore: <code style="background: var(--k-subtle); padding: 2px 6px; border-radius: 4px; color: #4338ca; font-weight: 700;">organizations/{orgId}/employee_pf_details/{employeeId}</code>
                         </p>
                     </div>
                 </div>
@@ -3901,11 +4031,11 @@ async function renderOnboardingEpfoMasterTable() {
                                     <span style="font-size: 0.68rem; font-weight: 700; background: #e0e7ff; color: #3730a3; padding: 2px 6px; border-radius: 4px;">EPS: ${r.isEpsApplicable !== false ? 'Yes' : 'No'}</span>
                                 </td>
                                 <td>
-                                    <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: ${r.kyc?.overallStatus === 'VERIFIED' ? '#ecfdf5' : '#fffbeb'}; color: ${r.kyc?.overallStatus === 'VERIFIED' ? '#059669' : '#d97706'};">
+                                    <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: ${r.kyc?.overallStatus === 'VERIFIED' ? 'var(--k-success-soft)' : 'var(--k-warning-soft)'}; color: ${r.kyc?.overallStatus === 'VERIFIED' ? 'var(--k-success-text)' : 'var(--k-warning-text)'};">
                                         ${escapeHtml(r.kyc?.overallStatus || 'PENDING')}
                                     </span>
                                 </td>
-                                <td style="font-size: 0.74rem; color: #64748b;">${escapeHtml(r.verification?.officialSource || 'Cashfree Payouts')}</td>
+                                <td style="font-size: 0.74rem; color: var(--k-muted);">${escapeHtml(r.verification?.officialSource || 'Cashfree Payouts')}</td>
                             </tr>
                         `).join('')}
                     </tbody>
@@ -3983,34 +4113,34 @@ function renderParsedEsicMasterPreview(fileName, sheetName, records, errors = []
             const verified = r['Insurance Number Verified'] === 'Yes' || r.isInsuranceNumberVerified === true;
 
             const ipPill = ipStatus === 'ACTIVE'
-                ? `<span style="color: #166534; background: #dcfce7; font-weight: 800; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem; border: 1px solid #bbf7d0;">Active</span>`
-                : `<span style="color: #475569; background: #f1f5f9; font-weight: 700; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem; border: 1px solid #cbd5e1;">${escapeHtml(ipStatus)}</span>`;
+                ? `<span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 800; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem; border: 1px solid var(--k-success-border);">Active</span>`
+                : `<span style="color: var(--k-text-2); background: var(--k-subtle); font-weight: 700; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem; border: 1px solid var(--k-border);">${escapeHtml(ipStatus)}</span>`;
 
             const aadhaarPill = aadhaar === 'VERIFIED'
-                ? `<span style="color: #166534; background: #dcfce7; font-weight: 800; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem;">Verified</span>`
-                : `<span style="color: #b91c1c; background: #fee2e2; font-weight: 700; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem;">${escapeHtml(aadhaar)}</span>`;
+                ? `<span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 800; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem;">Verified</span>`
+                : `<span style="color: var(--k-danger-text); background: var(--k-danger-soft); font-weight: 700; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem;">${escapeHtml(aadhaar)}</span>`;
 
             const familyPill = (family === 'VERIFIED' || family === 'SUBMITTED')
                 ? `<span style="color: #6b21a8; background: #f3e8ff; font-weight: 700; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem;">${escapeHtml(family)}</span>`
-                : `<span style="color: #b45309; background: #fef3c7; font-weight: 700; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem;">${escapeHtml(family)}</span>`;
+                : `<span style="color: var(--k-warning-text); background: var(--k-warning-soft); font-weight: 700; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem;">${escapeHtml(family)}</span>`;
 
             const verifyPill = verified
                 ? `<span style="color: #0369a1; background: #e0f2fe; font-weight: 800; padding: 2px 6px; border-radius: 6px; font-size: 0.7rem;">VERIFIED</span>`
-                : `<span style="color: #64748b; background: #f1f5f9; font-weight: 600; padding: 2px 6px; border-radius: 6px; font-size: 0.7rem;">UNVERIFIED</span>`;
+                : `<span style="color: var(--k-muted); background: var(--k-subtle); font-weight: 600; padding: 2px 6px; border-radius: 6px; font-size: 0.7rem;">UNVERIFIED</span>`;
 
             return `
                 <tr>
                     <td style="font-weight: 700; color: var(--text-muted);">${idx + 1}</td>
                     <td style="font-family: monospace; font-weight: 800; color: #0284c7;">${escapeHtml(r['Employee ID'] || r.employeeId)}</td>
-                    <td style="font-family: monospace; font-weight: 700; color: #1e293b;">${escapeHtml(ipNumber)}</td>
-                    <td><code style="font-size: 0.75rem; color: #334155;">${escapeHtml(employerCode)}</code></td>
-                    <td style="font-size: 0.75rem; color: #334155;">${escapeHtml(doj)}</td>
+                    <td style="font-family: monospace; font-weight: 700; color: var(--k-text);">${escapeHtml(ipNumber)}</td>
+                    <td><code style="font-size: 0.75rem; color: var(--k-text-2);">${escapeHtml(employerCode)}</code></td>
+                    <td style="font-size: 0.75rem; color: var(--k-text-2);">${escapeHtml(doj)}</td>
                     <td>${ipPill}</td>
                     <td>${aadhaarPill}</td>
                     <td>${familyPill}</td>
                     <td>${verifyPill}</td>
                     <td style="text-align: center;">
-                        <span style="color: #166534; background: #dcfce7; font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid #bbf7d0;">
+                        <span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">
                             Valid
                         </span>
                     </td>
@@ -4052,7 +4182,9 @@ async function executeEsicMasterIngest(esicDocs) {
         }
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && ingestedCount === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${ingestedCount} of ${esicDocs.length} ESIC profiles.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -4064,7 +4196,7 @@ async function executeEsicMasterIngest(esicDocs) {
 
     if (btnConfirmEsicMasterIngest) {
         btnConfirmEsicMasterIngest.disabled = false;
-        btnConfirmEsicMasterIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmEsicMasterIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 
@@ -4090,16 +4222,16 @@ async function renderOnboardingEsicMasterTable() {
     }
 
     container.innerHTML = `
-        <div style="background: white; border: 1px solid var(--border); border-radius: 20px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+        <div style="background: var(--k-surface); border: 1px solid var(--border); border-radius: 20px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div style="width: 44px; height: 44px; border-radius: 12px; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="cross" style="width: 24px; height: 24px;"></i>
                     </div>
                     <div>
-                        <h2 style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin: 0;">ESIC &amp; Medical Insurance Statutory Console</h2>
+                        <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--k-text); margin: 0;">ESIC &amp; Medical Insurance Statutory Console</h2>
                         <p style="font-size: 0.82rem; color: var(--text-muted); margin: 2px 0 0 0;">
-                            Cloud Firestore: <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #0284c7; font-weight: 700;">organizations/{orgId}/employee_esic_details/{employeeId}</code>
+                            Cloud Firestore: <code style="background: var(--k-subtle); padding: 2px 6px; border-radius: 4px; color: #0284c7; font-weight: 700;">organizations/{orgId}/employee_esic_details/{employeeId}</code>
                         </p>
                     </div>
                 </div>
@@ -4136,12 +4268,12 @@ async function renderOnboardingEsicMasterTable() {
                                 <td style="font-size: 0.74rem;">${escapeHtml(r.dispensaryBranch || '—')}</td>
                                 <td style="font-size: 0.74rem;">${escapeHtml(r.contributionState || '—')}</td>
                                 <td>
-                                    <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: ${r.insuredPersonStatus === 'ACTIVE' ? '#ecfdf5' : '#f1f5f9'}; color: ${r.insuredPersonStatus === 'ACTIVE' ? '#059669' : '#475569'};">
+                                    <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: ${r.insuredPersonStatus === 'ACTIVE' ? 'var(--k-success-soft)' : 'var(--k-subtle)'}; color: ${r.insuredPersonStatus === 'ACTIVE' ? 'var(--k-success-text)' : 'var(--k-text-2)'};">
                                         ${escapeHtml(r.insuredPersonStatus || 'ACTIVE')}
                                     </span>
                                 </td>
                                 <td>
-                                    <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: ${r.aadhaarSeeding === 'VERIFIED' ? '#ecfdf5' : '#fef2f2'}; color: ${r.aadhaarSeeding === 'VERIFIED' ? '#059669' : '#dc2626'};">
+                                    <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: ${r.aadhaarSeeding === 'VERIFIED' ? 'var(--k-success-soft)' : 'var(--k-danger-soft)'}; color: ${r.aadhaarSeeding === 'VERIFIED' ? 'var(--k-success-text)' : 'var(--k-danger-text)'};">
                                         ${escapeHtml(r.aadhaarSeeding || 'NOT_SEEDED')}
                                     </span>
                                 </td>
@@ -4151,7 +4283,7 @@ async function renderOnboardingEsicMasterTable() {
                                     </span>
                                 </td>
                                 <td>
-                                    <span style="font-size: 0.7rem; font-weight: 800; color: ${r.isInsuranceNumberVerified ? '#059669' : '#d97706'};">
+                                    <span style="font-size: 0.7rem; font-weight: 800; color: ${r.isInsuranceNumberVerified ? 'var(--k-success-text)' : 'var(--k-warning-text)'};">
                                         ${r.isInsuranceNumberVerified ? 'Verified' : 'Pending'}
                                     </span>
                                 </td>
@@ -4233,27 +4365,27 @@ function renderParsedPtMasterPreview(fileName, sheetName, records, errors = []) 
             const isActive = r['Active'] === 'Yes' || r.isActive === true;
 
             const activePill = isActive
-                ? `<span style="color: #166534; background: #dcfce7; font-weight: 800; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem; border: 1px solid #bbf7d0;">Active</span>`
-                : `<span style="color: #475569; background: #f1f5f9; font-weight: 700; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem; border: 1px solid #cbd5e1;">Inactive</span>`;
+                ? `<span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 800; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem; border: 1px solid var(--k-success-border);">Active</span>`
+                : `<span style="color: var(--k-text-2); background: var(--k-subtle); font-weight: 700; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem; border: 1px solid var(--k-border);">Inactive</span>`;
 
             const ptAppPill = isPt
                 ? `<span style="color: #0369a1; background: #e0f2fe; font-weight: 800; padding: 2px 6px; border-radius: 6px; font-size: 0.7rem;">Yes</span>`
-                : `<span style="color: #64748b; background: #f1f5f9; font-weight: 600; padding: 2px 6px; border-radius: 6px; font-size: 0.7rem;">No</span>`;
+                : `<span style="color: var(--k-muted); background: var(--k-subtle); font-weight: 600; padding: 2px 6px; border-radius: 6px; font-size: 0.7rem;">No</span>`;
 
             return `
                 <tr>
                     <td style="font-weight: 700; color: var(--text-muted);">${idx + 1}</td>
                     <td style="font-family: monospace; font-weight: 800; color: #4338ca;">${escapeHtml(r['Employee ID'] || r.employeeId)}</td>
-                    <td style="font-weight: 700; color: #1e293b;">${escapeHtml(stateName)}</td>
-                    <td><code style="font-size: 0.75rem; color: #334155;">${escapeHtml(regNo)}</code></td>
-                    <td style="font-size: 0.72rem; color: #64748b; font-family: monospace;">${escapeHtml(slab)}</td>
-                    <td style="font-weight: 700; font-family: monospace; color: #059669;">₹${deduction}</td>
-                    <td style="font-size: 0.75rem; color: #334155;">${escapeHtml(effFrom)}</td>
-                    <td style="font-size: 0.75rem; color: #64748b;">${escapeHtml(effTo)}</td>
+                    <td style="font-weight: 700; color: var(--k-text);">${escapeHtml(stateName)}</td>
+                    <td><code style="font-size: 0.75rem; color: var(--k-text-2);">${escapeHtml(regNo)}</code></td>
+                    <td style="font-size: 0.72rem; color: var(--k-muted); font-family: monospace;">${escapeHtml(slab)}</td>
+                    <td style="font-weight: 700; font-family: monospace; color: var(--k-success-text);">₹${deduction}</td>
+                    <td style="font-size: 0.75rem; color: var(--k-text-2);">${escapeHtml(effFrom)}</td>
+                    <td style="font-size: 0.75rem; color: var(--k-muted);">${escapeHtml(effTo)}</td>
                     <td>${ptAppPill}</td>
                     <td>${activePill}</td>
                     <td style="text-align: center;">
-                        <span style="color: #166534; background: #dcfce7; font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid #bbf7d0;">
+                        <span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">
                             Valid
                         </span>
                     </td>
@@ -4295,7 +4427,9 @@ async function executePtMasterIngest(ptDocs) {
         }
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && ingestedCount === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${ingestedCount} of ${ptDocs.length} PT profiles.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -4307,7 +4441,7 @@ async function executePtMasterIngest(ptDocs) {
 
     if (btnConfirmPtMasterIngest) {
         btnConfirmPtMasterIngest.disabled = false;
-        btnConfirmPtMasterIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmPtMasterIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 
@@ -4333,16 +4467,16 @@ async function renderOnboardingPtMasterTable() {
     }
 
     container.innerHTML = `
-        <div style="background: white; border: 1px solid var(--border); border-radius: 20px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+        <div style="background: var(--k-surface); border: 1px solid var(--border); border-radius: 20px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div style="width: 44px; height: 44px; border-radius: 12px; background: #e0e7ff; color: #4338ca; display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="scale" style="width: 24px; height: 24px;"></i>
                     </div>
                     <div>
-                        <h2 style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin: 0;">Professional Tax (PT) Statutory Master Console</h2>
+                        <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--k-text); margin: 0;">Professional Tax (PT) Statutory Master Console</h2>
                         <p style="font-size: 0.82rem; color: var(--text-muted); margin: 2px 0 0 0;">
-                            Cloud Firestore: <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #4338ca; font-weight: 700;">organizations/{orgId}/employee_pt_details/{employeeId}</code>
+                            Cloud Firestore: <code style="background: var(--k-subtle); padding: 2px 6px; border-radius: 4px; color: #4338ca; font-weight: 700;">organizations/{orgId}/employee_pt_details/{employeeId}</code>
                         </p>
                     </div>
                 </div>
@@ -4373,18 +4507,18 @@ async function renderOnboardingPtMasterTable() {
                             <tr>
                                 <td>${i + 1}</td>
                                 <td><strong style="color: #4338ca; font-family: monospace;">${escapeHtml(r.employeeId)}</strong></td>
-                                <td style="font-weight: 700; color: #1e293b;">${escapeHtml(r.state || 'Karnataka')}</td>
+                                <td style="font-weight: 700; color: var(--k-text);">${escapeHtml(r.state || 'Karnataka')}</td>
                                 <td><code style="font-size: 0.74rem;">${escapeHtml(r.ptRegistrationNo || '—')}</code></td>
-                                <td style="font-size: 0.74rem; font-family: monospace; color: #64748b;">${escapeHtml(r.ptSlab || '—')}</td>
-                                <td style="font-family: monospace; font-weight: 700; color: #059669;">₹${Number(r.monthlyDeduction || 0).toFixed(2)}</td>
+                                <td style="font-size: 0.74rem; font-family: monospace; color: var(--k-muted);">${escapeHtml(r.ptSlab || '—')}</td>
+                                <td style="font-family: monospace; font-weight: 700; color: var(--k-success-text);">₹${Number(r.monthlyDeduction || 0).toFixed(2)}</td>
                                 <td style="font-size: 0.74rem;">${escapeHtml(r.effectiveFrom || '—')}</td>
                                 <td>
-                                    <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: ${r.isPtApplicable !== false ? '#ecfdf5' : '#f1f5f9'}; color: ${r.isPtApplicable !== false ? '#059669' : '#64748b'};">
+                                    <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: ${r.isPtApplicable !== false ? 'var(--k-success-soft)' : 'var(--k-subtle)'}; color: ${r.isPtApplicable !== false ? 'var(--k-success-text)' : 'var(--k-muted)'};">
                                         ${r.isPtApplicable !== false ? 'Yes' : 'No'}
                                     </span>
                                 </td>
                                 <td>
-                                    <span style="font-size: 0.7rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; background: ${r.isActive !== false ? '#ecfdf5' : '#f1f5f9'}; color: ${r.isActive !== false ? '#059669' : '#64748b'};">
+                                    <span style="font-size: 0.7rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; background: ${r.isActive !== false ? 'var(--k-success-soft)' : 'var(--k-subtle)'}; color: ${r.isActive !== false ? 'var(--k-success-text)' : 'var(--k-muted)'};">
                                         ${r.isActive !== false ? 'Active' : 'Inactive'}
                                     </span>
                                 </td>
@@ -4468,16 +4602,16 @@ function renderParsedLwfMasterPreview(fileName, sheetName, records, errors = [])
             return `
                 <tr>
                     <td style="font-weight: 700; color: var(--text-muted);">${idx + 1}</td>
-                    <td style="font-family: monospace; font-weight: 800; color: #1e40af;">${escapeHtml(r['Employee ID'] || r.employeeId)}</td>
-                    <td style="font-weight: 700; color: #1e293b;">${escapeHtml(stateName)}</td>
-                    <td><code style="font-size: 0.75rem; color: #334155;">${escapeHtml(regNo)}</code></td>
-                    <td style="font-weight: 700; font-family: monospace; color: #047857;">₹${ee}</td>
-                    <td style="font-weight: 700; font-family: monospace; color: #1e40af;">₹${er}</td>
-                    <td style="font-size: 0.75rem; color: #1e40af; font-weight: 700;">${escapeHtml(freq)}</td>
-                    <td style="font-size: 0.75rem; color: #334155;">${escapeHtml(effFrom)}</td>
-                    <td style="font-size: 0.75rem; color: #64748b;">${escapeHtml(effTo)}</td>
+                    <td style="font-family: monospace; font-weight: 800; color: var(--k-accent-text);">${escapeHtml(r['Employee ID'] || r.employeeId)}</td>
+                    <td style="font-weight: 700; color: var(--k-text);">${escapeHtml(stateName)}</td>
+                    <td><code style="font-size: 0.75rem; color: var(--k-text-2);">${escapeHtml(regNo)}</code></td>
+                    <td style="font-weight: 700; font-family: monospace; color: var(--k-success-text);">₹${ee}</td>
+                    <td style="font-weight: 700; font-family: monospace; color: var(--k-accent-text);">₹${er}</td>
+                    <td style="font-size: 0.75rem; color: var(--k-accent-text); font-weight: 700;">${escapeHtml(freq)}</td>
+                    <td style="font-size: 0.75rem; color: var(--k-text-2);">${escapeHtml(effFrom)}</td>
+                    <td style="font-size: 0.75rem; color: var(--k-muted);">${escapeHtml(effTo)}</td>
                     <td style="text-align: center;">
-                        <span style="color: #166534; background: #dcfce7; font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid #bbf7d0;">
+                        <span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">
                             Valid
                         </span>
                     </td>
@@ -4519,7 +4653,9 @@ async function executeLwfMasterIngest(lwfDocs) {
         }
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && ingestedCount === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${ingestedCount} of ${lwfDocs.length} LWF profiles.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -4531,7 +4667,7 @@ async function executeLwfMasterIngest(lwfDocs) {
 
     if (btnConfirmLwfMasterIngest) {
         btnConfirmLwfMasterIngest.disabled = false;
-        btnConfirmLwfMasterIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmLwfMasterIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 
@@ -4557,21 +4693,21 @@ async function renderOnboardingLwfMasterTable() {
     }
 
     container.innerHTML = `
-        <div style="background: white; border: 1px solid var(--border); border-radius: 20px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+        <div style="background: var(--k-surface); border: 1px solid var(--border); border-radius: 20px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <div style="width: 44px; height: 44px; border-radius: 12px; background: #eff6ff; color: #1d4ed8; display: flex; align-items: center; justify-content: center;">
+                    <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="shield-check" style="width: 24px; height: 24px;"></i>
                     </div>
                     <div>
-                        <h2 style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin: 0;">Labour Welfare Fund (LWF) Statutory Master Console</h2>
+                        <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--k-text); margin: 0;">Labour Welfare Fund (LWF) Statutory Master Console</h2>
                         <p style="font-size: 0.82rem; color: var(--text-muted); margin: 2px 0 0 0;">
-                            Cloud Firestore: <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #1d4ed8; font-weight: 700;">organizations/{orgId}/employee_lwf_details/{employeeId}</code>
+                            Cloud Firestore: <code style="background: var(--k-subtle); padding: 2px 6px; border-radius: 4px; color: var(--k-accent-text); font-weight: 700;">organizations/{orgId}/employee_lwf_details/{employeeId}</code>
                         </p>
                     </div>
                 </div>
                 <div style="display: flex; gap: 8px;">
-                    <span class="badge-verified" style="background: #eff6ff; color: #1e40af; border-color: #bfdbfe;">
+                    <span class="badge-verified" style="background: var(--k-accent-soft); color: var(--k-accent-text); border-color: var(--k-accent-border);">
                         <i data-lucide="layers"></i> ${records.length} Profiles Tracked
                     </span>
                 </div>
@@ -4597,16 +4733,16 @@ async function renderOnboardingLwfMasterTable() {
                         ${records.map((r, i) => `
                             <tr>
                                 <td>${i + 1}</td>
-                                <td><strong style="color: #1e40af; font-family: monospace;">${escapeHtml(r.employeeId)}</strong></td>
-                                <td style="font-weight: 700; color: #1e293b;">${escapeHtml(r.state || 'Karnataka')}</td>
+                                <td><strong style="color: var(--k-accent-text); font-family: monospace;">${escapeHtml(r.employeeId)}</strong></td>
+                                <td style="font-weight: 700; color: var(--k-text);">${escapeHtml(r.state || 'Karnataka')}</td>
                                 <td><code style="font-size: 0.74rem;">${escapeHtml(r.employerRegistrationNo || '—')}</code></td>
-                                <td style="font-size: 0.74rem; font-weight: 700; color: #1e40af;">${escapeHtml(r.frequency || 'Annual')}</td>
-                                <td style="font-family: monospace; font-weight: 700; color: #047857;">₹${Number(r.employeeContribution || 0).toFixed(2)}</td>
-                                <td style="font-family: monospace; font-weight: 700; color: #1e40af;">₹${Number(r.employerContribution || 0).toFixed(2)}</td>
-                                <td style="font-family: monospace; font-weight: 800; color: #0f172a;">₹${(Number(r.employeeContribution || 0) + Number(r.employerContribution || 0)).toFixed(2)}</td>
-                                <td style="font-size: 0.74rem; color: #047857; font-weight: 700;">${escapeHtml(r.deductionSchedule?.nextDeduction || '—')}</td>
+                                <td style="font-size: 0.74rem; font-weight: 700; color: var(--k-accent-text);">${escapeHtml(r.frequency || 'Annual')}</td>
+                                <td style="font-family: monospace; font-weight: 700; color: var(--k-success-text);">₹${Number(r.employeeContribution || 0).toFixed(2)}</td>
+                                <td style="font-family: monospace; font-weight: 700; color: var(--k-accent-text);">₹${Number(r.employerContribution || 0).toFixed(2)}</td>
+                                <td style="font-family: monospace; font-weight: 800; color: var(--k-text);">₹${(Number(r.employeeContribution || 0) + Number(r.employerContribution || 0)).toFixed(2)}</td>
+                                <td style="font-size: 0.74rem; color: var(--k-success-text); font-weight: 700;">${escapeHtml(r.deductionSchedule?.nextDeduction || '—')}</td>
                                 <td>
-                                    <span style="font-size: 0.7rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; background: ${r.isLwfApplicable !== false ? '#ecfdf5' : '#f1f5f9'}; color: ${r.isLwfApplicable !== false ? '#059669' : '#64748b'};">
+                                    <span style="font-size: 0.7rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; background: ${r.isLwfApplicable !== false ? 'var(--k-success-soft)' : 'var(--k-subtle)'}; color: ${r.isLwfApplicable !== false ? 'var(--k-success-text)' : 'var(--k-muted)'};">
                                         ${r.isLwfApplicable !== false ? 'Active' : 'Exempt'}
                                     </span>
                                 </td>
@@ -4699,21 +4835,21 @@ function renderParsedNpsMasterPreview(fileName, sheetName, records, errors = [])
             return `
                 <tr>
                     <td style="font-weight: 700; color: var(--text-muted);">${idx + 1}</td>
-                    <td style="font-family: monospace; font-weight: 800; color: #1e40af;">${escapeHtml(r['Employee ID'] || r.employeeId)}</td>
-                    <td><code style="font-size: 0.75rem; color: #047857; font-weight: 700;">${escapeHtml(pran)}</code></td>
-                    <td style="font-size: 0.75rem; font-weight: 700; color: ${status === 'ACTIVE' ? '#059669' : '#64748b'};">${escapeHtml(status)}</td>
-                    <td style="font-size: 0.75rem; color: #1e293b; font-weight: 600;">${escapeHtml(cra)}</td>
-                    <td style="font-size: 0.72rem; color: #334155;">${escapeHtml(t1)}, ${escapeHtml(t2)}</td>
-                    <td style="font-weight: 700; font-family: monospace; color: #047857;">${escapeHtml(ee)}</td>
-                    <td style="font-weight: 700; font-family: monospace; color: #1e40af;">${escapeHtml(er)}</td>
-                    <td style="font-weight: 700; font-family: monospace; color: #0f172a;">₹${ytd}</td>
+                    <td style="font-family: monospace; font-weight: 800; color: var(--k-accent-text);">${escapeHtml(r['Employee ID'] || r.employeeId)}</td>
+                    <td><code style="font-size: 0.75rem; color: var(--k-success-text); font-weight: 700;">${escapeHtml(pran)}</code></td>
+                    <td style="font-size: 0.75rem; font-weight: 700; color: ${status === 'ACTIVE' ? 'var(--k-success-text)' : 'var(--k-muted)'};">${escapeHtml(status)}</td>
+                    <td style="font-size: 0.75rem; color: var(--k-text); font-weight: 600;">${escapeHtml(cra)}</td>
+                    <td style="font-size: 0.72rem; color: var(--k-text-2);">${escapeHtml(t1)}, ${escapeHtml(t2)}</td>
+                    <td style="font-weight: 700; font-family: monospace; color: var(--k-success-text);">${escapeHtml(ee)}</td>
+                    <td style="font-weight: 700; font-family: monospace; color: var(--k-accent-text);">${escapeHtml(er)}</td>
+                    <td style="font-weight: 700; font-family: monospace; color: var(--k-text);">₹${ytd}</td>
                     <td>
-                        <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: ${kyc === 'VERIFIED' ? '#ecfdf5' : '#fffbeb'}; color: ${kyc === 'VERIFIED' ? '#059669' : '#b45309'};">
+                        <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: ${kyc === 'VERIFIED' ? 'var(--k-success-soft)' : 'var(--k-warning-soft)'}; color: ${kyc === 'VERIFIED' ? 'var(--k-success-text)' : 'var(--k-warning-text)'};">
                             ${escapeHtml(kyc)}
                         </span>
                     </td>
                     <td style="text-align: center;">
-                        <span style="color: #166534; background: #dcfce7; font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid #bbf7d0;">
+                        <span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">
                             Valid
                         </span>
                     </td>
@@ -4755,7 +4891,9 @@ async function executeNpsMasterIngest(npsDocs) {
         }
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && ingestedCount === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${ingestedCount} of ${npsDocs.length} NPS profiles.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -4767,7 +4905,7 @@ async function executeNpsMasterIngest(npsDocs) {
 
     if (btnConfirmNpsMasterIngest) {
         btnConfirmNpsMasterIngest.disabled = false;
-        btnConfirmNpsMasterIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmNpsMasterIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 
@@ -4793,21 +4931,21 @@ async function renderOnboardingNpsMasterTable() {
     }
 
     container.innerHTML = `
-        <div style="background: white; border: 1px solid var(--border); border-radius: 20px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+        <div style="background: var(--k-surface); border: 1px solid var(--border); border-radius: 20px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <div style="width: 44px; height: 44px; border-radius: 12px; background: #ecfdf5; color: #059669; display: flex; align-items: center; justify-content: center;">
+                    <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--k-success-soft); color: var(--k-success-text); display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="piggy-bank" style="width: 24px; height: 24px;"></i>
                     </div>
                     <div>
-                        <h2 style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin: 0;">National Pension System (NPS) Statutory Master Console</h2>
+                        <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--k-text); margin: 0;">National Pension System (NPS) Statutory Master Console</h2>
                         <p style="font-size: 0.82rem; color: var(--text-muted); margin: 2px 0 0 0;">
-                            Cloud Firestore: <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #059669; font-weight: 700;">organizations/{orgId}/employee_nps_details/{employeeId}</code>
+                            Cloud Firestore: <code style="background: var(--k-subtle); padding: 2px 6px; border-radius: 4px; color: var(--k-success-text); font-weight: 700;">organizations/{orgId}/employee_nps_details/{employeeId}</code>
                         </p>
                     </div>
                 </div>
                 <div style="display: flex; gap: 8px;">
-                    <span class="badge-verified" style="background: #ecfdf5; color: #065f46; border-color: #a7f3d0;">
+                    <span class="badge-verified" style="background: var(--k-success-soft); color: var(--k-success-text); border-color: var(--k-success-border);">
                         <i data-lucide="layers"></i> ${records.length} Profiles Tracked
                     </span>
                 </div>
@@ -4841,24 +4979,24 @@ async function renderOnboardingNpsMasterTable() {
                             return `
                                 <tr>
                                     <td>${i + 1}</td>
-                                    <td><strong style="color: #1e40af; font-family: monospace;">${escapeHtml(r.employeeId)}</strong></td>
-                                    <td><code style="font-size: 0.74rem; color: #047857; font-weight: 700;">${escapeHtml(r.pran || '—')}</code></td>
-                                    <td style="font-weight: 600; color: #1e293b;">${escapeHtml(r.npsModel || 'Corporate Model')}<br><small style="color: var(--text-muted);">${escapeHtml(r.craAgency || 'Protean (NSDL)')}</small></td>
+                                    <td><strong style="color: var(--k-accent-text); font-family: monospace;">${escapeHtml(r.employeeId)}</strong></td>
+                                    <td><code style="font-size: 0.74rem; color: var(--k-success-text); font-weight: 700;">${escapeHtml(r.pran || '—')}</code></td>
+                                    <td style="font-weight: 600; color: var(--k-text);">${escapeHtml(r.npsModel || 'Corporate Model')}<br><small style="color: var(--text-muted);">${escapeHtml(r.craAgency || 'Protean (NSDL)')}</small></td>
                                     <td style="font-size: 0.74rem;">
-                                        <span style="color: ${r.tier1Active !== false ? '#059669' : '#94a3b8'}; font-weight: 700;">T1: ${r.tier1Active !== false ? 'Active' : 'Off'}</span><br>
-                                        <span style="color: ${r.tier2Active ? '#0284c7' : '#94a3b8'}; font-weight: 700;">T2: ${r.tier2Active ? 'Active' : 'Off'}</span>
+                                        <span style="color: ${r.tier1Active !== false ? 'var(--k-success-text)' : 'var(--k-muted)'}; font-weight: 700;">T1: ${r.tier1Active !== false ? 'Active' : 'Off'}</span><br>
+                                        <span style="color: ${r.tier2Active ? '#0284c7' : 'var(--k-muted)'}; font-weight: 700;">T2: ${r.tier2Active ? 'Active' : 'Off'}</span>
                                     </td>
-                                    <td style="font-family: monospace; font-weight: 700; color: #047857;">${escapeHtml(ee)}</td>
-                                    <td style="font-family: monospace; font-weight: 700; color: #1e40af;">${escapeHtml(er)}</td>
-                                    <td style="font-family: monospace; font-weight: 800; color: #0f172a;">₹${ytd}</td>
-                                    <td style="font-size: 0.74rem; color: #334155;">${escapeHtml(r.nomineeStatus || 'SUBMITTED')}</td>
+                                    <td style="font-family: monospace; font-weight: 700; color: var(--k-success-text);">${escapeHtml(ee)}</td>
+                                    <td style="font-family: monospace; font-weight: 700; color: var(--k-accent-text);">${escapeHtml(er)}</td>
+                                    <td style="font-family: monospace; font-weight: 800; color: var(--k-text);">₹${ytd}</td>
+                                    <td style="font-size: 0.74rem; color: var(--k-text-2);">${escapeHtml(r.nomineeStatus || 'SUBMITTED')}</td>
                                     <td>
-                                        <span style="font-size: 0.7rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; background: ${kyc === 'VERIFIED' ? '#ecfdf5' : '#fffbeb'}; color: ${kyc === 'VERIFIED' ? '#059669' : '#b45309'};">
+                                        <span style="font-size: 0.7rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; background: ${kyc === 'VERIFIED' ? 'var(--k-success-soft)' : 'var(--k-warning-soft)'}; color: ${kyc === 'VERIFIED' ? 'var(--k-success-text)' : 'var(--k-warning-text)'};">
                                             ${escapeHtml(kyc)}
                                         </span>
                                     </td>
                                     <td>
-                                        <span style="font-size: 0.7rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; background: ${r.isNpsApplicable !== false ? '#ecfdf5' : '#f1f5f9'}; color: ${r.isNpsApplicable !== false ? '#059669' : '#64748b'};">
+                                        <span style="font-size: 0.7rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; background: ${r.isNpsApplicable !== false ? 'var(--k-success-soft)' : 'var(--k-subtle)'}; color: ${r.isNpsApplicable !== false ? 'var(--k-success-text)' : 'var(--k-muted)'};">
                                             ${r.isNpsApplicable !== false ? (r.npsAccountStatus || 'Active') : 'Exempt'}
                                         </span>
                                     </td>
@@ -4969,19 +5107,19 @@ function renderParsedGratuityMasterPreview(fileName, sheetName, records, errors 
             return `
                 <tr>
                     <td style="font-weight: 700; color: var(--text-muted);">${idx + 1}</td>
-                    <td style="font-family: monospace; font-weight: 800; color: #1e40af;">${escapeHtml(empId)}</td>
+                    <td style="font-family: monospace; font-weight: 800; color: var(--k-accent-text);">${escapeHtml(empId)}</td>
                     <td style="font-family: monospace; font-size: 0.76rem;">${escapeHtml(doj)}</td>
-                    <td style="font-family: monospace; font-size: 0.76rem; color: ${doe !== '—' ? '#b45309' : '#94a3b8'};">${escapeHtml(doe)}</td>
+                    <td style="font-family: monospace; font-size: 0.76rem; color: ${doe !== '—' ? 'var(--k-warning-text)' : 'var(--k-muted)'};">${escapeHtml(doe)}</td>
                     <td style="font-weight: 600;">${tenure} yrs</td>
-                    <td style="font-weight: 700; color: #0f172a;">${completed}</td>
+                    <td style="font-weight: 700; color: var(--k-text);">${completed}</td>
                     <td>
                         <span style="font-size: 0.7rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; background: ${eligBg}; color: ${eligColor};">
                             ${escapeHtml(eligStatus)}
                         </span>
                     </td>
-                    <td style="font-weight: 700; font-family: monospace; color: #0f172a;">₹${Number(eligibleSal).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                    <td style="font-weight: 800; font-family: monospace; color: #059669;">₹${Number(accrued).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                    <td style="font-size: 0.74rem; color: #475569;">${escapeHtml(formula)}</td>
+                    <td style="font-weight: 700; font-family: monospace; color: var(--k-text);">₹${Number(eligibleSal).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                    <td style="font-weight: 800; font-family: monospace; color: var(--k-success-text);">₹${Number(accrued).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                    <td style="font-size: 0.74rem; color: var(--k-text-2);">${escapeHtml(formula)}</td>
                     <td style="font-size: 0.72rem; font-weight: 600;">${escapeHtml(nominee)}</td>
                     <td>
                         <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: ${payBg}; color: ${payColor};">
@@ -4989,7 +5127,7 @@ function renderParsedGratuityMasterPreview(fileName, sheetName, records, errors 
                         </span>
                     </td>
                     <td style="text-align: center;">
-                        <span style="color: #166534; background: #dcfce7; font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid #bbf7d0;">
+                        <span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">
                             Valid
                         </span>
                     </td>
@@ -5031,7 +5169,9 @@ async function executeGratuityMasterIngest(gratuityDocs) {
         }
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && ingestedCount === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${ingestedCount} of ${gratuityDocs.length} Gratuity profiles.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -5043,7 +5183,7 @@ async function executeGratuityMasterIngest(gratuityDocs) {
 
     if (btnConfirmGratuityMasterIngest) {
         btnConfirmGratuityMasterIngest.disabled = false;
-        btnConfirmGratuityMasterIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmGratuityMasterIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 
@@ -5073,16 +5213,16 @@ async function renderOnboardingGratuityMasterTable() {
     const totalLiability = records.reduce((acc, r) => acc + Number(r.accruedGratuityAmount || 0), 0);
 
     container.innerHTML = `
-        <div style="background: white; border: 1px solid var(--border); border-radius: 20px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+        <div style="background: var(--k-surface); border: 1px solid var(--border); border-radius: 20px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 12px;">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div style="width: 44px; height: 44px; border-radius: 12px; background: #e0e7ff; color: #4338ca; display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="award" style="width: 24px; height: 24px;"></i>
                     </div>
                     <div>
-                        <h2 style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin: 0;">Payment of Gratuity Act, 1972 Statutory Master Console</h2>
+                        <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--k-text); margin: 0;">Payment of Gratuity Act, 1972 Statutory Master Console</h2>
                         <p style="font-size: 0.82rem; color: var(--text-muted); margin: 2px 0 0 0;">
-                            Cloud Firestore: <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #4338ca; font-weight: 700;">organizations/{orgId}/employee_gratuity_details/{employeeId}</code>
+                            Cloud Firestore: <code style="background: var(--k-subtle); padding: 2px 6px; border-radius: 4px; color: #4338ca; font-weight: 700;">organizations/{orgId}/employee_gratuity_details/{employeeId}</code>
                         </p>
                     </div>
                 </div>
@@ -5090,13 +5230,13 @@ async function renderOnboardingGratuityMasterTable() {
                     <span class="badge-verified" style="background: #e0e7ff; color: #3730a3; border-color: #c7d2fe;">
                         <i data-lucide="users"></i> ${records.length} Profiles Tracked
                     </span>
-                    <span class="badge-verified" style="background: #ecfdf5; color: #065f46; border-color: #a7f3d0;">
+                    <span class="badge-verified" style="background: var(--k-success-soft); color: var(--k-success-text); border-color: var(--k-success-border);">
                         <i data-lucide="shield-check"></i> ${totalVested} Vested (&ge;5 Yrs)
                     </span>
                     <span class="badge-verified" style="background: #fff7ed; color: #9a3412; border-color: #fed7aa;">
                         <i data-lucide="clock"></i> ${totalPending} Pending F&amp;F
                     </span>
-                    <span class="badge-verified" style="background: #f8fafc; color: #0f172a; border-color: #e2e8f0; font-family: monospace;">
+                    <span class="badge-verified" style="background: var(--k-subtle); color: var(--k-text); border-color: var(--k-border); font-family: monospace;">
                         Liability: ₹${totalLiability.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
                 </div>
@@ -5135,17 +5275,17 @@ async function renderOnboardingGratuityMasterTable() {
                             return `
                                 <tr>
                                     <td>${i + 1}</td>
-                                    <td><strong style="color: #1e40af; font-family: monospace;">${escapeHtml(r.employeeId)}</strong></td>
+                                    <td><strong style="color: var(--k-accent-text); font-family: monospace;">${escapeHtml(r.employeeId)}</strong></td>
                                     <td style="font-size: 0.74rem;">
                                         DOJ: ${escapeHtml(r.dateOfJoining || '—')}<br>
-                                        <span style="color: ${r.dateOfExit ? '#b45309' : '#94a3b8'};">DOE: ${escapeHtml(r.dateOfExit || 'Active')}</span>
+                                        <span style="color: ${r.dateOfExit ? 'var(--k-warning-text)' : 'var(--k-muted)'};">DOE: ${escapeHtml(r.dateOfExit || 'Active')}</span>
                                     </td>
                                     <td style="font-weight: 600;">${r.continuousServiceYears !== undefined ? r.continuousServiceYears : 0} Years</td>
-                                    <td style="font-weight: 800; color: #0f172a;">${r.completedYearsForGratuity || r.completedYears || 0}</td>
+                                    <td style="font-weight: 800; color: var(--k-text);">${r.completedYearsForGratuity || r.completedYears || 0}</td>
                                     <td style="font-family: monospace; font-weight: 700;">₹${Number(wages).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                                    <td style="font-family: monospace; font-weight: 800; color: #059669;">₹${Number(accrued).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                                    <td style="font-size: 0.74rem; color: #475569;">${escapeHtml(r.calculationBasis || '15/26 Formula')}</td>
-                                    <td style="font-size: 0.74rem; font-weight: 600; color: ${r.nomineeStatus === 'VERIFIED' ? '#059669' : '#b45309'};">
+                                    <td style="font-family: monospace; font-weight: 800; color: var(--k-success-text);">₹${Number(accrued).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                                    <td style="font-size: 0.74rem; color: var(--k-text-2);">${escapeHtml(r.calculationBasis || '15/26 Formula')}</td>
+                                    <td style="font-size: 0.74rem; font-weight: 600; color: ${r.nomineeStatus === 'VERIFIED' ? 'var(--k-success-text)' : 'var(--k-warning-text)'};">
                                         ${escapeHtml(r.nomineeStatus || 'VERIFIED')}
                                     </td>
                                     <td>
@@ -5267,8 +5407,8 @@ function renderParsedSalaryStructurePreview(fileName, sheetName, records, firest
         parsedSalaryStructureTableBody.innerHTML = records.map((r, idx) => {
             const isActive = r.Active === true || r.Active === 'Yes' || r.Active === 'true';
             const statusBadge = isActive
-                ? `<span style="color: #166534; background: #dcfce7; font-weight: 800; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem; border: 1px solid #bbf7d0;">Active</span>`
-                : `<span style="color: #64748b; background: #f1f5f9; font-weight: 600; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem;">Inactive</span>`;
+                ? `<span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 800; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem; border: 1px solid var(--k-success-border);">Active</span>`
+                : `<span style="color: var(--k-muted); background: var(--k-subtle); font-weight: 600; padding: 2px 6px; border-radius: 9999px; font-size: 0.7rem;">Inactive</span>`;
 
             const amtDisplay = (r.Amount !== null && r.Amount !== undefined && r.Amount !== '') 
                 ? '₹' + Number(r.Amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -5285,9 +5425,9 @@ function renderParsedSalaryStructurePreview(fileName, sheetName, records, firest
                 <tr>
                     <td style="font-weight: 700; color: var(--text-muted);">${idx + 1}</td>
                     <td style="font-family: monospace; font-weight: 800; color: #0284c7;">${escapeHtml(r.Employee_ID || r.employeeId)}</td>
-                    <td style="font-size: 0.78rem; font-weight: 600; color: #475569;">${escapeHtml(r.Effective_From || r.effectiveFrom)}</td>
+                    <td style="font-size: 0.78rem; font-weight: 600; color: var(--k-text-2);">${escapeHtml(r.Effective_From || r.effectiveFrom)}</td>
                     <td>
-                        <strong style="color: #0f172a; font-family: monospace; font-size: 0.78rem;">${escapeHtml(r.Salary_Structure_Code || r.salaryStructureCode)}</strong>
+                        <strong style="color: var(--k-text); font-family: monospace; font-size: 0.78rem;">${escapeHtml(r.Salary_Structure_Code || r.salaryStructureCode)}</strong>
                     </td>
                     <td>
                         <span style="font-weight: 700; color: #4f46e5; background: #eef2ff; padding: 2px 6px; border-radius: 6px; font-family: monospace; font-size: 0.78rem;">
@@ -5297,11 +5437,11 @@ function renderParsedSalaryStructurePreview(fileName, sheetName, records, firest
                     <td style="text-align: right; font-family: monospace; font-weight: 600;">${escapeHtml(amtDisplay)}</td>
                     <td style="text-align: right; font-family: monospace; font-weight: 600; color: #0891b2;">${escapeHtml(pctDisplay)}</td>
                     <td>
-                        <span style="font-size: 0.72rem; font-weight: 700; background: #f1f5f9; color: #334155; padding: 2px 6px; border-radius: 6px;">
+                        <span style="font-size: 0.72rem; font-weight: 700; background: var(--k-subtle); color: var(--k-text-2); padding: 2px 6px; border-radius: 6px;">
                             ${escapeHtml(r.Calculation_Basis || r.calculationBasis)}
                         </span>
                     </td>
-                    <td style="text-align: right; font-family: monospace; font-weight: 800; color: #059669;">${escapeHtml(compVal)}</td>
+                    <td style="text-align: right; font-family: monospace; font-weight: 800; color: var(--k-success-text);">${escapeHtml(compVal)}</td>
                     <td style="text-align: center;">${statusBadge}</td>
                 </tr>
             `;
@@ -5343,7 +5483,9 @@ async function executeSalaryStructureIngest(salaryDocs) {
         }
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && ingestedCount === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${ingestedCount} of ${salaryDocs.length} Salary Structures.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -5355,7 +5497,7 @@ async function executeSalaryStructureIngest(salaryDocs) {
 
     if (btnConfirmSalaryStructureIngest) {
         btnConfirmSalaryStructureIngest.disabled = false;
-        btnConfirmSalaryStructureIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmSalaryStructureIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 
@@ -5407,7 +5549,9 @@ async function executePolicyIngest(policyDocs) {
         }
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && ingestedCount === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${ingestedCount} of ${policyDocs.length} Policies.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -5419,7 +5563,7 @@ async function executePolicyIngest(policyDocs) {
 
     if (btnConfirmPolicyIngest) {
         btnConfirmPolicyIngest.disabled = false;
-        btnConfirmPolicyIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmPolicyIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 
@@ -5512,22 +5656,22 @@ function renderParsedAttributesPreview(fileName, sheetName, data) {
             
             let statusPill = '';
             if (isMissingRequired) {
-                statusPill = '<span style="color: #991b1b; background: #fee2e2; font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid #fecaca;">Missing *</span>';
+                statusPill = '<span style="color: var(--k-danger-text); background: var(--k-danger-soft); font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid var(--k-danger-border);">Missing *</span>';
             } else if (val) {
-                statusPill = '<span style="color: #166534; background: #dcfce7; font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid #bbf7d0;">Extracted</span>';
+                statusPill = '<span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 700; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; border: 1px solid var(--k-success-border);">Extracted</span>';
             } else {
-                statusPill = '<span style="color: #64748b; background: #f1f5f9; font-weight: 600; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem;">Optional</span>';
+                statusPill = '<span style="color: var(--k-muted); background: var(--k-subtle); font-weight: 600; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem;">Optional</span>';
             }
 
             const displayVal = val 
-                ? `<span style="font-weight: 600; color: #0f172a;">${escapeHtml(val)}</span>` 
-                : `<span style="color: #94a3b8; font-style: italic;">(Empty)</span>`;
+                ? `<span style="font-weight: 600; color: var(--k-text);">${escapeHtml(val)}</span>` 
+                : `<span style="color: var(--k-muted); font-style: italic;">(Empty)</span>`;
 
             return `
                 <tr>
                     <td style="font-weight: 700; color: var(--text-muted);">${index + 1}</td>
                     <td>
-                        <strong style="color: #1e293b;">${attr.key}</strong>
+                        <strong style="color: var(--k-text);">${attr.key}</strong>
                         ${attr.required ? '<span style="color: var(--danger); font-weight: 800;">*</span>' : ''}
                     </td>
                     <td>${displayVal}</td>
@@ -5640,7 +5784,7 @@ async function executeOrganizationSetup(attributes21, sourceMethod) {
 
     if (statusBadge) {
         statusBadge.className = 'badge-verified';
-        statusBadge.innerHTML = '<i data-lucide="check-circle" style="width: 14px;"></i> Organization Configured (orgConfigured: true)';
+        statusBadge.innerHTML = '<i data-lucide="check-circle" style="width: 14px;"></i> Organization configured';
         if (window.lucide) lucide.createIcons();
     }
 
@@ -5820,19 +5964,19 @@ function renderParsedHolidayCalendarPreview(fileName, sheetName, records, firest
 
             return `
                 <tr style="${hasError ? 'background: #fff1f2;' : ''}">
-                    <td style="font-weight: 700; color: #64748b;">${idx + 1}</td>
+                    <td style="font-weight: 700; color: var(--k-muted);">${idx + 1}</td>
                     <td>
-                        <strong style="color: #0f172a; font-family: monospace; font-size: 0.78rem;">${escapeHtml(r.Holiday_Calendar_Code || r.calendarCode)}</strong>
+                        <strong style="color: var(--k-text); font-family: monospace; font-size: 0.78rem;">${escapeHtml(r.Holiday_Calendar_Code || r.calendarCode)}</strong>
                     </td>
                     <td>
-                        <span style="display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 800; background: #f1f5f9; color: #334155;">
+                        <span style="display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 800; background: var(--k-subtle); color: var(--k-text-2);">
                             ${escapeHtml(r.Location_Code || r.locationCode)}
                         </span>
                     </td>
-                    <td style="font-family: monospace; font-weight: 700; color: #0f172a;">
+                    <td style="font-family: monospace; font-weight: 700; color: var(--k-text);">
                         ${escapeHtml(r.Holiday_Date || r.holidayDate)}
                     </td>
-                    <td style="font-weight: 700; color: #1e293b;">
+                    <td style="font-weight: 700; color: var(--k-text);">
                         ${escapeHtml(r.Holiday_Name || r.holidayName)}
                     </td>
                     <td>
@@ -5841,17 +5985,17 @@ function renderParsedHolidayCalendarPreview(fileName, sheetName, records, firest
                         </span>
                     </td>
                     <td style="text-align: center;">
-                        <span style="display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 800; background: ${isOpt ? '#fef3c7; color: #b45309;' : '#f1f5f9; color: #64748b;'}">
+                        <span style="display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 800; background: ${isOpt ? 'var(--k-warning-soft); color: var(--k-warning-text);' : '#f1f5f9; color: var(--k-muted);'}">
                             ${isOpt ? 'FLOATING' : 'MANDATORY'}
                         </span>
                     </td>
                     <td style="text-align: center;">
-                        <span style="display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 800; background: ${isPaid ? '#dcfce7; color: #15803d;' : '#fee2e2; color: #b91c1c;'}">
+                        <span style="display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 800; background: ${isPaid ? 'var(--k-success-soft); color: var(--k-success-text);' : '#fee2e2; color: var(--k-danger-text);'}">
                             ${isPaid ? 'PAID' : 'UNPAID'}
                         </span>
                     </td>
                     <td style="text-align: center;">
-                        <span style="display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 800; background: ${isAct ? '#ecfdf5; color: #047857;' : '#f1f5f9; color: #94a3b8;'}">
+                        <span style="display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 800; background: ${isAct ? 'var(--k-success-soft); color: var(--k-success-text);' : '#f1f5f9; color: var(--k-muted);'}">
                             ${isAct ? 'ACTIVE' : 'INACTIVE'}
                         </span>
                     </td>
@@ -5894,7 +6038,9 @@ async function executeHolidayCalendarIngest(holidayDocs) {
         }
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && ingestedCount === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${ingestedCount} of ${holidayDocs.length} Holidays.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -5906,7 +6052,7 @@ async function executeHolidayCalendarIngest(holidayDocs) {
 
     if (btnConfirmHolidayCalendarIngest) {
         btnConfirmHolidayCalendarIngest.disabled = false;
-        btnConfirmHolidayCalendarIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmHolidayCalendarIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 
@@ -5975,20 +6121,20 @@ function renderParsedStatutoryCompliancePreview(fileName, sheetName, records, fi
             return `
                 <tr style="border-bottom: 1px solid var(--border);">
                     <td style="color: var(--text-muted); font-size: 0.75rem;">${idx + 1}</td>
-                    <td style="font-family: monospace; font-weight: 800; color: #2563eb;">${r.Compliance_Code}</td>
-                    <td style="font-weight: 700; color: #0f172a;">${r.Compliance_Name}</td>
+                    <td style="font-family: monospace; font-weight: 800; color: var(--k-accent-text);">${r.Compliance_Code}</td>
+                    <td style="font-weight: 700; color: var(--k-text);">${r.Compliance_Name}</td>
                     <td style="text-align: center;">
-                        <span style="display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; background: ${r.Applicable ? '#dcfce7' : '#f1f5f9'}; color: ${r.Applicable ? '#166534' : '#64748b'};">
+                        <span style="display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; background: ${r.Applicable ? 'var(--k-success-soft)' : 'var(--k-subtle)'}; color: ${r.Applicable ? 'var(--k-success-text)' : 'var(--k-muted)'};">
                             ${r.Applicable ? 'YES' : 'NO'}
                         </span>
                     </td>
                     <td style="font-family: monospace; font-size: 0.75rem;">${r.Registration_Number || '-'}</td>
-                    <td><span style="padding: 2px 6px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; background: #eff6ff; color: #1e40af;">${r.State}</span></td>
-                    <td style="font-size: 0.75rem; color: #64748b;">${r.Effective_From}</td>
-                    <td style="font-weight: 700; color: #334155;">${typeof r.Wage_Ceiling_or_Rule === 'number' ? `₹${r.Wage_Ceiling_or_Rule.toLocaleString('en-IN')}` : r.Wage_Ceiling_or_Rule}</td>
-                    <td style="font-weight: 700; color: #2563eb;">${eeRate}</td>
-                    <td style="font-weight: 700; color: #16a34a;">${erRate}</td>
-                    <td style="text-align: center; font-weight: 800; color: #0f172a;">${r.Due_Date_Day}th</td>
+                    <td><span style="padding: 2px 6px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; background: var(--k-accent-soft); color: var(--k-accent-text);">${r.State}</span></td>
+                    <td style="font-size: 0.75rem; color: var(--k-muted);">${r.Effective_From}</td>
+                    <td style="font-weight: 700; color: var(--k-text-2);">${typeof r.Wage_Ceiling_or_Rule === 'number' ? `₹${r.Wage_Ceiling_or_Rule.toLocaleString('en-IN')}` : r.Wage_Ceiling_or_Rule}</td>
+                    <td style="font-weight: 700; color: var(--k-accent-text);">${eeRate}</td>
+                    <td style="font-weight: 700; color: var(--k-success-text);">${erRate}</td>
+                    <td style="text-align: center; font-weight: 800; color: var(--k-text);">${r.Due_Date_Day}th</td>
                 </tr>
             `;
         }).join('');
@@ -6027,7 +6173,9 @@ async function executeStatutoryComplianceIngest(statutoryDocs) {
         }
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && ingestedCount === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${ingestedCount} of ${statutoryDocs.length} Statutory Rules.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -6039,7 +6187,7 @@ async function executeStatutoryComplianceIngest(statutoryDocs) {
 
     if (btnConfirmStatutoryComplianceIngest) {
         btnConfirmStatutoryComplianceIngest.disabled = false;
-        btnConfirmStatutoryComplianceIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmStatutoryComplianceIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 
@@ -6173,17 +6321,17 @@ function renderParsedRolePermissionPreview(fileName, sheetName, records, firesto
             return `
                 <tr>
                     <td style="font-weight: 700; color: var(--text-muted);">${i + 1}</td>
-                    <td style="font-weight: 800; font-family: monospace; color: ${isRole ? '#2563eb' : '#be185d'};">
+                    <td style="font-weight: 800; font-family: monospace; color: ${isRole ? 'var(--k-accent-text)' : '#be185d'};">
                         ${r.Role_Code_or_Employee_Code}
                     </td>
                     <td>
-                        <span style="font-size: 0.7rem; padding: 2px 6px; border-radius: 6px; font-weight: 800; ${isRole ? 'background: #eff6ff; color: #1e40af;' : 'background: #fdf2f8; color: #9d174d;'}">
+                        <span style="font-size: 0.7rem; padding: 2px 6px; border-radius: 6px; font-weight: 800; ${isRole ? 'background: #eff6ff; color: var(--k-accent-text);' : 'background: #fdf2f8; color: #9d174d;'}">
                             ${isRole ? 'BASE_ROLE' : 'OVERRIDE'}
                         </span>
                     </td>
                     <td style="font-weight: 600;">${r.Role_Name}</td>
                     <td>
-                        <span style="font-size: 0.72rem; padding: 2px 6px; border-radius: 6px; background: #f8fafc; border: 1px solid #e2e8f0; font-weight: 700;">
+                        <span style="font-size: 0.72rem; padding: 2px 6px; border-radius: 6px; background: var(--k-subtle); border: 1px solid var(--k-border); font-weight: 700;">
                             ${r.Scope_Level}
                         </span>
                     </td>
@@ -6196,7 +6344,7 @@ function renderParsedRolePermissionPreview(fileName, sheetName, records, firesto
                     <td style="text-align: center;"><span style="font-size: 0.65rem; padding: 2px 4px; border-radius: 4px; ${badgeHelper(r.Reports_Module)}">${r.Reports_Module}</span></td>
                     <td style="text-align: center;"><span style="font-size: 0.65rem; padding: 2px 4px; border-radius: 4px; ${badgeHelper(r.Organization_Setup)}">${r.Organization_Setup}</span></td>
                     <td style="text-align: center;">
-                        <span style="font-size: 0.7rem; font-weight: 800; color: ${r.Active === 'Yes' ? '#16a34a' : '#dc2626'};">${r.Active}</span>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: ${r.Active === 'Yes' ? 'var(--k-success-text)' : 'var(--k-danger-text)'};">${r.Active}</span>
                     </td>
                 </tr>
             `;
@@ -6251,7 +6399,9 @@ async function executeRolePermissionIngest(roleDocs) {
         }
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && (rolesIngested + overridesIngested) === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${rolesIngested} Base Roles and ${overridesIngested} Employee Overrides.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -6263,7 +6413,7 @@ async function executeRolePermissionIngest(roleDocs) {
 
     if (btnConfirmRolePermissionIngest) {
         btnConfirmRolePermissionIngest.disabled = false;
-        btnConfirmRolePermissionIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmRolePermissionIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 }
@@ -6395,11 +6545,11 @@ function renderParsedWorkflowRulesPreview(fileName, sheetName, records, workflow
         workflowRulesParsedTableBody.innerHTML = records.map((r, i) => {
             let targetLabel = '-';
             if (r.Approver_Type === 'Specific_Employee') {
-                targetLabel = `<span style="font-size: 0.72rem; font-weight: 700; color: #b45309; background: #fef3c7; padding: 2px 6px; border-radius: 4px;">ID: ${r.Approver_Employee_ID}</span>`;
+                targetLabel = `<span style="font-size: 0.72rem; font-weight: 700; color: var(--k-warning-text); background: var(--k-warning-soft); padding: 2px 6px; border-radius: 4px;">ID: ${r.Approver_Employee_ID}</span>`;
             } else if (r.Approver_Type === 'Role_Based') {
                 targetLabel = `<span style="font-size: 0.72rem; font-weight: 700; color: #4338ca; background: #e0e7ff; padding: 2px 6px; border-radius: 4px;">Role: ${r.Approver_Role_Code}</span>`;
             } else {
-                targetLabel = `<span style="font-size: 0.72rem; color: #64748b;">Dynamic</span>`;
+                targetLabel = `<span style="font-size: 0.72rem; color: var(--k-muted);">Dynamic</span>`;
             }
 
             return `
@@ -6409,12 +6559,12 @@ function renderParsedWorkflowRulesPreview(fileName, sheetName, records, workflow
                         ${r.Workflow_Code}
                     </td>
                     <td>
-                        <span style="font-size: 0.72rem; padding: 2px 6px; border-radius: 6px; background: #f1f5f9; color: #334155; font-weight: 700;">
+                        <span style="font-size: 0.72rem; padding: 2px 6px; border-radius: 6px; background: var(--k-subtle); color: var(--k-text-2); font-weight: 700;">
                             ${r.Module}
                         </span>
                     </td>
                     <td style="font-weight: 600;">${r.Transaction_Type}</td>
-                    <td style="text-align: center; font-weight: 800; color: #0f172a;">${r.Step_No}</td>
+                    <td style="text-align: center; font-weight: 800; color: var(--k-text);">${r.Step_No}</td>
                     <td>
                         <span style="font-size: 0.72rem; padding: 2px 6px; border-radius: 6px; background: #e0f2fe; color: #0369a1; font-weight: 700;">
                             ${r.Approver_Type}
@@ -6423,10 +6573,10 @@ function renderParsedWorkflowRulesPreview(fileName, sheetName, records, workflow
                     <td>${targetLabel}</td>
                     <td style="text-align: center; font-weight: 700;">${r.SLA_Hours}h</td>
                     <td style="text-align: center;">
-                        <span style="font-size: 0.7rem; font-weight: 800; color: ${r.Mandatory === 'Yes' ? '#b91c1c' : '#64748b'};">${r.Mandatory}</span>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: ${r.Mandatory === 'Yes' ? 'var(--k-danger-text)' : 'var(--k-muted)'};">${r.Mandatory}</span>
                     </td>
                     <td style="text-align: center;">
-                        <span style="font-size: 0.7rem; font-weight: 800; color: ${r.Active === 'Yes' ? '#16a34a' : '#dc2626'};">${r.Active}</span>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: ${r.Active === 'Yes' ? 'var(--k-success-text)' : 'var(--k-danger-text)'};">${r.Active}</span>
                     </td>
                 </tr>
             `;
@@ -6468,7 +6618,9 @@ async function executeWorkflowRulesIngest(workflowDocs) {
         }
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && ingestedCount === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${ingestedCount} Workflows.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -6480,7 +6632,7 @@ async function executeWorkflowRulesIngest(workflowDocs) {
 
     if (btnConfirmWorkflowRulesIngest) {
         btnConfirmWorkflowRulesIngest.disabled = false;
-        btnConfirmWorkflowRulesIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmWorkflowRulesIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 }
@@ -6659,22 +6811,22 @@ function renderParsedPayrollComponentPreview(fileName, sheetName, records, fires
             return `
                 <tr>
                     <td style="font-weight: 700; color: var(--text-muted);">${i + 1}</td>
-                    <td style="font-weight: 800; font-family: monospace; color: #2563eb;">${r.Component_Code}</td>
+                    <td style="font-weight: 800; font-family: monospace; color: var(--k-accent-text);">${r.Component_Code}</td>
                     <td style="font-weight: 600;">${r.Component_Name}</td>
                     <td>
                         <span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 6px; font-weight: 700; ${typeBadge}">
                             ${r.Component_Type}
                         </span>
                     </td>
-                    <td style="font-size: 0.8rem; color: #475569;">${r.Calculation_Method}</td>
+                    <td style="font-size: 0.8rem; color: var(--k-text-2);">${r.Calculation_Method}</td>
                     <td style="font-size: 0.8rem; font-weight: 700;">${valDisplay}</td>
-                    <td style="text-align: center; font-size: 0.75rem; font-weight: 800; color: ${r.Taxable === 'Yes' ? '#16a34a' : '#64748b'};">${r.Taxable}</td>
-                    <td style="text-align: center; font-size: 0.75rem; font-weight: 800; color: ${r.PF_Applicable === 'Yes' ? '#2563eb' : '#64748b'};">${r.PF_Applicable}</td>
-                    <td style="text-align: center; font-size: 0.75rem; font-weight: 800; color: ${r.ESI_Applicable === 'Yes' ? '#2563eb' : '#64748b'};">${r.ESI_Applicable}</td>
-                    <td style="text-align: center; font-size: 0.75rem; font-weight: 800; color: ${r.PT_Applicable === 'Yes' ? '#2563eb' : '#64748b'};">${r.PT_Applicable}</td>
-                    <td style="text-align: center; font-size: 0.75rem; font-weight: 800; color: ${r.TDS_Applicable === 'Yes' ? '#2563eb' : '#64748b'};">${r.TDS_Applicable}</td>
-                    <td style="text-align: center; font-size: 0.75rem; font-weight: 800; color: ${r.Prorate_On_LOP === 'Yes' ? '#2563eb' : '#64748b'};">${r.Prorate_On_LOP}</td>
-                    <td style="text-align: center; font-size: 0.75rem; font-weight: 800; color: ${r.Active === 'Yes' ? '#16a34a' : '#dc2626'};">${r.Active}</td>
+                    <td style="text-align: center; font-size: 0.75rem; font-weight: 800; color: ${r.Taxable === 'Yes' ? 'var(--k-success-text)' : 'var(--k-muted)'};">${r.Taxable}</td>
+                    <td style="text-align: center; font-size: 0.75rem; font-weight: 800; color: ${r.PF_Applicable === 'Yes' ? 'var(--k-accent-text)' : 'var(--k-muted)'};">${r.PF_Applicable}</td>
+                    <td style="text-align: center; font-size: 0.75rem; font-weight: 800; color: ${r.ESI_Applicable === 'Yes' ? 'var(--k-accent-text)' : 'var(--k-muted)'};">${r.ESI_Applicable}</td>
+                    <td style="text-align: center; font-size: 0.75rem; font-weight: 800; color: ${r.PT_Applicable === 'Yes' ? 'var(--k-accent-text)' : 'var(--k-muted)'};">${r.PT_Applicable}</td>
+                    <td style="text-align: center; font-size: 0.75rem; font-weight: 800; color: ${r.TDS_Applicable === 'Yes' ? 'var(--k-accent-text)' : 'var(--k-muted)'};">${r.TDS_Applicable}</td>
+                    <td style="text-align: center; font-size: 0.75rem; font-weight: 800; color: ${r.Prorate_On_LOP === 'Yes' ? 'var(--k-accent-text)' : 'var(--k-muted)'};">${r.Prorate_On_LOP}</td>
+                    <td style="text-align: center; font-size: 0.75rem; font-weight: 800; color: ${r.Active === 'Yes' ? 'var(--k-success-text)' : 'var(--k-danger-text)'};">${r.Active}</td>
                 </tr>
             `;
         }).join('');
@@ -6728,7 +6880,9 @@ async function executePayrollComponentIngest(componentDocs) {
         svc.ingestComponentRecords(componentDocs, orgId);
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && ingestedCount === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${ingestedCount} Components.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -6740,7 +6894,7 @@ async function executePayrollComponentIngest(componentDocs) {
 
     if (btnConfirmPayrollComponentsIngest) {
         btnConfirmPayrollComponentsIngest.disabled = false;
-        btnConfirmPayrollComponentsIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmPayrollComponentsIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 }

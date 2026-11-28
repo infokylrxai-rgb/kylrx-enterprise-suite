@@ -100,10 +100,7 @@
     function _initLedger(orgId = 'default') {
         if (!_localLedger.has(orgId)) {
             const orgMap = new Map();
-            DEFAULT_SEED_CALENDARS.forEach(cal => {
-                const calCopy = JSON.parse(JSON.stringify(cal));
-                orgMap.set(calCopy.calendarCode, calCopy);
-            });
+            // Starts empty: the samples used to be put here, as this organisation's own.
             _localLedger.set(orgId, orgMap);
         }
         return _localLedger.get(orgId);
@@ -850,17 +847,17 @@
                 <!-- Header & Stats Overview -->
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
                     <div>
-                        <h2 style="font-size: 1.45rem; font-weight: 800; color: #0f172a; margin: 0 0 4px 0; display: flex; align-items: center; gap: 10px;">
+                        <h2 style="font-size: 1.45rem; font-weight: 800; color: var(--k-text); margin: 0 0 4px 0; display: flex; align-items: center; gap: 10px;">
                             <span style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, #ec4899, #be185d); color: white;">📅</span>
                             Holiday Calendars & Location Governance
                         </h2>
-                        <p style="font-size: 0.85rem; color: #64748b; margin: 0;">PRD Sections 1, 4, 15, & 16: Configure regional office closures, optional floating quotas, and attendance/payroll interlocks.</p>
+                        <p style="font-size: 0.85rem; color: var(--k-muted); margin: 0;">PRD Sections 1, 4, 15, & 16: Configure regional office closures, optional floating quotas, and attendance/payroll interlocks.</p>
                     </div>
                     <div style="display: flex; gap: 10px; align-items: center;">
                         <button type="button" class="btn" id="btnAdminAddHoliday" style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 12px; background: #4f46e5; color: white; font-weight: 700; border: none; cursor: pointer; font-size: 0.85rem; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.25);">
                             + Add Holiday
                         </button>
-                        <button type="button" class="btn" id="btnAdminAddCalendar" style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 12px; background: white; color: #0f172a; border: 1px solid #cbd5e1; font-weight: 700; cursor: pointer; font-size: 0.85rem;">
+                        <button type="button" class="btn" id="btnAdminAddCalendar" style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 12px; background: var(--k-surface); color: var(--k-text); border: 1px solid var(--k-border); font-weight: 700; cursor: pointer; font-size: 0.85rem;">
                             + New Calendar
                         </button>
                     </div>
@@ -868,49 +865,49 @@
 
                 <!-- KPI Metric Cards -->
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                        <div style="font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Active Calendars</div>
+                    <div style="background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 16px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                        <div style="font-size: 0.75rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Active Calendars</div>
                         <div style="font-size: 1.75rem; font-weight: 800; color: #4f46e5; margin-top: 4px;">${calendars.length}</div>
-                        <div style="font-size: 0.72rem; color: #10b981; font-weight: 600; margin-top: 2px;">Multi-location sets mapped</div>
+                        <div style="font-size: 0.72rem; color: var(--k-success-text); font-weight: 600; margin-top: 2px;">Multi-location sets mapped</div>
                     </div>
-                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                        <div style="font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Total Annual Holidays</div>
-                        <div style="font-size: 1.75rem; font-weight: 800; color: #0f172a; margin-top: 4px;">${totalHolidays}</div>
-                        <div style="font-size: 0.72rem; color: #64748b; font-weight: 600; margin-top: 2px;">Year ${activeCal.year || 2026} closures</div>
+                    <div style="background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 16px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                        <div style="font-size: 0.75rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Total Annual Holidays</div>
+                        <div style="font-size: 1.75rem; font-weight: 800; color: var(--k-text); margin-top: 4px;">${totalHolidays}</div>
+                        <div style="font-size: 0.72rem; color: var(--k-muted); font-weight: 600; margin-top: 2px;">Year ${activeCal.year || 2026} closures</div>
                     </div>
-                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                        <div style="font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Mandatory Closures</div>
-                        <div style="font-size: 1.75rem; font-weight: 800; color: #059669; margin-top: 4px;">${mandatoryCount}</div>
-                        <div style="font-size: 0.72rem; color: #059669; font-weight: 600; margin-top: 2px;">Compulsory paid leaves</div>
+                    <div style="background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 16px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                        <div style="font-size: 0.75rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Mandatory Closures</div>
+                        <div style="font-size: 1.75rem; font-weight: 800; color: var(--k-success-text); margin-top: 4px;">${mandatoryCount}</div>
+                        <div style="font-size: 0.72rem; color: var(--k-success-text); font-weight: 600; margin-top: 2px;">Compulsory paid leaves</div>
                     </div>
-                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                        <div style="font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Optional / Floating</div>
-                        <div style="font-size: 1.75rem; font-weight: 800; color: #d97706; margin-top: 4px;">${optionalCount}</div>
-                        <div style="font-size: 0.72rem; color: #d97706; font-weight: 600; margin-top: 2px;">Quota: 2 claims / year</div>
+                    <div style="background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 16px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                        <div style="font-size: 0.75rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Optional / Floating</div>
+                        <div style="font-size: 1.75rem; font-weight: 800; color: var(--k-warning-text); margin-top: 4px;">${optionalCount}</div>
+                        <div style="font-size: 0.72rem; color: var(--k-warning-text); font-weight: 600; margin-top: 2px;">Quota: 2 claims / year</div>
                     </div>
                 </div>
 
                 <!-- Calendar Selector & View Switcher Bar -->
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; background: white; padding: 1rem 1.25rem; border-radius: 16px; border: 1px solid #e2e8f0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; background: var(--k-surface); padding: 1rem 1.25rem; border-radius: 16px; border: 1px solid var(--k-border);">
                     <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                        <label style="font-size: 0.85rem; font-weight: 700; color: #334155;">Active Calendar Set:</label>
-                        <select id="calSetSelect" style="padding: 8px 14px; border-radius: 10px; border: 1px solid #cbd5e1; font-weight: 700; font-size: 0.85rem; outline: none; background: #f8fafc;">
+                        <label style="font-size: 0.85rem; font-weight: 700; color: var(--k-text-2);">Active Calendar Set:</label>
+                        <select id="calSetSelect" style="padding: 8px 14px; border-radius: 10px; border: 1px solid var(--k-border); font-weight: 700; font-size: 0.85rem; outline: none; background: var(--k-subtle);">
                             ${calendars.map(c => `
                                 <option value="${c.calendarCode}" ${c.calendarCode === selectedCalCode ? 'selected' : ''}>
                                     ${c.calendarName} (${c.locationCode})
                                 </option>
                             `).join('')}
                         </select>
-                        <span style="display: inline-block; padding: 4px 10px; border-radius: 100px; font-size: 0.72rem; font-weight: 800; background: #dcfce7; color: #166534;">
+                        <span style="display: inline-block; padding: 4px 10px; border-radius: 100px; font-size: 0.72rem; font-weight: 800; background: var(--k-success-soft); color: var(--k-success-text);">
                             ${activeCal.locationCode} ACTIVE
                         </span>
                     </div>
 
-                    <div style="display: flex; gap: 6px; background: #f1f5f9; padding: 4px; border-radius: 12px;">
-                        <button type="button" id="btnViewList" style="padding: 6px 16px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer; border: none; ${activeTab === 'list' ? 'background: white; color: #0f172a; box-shadow: 0 1px 2px rgba(0,0,0,0.1);' : 'background: transparent; color: #64748b;'}">
+                    <div style="display: flex; gap: 6px; background: var(--k-subtle); padding: 4px; border-radius: 12px;">
+                        <button type="button" id="btnViewList" style="padding: 6px 16px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer; border: none; ${activeTab === 'list' ? 'background: var(--k-surface); color: var(--k-text); box-shadow: 0 1px 2px rgba(0,0,0,0.1);' : 'background: transparent; color: var(--k-muted);'}">
                             📋 List View
                         </button>
-                        <button type="button" id="btnViewCalendar" style="padding: 6px 16px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer; border: none; ${activeTab === 'calendar' ? 'background: white; color: #0f172a; box-shadow: 0 1px 2px rgba(0,0,0,0.1);' : 'background: transparent; color: #64748b;'}">
+                        <button type="button" id="btnViewCalendar" style="padding: 6px 16px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer; border: none; ${activeTab === 'calendar' ? 'background: var(--k-surface); color: var(--k-text); box-shadow: 0 1px 2px rgba(0,0,0,0.1);' : 'background: transparent; color: var(--k-muted);'}">
                             🗓️ Annual Calendar View
                         </button>
                     </div>
@@ -918,11 +915,11 @@
 
                 <!-- Main Display Area (List View or Calendar View) -->
                 ${activeTab === 'list' ? `
-                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 18px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <div style="background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 18px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                         <div style="overflow-x: auto;">
                             <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
                                 <thead>
-                                    <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; color: #64748b; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    <tr style="background: var(--k-subtle); border-bottom: 1px solid var(--k-border); color: var(--k-muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px;">
                                         <th style="padding: 12px 16px;">Date</th>
                                         <th style="padding: 12px 16px;">Holiday Name</th>
                                         <th style="padding: 12px 16px;">Type</th>
@@ -934,37 +931,37 @@
                                 </thead>
                                 <tbody>
                                     ${holidays.length === 0 ? `
-                                        <tr><td colspan="7" style="text-align: center; padding: 2rem; color: #94a3b8;">No holidays scheduled under this calendar. Click '+ Add Holiday' to create entries.</td></tr>
+                                        <tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--k-muted);">No holidays scheduled under this calendar. Click '+ Add Holiday' to create entries.</td></tr>
                                     ` : holidays.map((h, i) => `
-                                        <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
-                                            <td style="padding: 14px 16px; font-weight: 700; color: #0f172a; font-family: monospace;">
+                                        <tr style="border-bottom: 1px solid var(--k-border); transition: background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                                            <td style="padding: 14px 16px; font-weight: 700; color: var(--k-text); font-family: monospace;">
                                                 ${h.holidayDate}
                                             </td>
-                                            <td style="padding: 14px 16px; font-weight: 700; color: #1e293b;">
+                                            <td style="padding: 14px 16px; font-weight: 700; color: var(--k-text);">
                                                 ${h.holidayName}
                                             </td>
                                             <td style="padding: 14px 16px;">
-                                                <span style="display: inline-block; padding: 3px 10px; border-radius: 100px; font-size: 0.72rem; font-weight: 700; background: ${h.holidayType === 'National' ? '#dbeafe; color: #1e40af;' : (h.holidayType === 'Restricted' ? '#fef3c7; color: #92400e;' : '#e0e7ff; color: #3730a3;')};">
+                                                <span style="display: inline-block; padding: 3px 10px; border-radius: 100px; font-size: 0.72rem; font-weight: 700; background: ${h.holidayType === 'National' ? 'var(--k-accent-soft); color: var(--k-accent-text);' : (h.holidayType === 'Restricted' ? '#fef3c7; color: var(--k-warning-text);' : '#e0e7ff; color: #3730a3;')};">
                                                     ${h.holidayType || 'National'}
                                                 </span>
                                             </td>
                                             <td style="padding: 14px 16px; text-align: center;">
-                                                <button type="button" class="toggle-flag-btn" data-cal="${activeCal.calendarCode}" data-id="${h.id}" data-flag="isOptional" style="background: none; border: none; cursor: pointer; font-size: 0.75rem; font-weight: 800; padding: 4px 10px; border-radius: 6px; ${h.isOptional ? 'background: #fef3c7; color: #b45309;' : 'background: #f1f5f9; color: #64748b;'}">
+                                                <button type="button" class="toggle-flag-btn" data-cal="${activeCal.calendarCode}" data-id="${h.id}" data-flag="isOptional" style="background: none; border: none; cursor: pointer; font-size: 0.75rem; font-weight: 800; padding: 4px 10px; border-radius: 6px; ${h.isOptional ? 'background: #fef3c7; color: var(--k-warning-text);' : 'background: #f1f5f9; color: var(--k-muted);'}">
                                                     ${h.isOptional ? 'YES (Floating)' : 'NO (Mandatory)'}
                                                 </button>
                                             </td>
                                             <td style="padding: 14px 16px; text-align: center;">
-                                                <button type="button" class="toggle-flag-btn" data-cal="${activeCal.calendarCode}" data-id="${h.id}" data-flag="isPaid" style="background: none; border: none; cursor: pointer; font-size: 0.75rem; font-weight: 800; padding: 4px 10px; border-radius: 6px; ${h.isPaid ? 'background: #dcfce7; color: #15803d;' : 'background: #fee2e2; color: #b91c1c;'}">
+                                                <button type="button" class="toggle-flag-btn" data-cal="${activeCal.calendarCode}" data-id="${h.id}" data-flag="isPaid" style="background: none; border: none; cursor: pointer; font-size: 0.75rem; font-weight: 800; padding: 4px 10px; border-radius: 6px; ${h.isPaid ? 'background: #dcfce7; color: var(--k-success-text);' : 'background: #fee2e2; color: var(--k-danger-text);'}">
                                                     ${h.isPaid ? 'PAID (0 LOP)' : 'UNPAID'}
                                                 </button>
                                             </td>
                                             <td style="padding: 14px 16px; text-align: center;">
-                                                <button type="button" class="toggle-flag-btn" data-cal="${activeCal.calendarCode}" data-id="${h.id}" data-flag="isActive" style="background: none; border: none; cursor: pointer; font-size: 0.75rem; font-weight: 800; padding: 4px 10px; border-radius: 6px; ${h.isActive !== false ? 'background: #ecfdf5; color: #047857;' : 'background: #f1f5f9; color: #94a3b8;'}">
+                                                <button type="button" class="toggle-flag-btn" data-cal="${activeCal.calendarCode}" data-id="${h.id}" data-flag="isActive" style="background: none; border: none; cursor: pointer; font-size: 0.75rem; font-weight: 800; padding: 4px 10px; border-radius: 6px; ${h.isActive !== false ? 'background: #ecfdf5; color: var(--k-success-text);' : 'background: #f1f5f9; color: var(--k-muted);'}">
                                                     ${h.isActive !== false ? 'ACTIVE' : 'INACTIVE'}
                                                 </button>
                                             </td>
                                             <td style="padding: 14px 16px; text-align: right;">
-                                                <button type="button" class="delete-holiday-btn" data-cal="${activeCal.calendarCode}" data-id="${h.id}" style="background: none; border: 1px solid #fee2e2; color: #ef4444; border-radius: 8px; padding: 4px 10px; font-size: 0.72rem; font-weight: 700; cursor: pointer;">
+                                                <button type="button" class="delete-holiday-btn" data-cal="${activeCal.calendarCode}" data-id="${h.id}" style="background: none; border: 1px solid #fee2e2; color: var(--k-danger-text); border-radius: 8px; padding: 4px 10px; font-size: 0.72rem; font-weight: 700; cursor: pointer;">
                                                     Delete
                                                 </button>
                                             </td>
@@ -976,7 +973,7 @@
                     </div>
                 ` : `
                     <!-- Annual Calendar View -->
-                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 18px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <div style="background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 18px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
                             ${[0,1,2,3,4,5,6,7,8,9,10,11].map(m => {
                                 const monthName = new Date(2026, m, 1).toLocaleString('default', { month: 'long' });
@@ -985,22 +982,22 @@
                                     return parseInt(parts[1], 10) === (m + 1);
                                 });
                                 return `
-                                    <div style="border: 1px solid #e2e8f0; border-radius: 14px; padding: 1rem; background: #fafbfc;">
-                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
-                                            <strong style="color: #0f172a; font-size: 0.95rem;">${monthName} 2026</strong>
-                                            <span style="font-size: 0.75rem; font-weight: 800; color: ${mHolidays.length ? '#4f46e5' : '#94a3b8'};">
+                                    <div style="border: 1px solid var(--k-border); border-radius: 14px; padding: 1rem; background: #fafbfc;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid var(--k-border); padding-bottom: 6px;">
+                                            <strong style="color: var(--k-text); font-size: 0.95rem;">${monthName} 2026</strong>
+                                            <span style="font-size: 0.75rem; font-weight: 800; color: ${mHolidays.length ? '#4f46e5' : 'var(--k-muted)'};">
                                                 ${mHolidays.length} holiday${mHolidays.length === 1 ? '' : 's'}
                                             </span>
                                         </div>
                                         <div style="display: flex; flex-direction: column; gap: 6px;">
                                             ${mHolidays.length === 0 ? `
-                                                <div style="font-size: 0.75rem; color: #94a3b8; font-style: italic; padding: 4px 0;">No closures</div>
+                                                <div style="font-size: 0.75rem; color: var(--k-muted); font-style: italic; padding: 4px 0;">No closures</div>
                                             ` : mHolidays.map(h => `
-                                                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; padding: 6px 8px; border-radius: 8px; background: ${h.isOptional ? '#fffbeb' : '#f0fdf4'}; border: 1px solid ${h.isOptional ? '#fef3c7' : '#dcfce7'};">
+                                                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; padding: 6px 8px; border-radius: 8px; background: ${h.isOptional ? 'var(--k-warning-soft)' : 'var(--k-success-soft)'}; border: 1px solid ${h.isOptional ? '#fef3c7' : '#dcfce7'};">
                                                     <div>
-                                                        <strong style="color: #0f172a;">${h.holidayDate.split('-')[2]}</strong>: ${h.holidayName}
+                                                        <strong style="color: var(--k-text);">${h.holidayDate.split('-')[2]}</strong>: ${h.holidayName}
                                                     </div>
-                                                    <span style="font-size: 0.68rem; font-weight: 800; color: ${h.isOptional ? '#b45309' : '#15803d'};">
+                                                    <span style="font-size: 0.68rem; font-weight: 800; color: ${h.isOptional ? 'var(--k-warning-text)' : 'var(--k-success-text)'};">
                                                         ${h.isOptional ? 'FLOATING' : 'MANDATORY'}
                                                     </span>
                                                 </div>
@@ -1093,25 +1090,25 @@
         overlay.style.cssText = "position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); z-index: 99999; display: flex; align-items: center; justify-content: center;";
 
         overlay.innerHTML = `
-            <div style="background: white; border-radius: 20px; width: 440px; padding: 2rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); border: 1px solid #e2e8f0; font-family: inherit;">
-                <h3 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0 0 1rem 0;">Add Annual Holiday</h3>
+            <div style="background: var(--k-surface); border-radius: 20px; width: 440px; padding: 2rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); border: 1px solid var(--k-border); font-family: inherit;">
+                <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--k-text); margin: 0 0 1rem 0;">Add Annual Holiday</h3>
                 <form id="addHolidayInnerForm" style="display: flex; flex-direction: column; gap: 1rem;">
                     <div>
-                        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Calendar Code</label>
-                        <input type="text" id="hInpCalCode" value="${defaultCalendarCode}" required style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-weight: 600; font-size: 0.85rem;" />
+                        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 4px;">Calendar Code</label>
+                        <input type="text" id="hInpCalCode" value="${defaultCalendarCode}" required style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--k-border); font-weight: 600; font-size: 0.85rem;" />
                     </div>
                     <div>
-                        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Holiday Date (YYYY-MM-DD)</label>
-                        <input type="date" id="hInpDate" required style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-weight: 600; font-size: 0.85rem;" />
+                        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 4px;">Holiday Date (YYYY-MM-DD)</label>
+                        <input type="date" id="hInpDate" required style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--k-border); font-weight: 600; font-size: 0.85rem;" />
                     </div>
                     <div>
-                        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Holiday Name</label>
-                        <input type="text" id="hInpName" placeholder="e.g. Gandhi Jayanti" required style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-weight: 600; font-size: 0.85rem;" />
+                        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 4px;">Holiday Name</label>
+                        <input type="text" id="hInpName" placeholder="e.g. Gandhi Jayanti" required style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--k-border); font-weight: 600; font-size: 0.85rem;" />
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                         <div>
-                            <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Type</label>
-                            <select id="hInpType" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-weight: 600; font-size: 0.85rem;">
+                            <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 4px;">Type</label>
+                            <select id="hInpType" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--k-border); font-weight: 600; font-size: 0.85rem;">
                                 <option value="National">National</option>
                                 <option value="Regional">Regional</option>
                                 <option value="Restricted">Restricted</option>
@@ -1119,8 +1116,8 @@
                             </select>
                         </div>
                         <div>
-                            <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Location Code</label>
-                            <input type="text" id="hInpLoc" value="LOC_BLR_01" required style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-weight: 600; font-size: 0.85rem;" />
+                            <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 4px;">Location Code</label>
+                            <input type="text" id="hInpLoc" value="LOC_BLR_01" required style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--k-border); font-weight: 600; font-size: 0.85rem;" />
                         </div>
                     </div>
                     <div style="display: flex; gap: 1.5rem; margin-top: 4px;">
@@ -1132,7 +1129,7 @@
                         </label>
                     </div>
                     <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 1rem;">
-                        <button type="button" id="btnCancelHModal" style="padding: 8px 16px; border-radius: 10px; border: 1px solid #cbd5e1; background: white; font-weight: 700; cursor: pointer;">Cancel</button>
+                        <button type="button" id="btnCancelHModal" style="padding: 8px 16px; border-radius: 10px; border: 1px solid var(--k-border); background: var(--k-surface); font-weight: 700; cursor: pointer;">Cancel</button>
                         <button type="submit" style="padding: 8px 18px; border-radius: 10px; border: none; background: #4f46e5; color: white; font-weight: 700; cursor: pointer;">Save Holiday</button>
                     </div>
                 </form>
@@ -1184,29 +1181,29 @@
         overlay.style.cssText = "position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); z-index: 99999; display: flex; align-items: center; justify-content: center;";
 
         overlay.innerHTML = `
-            <div style="background: white; border-radius: 20px; width: 440px; padding: 2rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); border: 1px solid #e2e8f0; font-family: inherit;">
-                <h3 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0 0 1rem 0;">Create Holiday Calendar</h3>
+            <div style="background: var(--k-surface); border-radius: 20px; width: 440px; padding: 2rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); border: 1px solid var(--k-border); font-family: inherit;">
+                <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--k-text); margin: 0 0 1rem 0;">Create Holiday Calendar</h3>
                 <form id="addCalendarInnerForm" style="display: flex; flex-direction: column; gap: 1rem;">
                     <div>
-                        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Calendar Code</label>
-                        <input type="text" id="cInpCode" placeholder="e.g. HOL_DEL_2026" required style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-weight: 600; font-size: 0.85rem;" />
+                        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 4px;">Calendar Code</label>
+                        <input type="text" id="cInpCode" placeholder="e.g. HOL_DEL_2026" required style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--k-border); font-weight: 600; font-size: 0.85rem;" />
                     </div>
                     <div>
-                        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Calendar Name</label>
-                        <input type="text" id="cInpName" placeholder="e.g. New Delhi NCR Office Calendar 2026" required style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-weight: 600; font-size: 0.85rem;" />
+                        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 4px;">Calendar Name</label>
+                        <input type="text" id="cInpName" placeholder="e.g. New Delhi NCR Office Calendar 2026" required style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--k-border); font-weight: 600; font-size: 0.85rem;" />
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                         <div>
-                            <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Location Code</label>
-                            <input type="text" id="cInpLoc" placeholder="e.g. LOC_DEL_01" required style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-weight: 600; font-size: 0.85rem;" />
+                            <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 4px;">Location Code</label>
+                            <input type="text" id="cInpLoc" placeholder="e.g. LOC_DEL_01" required style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--k-border); font-weight: 600; font-size: 0.85rem;" />
                         </div>
                         <div>
-                            <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Year</label>
-                            <input type="number" id="cInpYear" value="2026" required style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-weight: 600; font-size: 0.85rem;" />
+                            <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 4px;">Year</label>
+                            <input type="number" id="cInpYear" value="2026" required style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--k-border); font-weight: 600; font-size: 0.85rem;" />
                         </div>
                     </div>
                     <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 1rem;">
-                        <button type="button" id="btnCancelCModal" style="padding: 8px 16px; border-radius: 10px; border: 1px solid #cbd5e1; background: white; font-weight: 700; cursor: pointer;">Cancel</button>
+                        <button type="button" id="btnCancelCModal" style="padding: 8px 16px; border-radius: 10px; border: 1px solid var(--k-border); background: var(--k-surface); font-weight: 700; cursor: pointer;">Cancel</button>
                         <button type="submit" style="padding: 8px 18px; border-radius: 10px; border: none; background: #4f46e5; color: white; font-weight: 700; cursor: pointer;">Create Set</button>
                     </div>
                 </form>
@@ -1241,6 +1238,12 @@
     }
 
     return {
+        // Tests only: put the samples into one organisation's ledger.
+        loadSamplesForTesting: (orgId) => {
+            const orgMap = _initLedger(orgId);
+            DEFAULT_SEED_CALENDARS.forEach(cal => { const c = JSON.parse(JSON.stringify(cal)); orgMap.set(c.calendarCode, c); });
+            return orgMap;
+        },
         DEFAULT_SEED_CALENDARS,
         createOrUpdateCalendar,
         getCalendar,

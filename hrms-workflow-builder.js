@@ -387,12 +387,12 @@ function renderCanvas() {
                     <div class="canvas-node-type-label">${node.type}</div>
                     <div class="canvas-node-label" title="${node.label || node.id}">${node.label || node.id}</div>
                 </div>
-                <button class="node-delete-btn" onclick="event.stopPropagation(); deleteNode('${node.id}');" title="Remove Node" style="background:none; border:none; color:#94a3b8; cursor:pointer; font-size:11px; padding:2px;">
+                <button class="node-delete-btn" onclick="event.stopPropagation(); deleteNode('${node.id}');" title="Remove Node" style="background:none; border:none; color:var(--k-muted); cursor:pointer; font-size:11px; padding:2px;">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div class="canvas-node-body">
-                <div style="font-size: 11px; color: #475569; font-weight: 500;">${subtext}</div>
+                <div style="font-size: 11px; color: var(--k-text-2); font-weight: 500;">${subtext}</div>
             </div>
             <div class="node-port node-port-in" title="Incoming Connection" data-port="in" data-node-id="${node.id}"></div>
             <div class="node-port node-port-out" title="Connect to next step" data-port="out" data-node-id="${node.id}"></div>
@@ -648,8 +648,8 @@ function renderInspectorFieldsForType(node) {
     if (node.type === 'trigger') {
         return `
             <div class="form-group" style="margin-bottom:12px;">
-                <label class="form-label" style="font-size:11px; font-weight:700; color:#334155; margin-bottom:4px; display:block;">Event Trigger</label>
-                <select class="form-control" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;" onchange="updateNodeConfig('event', this.value)">
+                <label class="form-label" style="font-size:11px; font-weight:700; color:var(--k-text-2); margin-bottom:4px; display:block;">Event Trigger</label>
+                <select class="form-control" style="width:100%; padding:8px; border:1px solid var(--k-border); border-radius:6px; font-size:12px;" onchange="updateNodeConfig('event', this.value)">
                     <option value="candidate_hired" ${cfg.event === 'candidate_hired' ? 'selected' : ''}>Candidate Hired (Onboarding)</option>
                     <option value="leave_applied" ${cfg.event === 'leave_applied' ? 'selected' : ''}>Leave Applied</option>
                     <option value="resignation_submitted" ${cfg.event === 'resignation_submitted' ? 'selected' : ''}>Resignation Submitted (Exit)</option>
@@ -660,8 +660,8 @@ function renderInspectorFieldsForType(node) {
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label" style="font-size:11px; font-weight:700; color:#334155; margin-bottom:4px; display:block;">Source HR Module</label>
-                <input type="text" class="form-control" value="${cfg.entity || 'workforce'}" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;" onchange="updateNodeConfig('entity', this.value)" />
+                <label class="form-label" style="font-size:11px; font-weight:700; color:var(--k-text-2); margin-bottom:4px; display:block;">Source HR Module</label>
+                <input type="text" class="form-control" value="${cfg.entity || 'workforce'}" style="width:100%; padding:8px; border:1px solid var(--k-border); border-radius:6px; font-size:12px;" onchange="updateNodeConfig('entity', this.value)" />
             </div>
         `;
     }
@@ -669,13 +669,13 @@ function renderInspectorFieldsForType(node) {
     if (node.type === 'condition') {
         return `
             <div class="form-group" style="margin-bottom:12px;">
-                <label class="form-label" style="font-size:11px; font-weight:700; color:#334155; margin-bottom:4px; display:block;">Evaluated Field</label>
-                <input type="text" class="form-control" value="${cfg.field || 'department'}" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;" onchange="updateNodeConfig('field', this.value)" placeholder="e.g. department, daysCount, salary" />
+                <label class="form-label" style="font-size:11px; font-weight:700; color:var(--k-text-2); margin-bottom:4px; display:block;">Evaluated Field</label>
+                <input type="text" class="form-control" value="${cfg.field || 'department'}" style="width:100%; padding:8px; border:1px solid var(--k-border); border-radius:6px; font-size:12px;" onchange="updateNodeConfig('field', this.value)" placeholder="e.g. department, daysCount, salary" />
             </div>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:12px;">
                 <div>
-                    <label class="form-label" style="font-size:11px; font-weight:700; color:#334155; margin-bottom:4px; display:block;">Operator</label>
-                    <select class="form-control" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;" onchange="updateNodeConfig('operator', this.value)">
+                    <label class="form-label" style="font-size:11px; font-weight:700; color:var(--k-text-2); margin-bottom:4px; display:block;">Operator</label>
+                    <select class="form-control" style="width:100%; padding:8px; border:1px solid var(--k-border); border-radius:6px; font-size:12px;" onchange="updateNodeConfig('operator', this.value)">
                         <option value="==" ${cfg.operator === '==' ? 'selected' : ''}>Equals (==)</option>
                         <option value="!=" ${cfg.operator === '!=' ? 'selected' : ''}>Not Equals (!=)</option>
                         <option value=">" ${cfg.operator === '>' ? 'selected' : ''}>Greater Than (&gt;)</option>
@@ -684,8 +684,8 @@ function renderInspectorFieldsForType(node) {
                     </select>
                 </div>
                 <div>
-                    <label class="form-label" style="font-size:11px; font-weight:700; color:#334155; margin-bottom:4px; display:block;">Value</label>
-                    <input type="text" class="form-control" value="${cfg.value || ''}" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;" onchange="updateNodeConfig('value', this.value)" placeholder="Value" />
+                    <label class="form-label" style="font-size:11px; font-weight:700; color:var(--k-text-2); margin-bottom:4px; display:block;">Value</label>
+                    <input type="text" class="form-control" value="${cfg.value || ''}" style="width:100%; padding:8px; border:1px solid var(--k-border); border-radius:6px; font-size:12px;" onchange="updateNodeConfig('value', this.value)" placeholder="Value" />
                 </div>
             </div>
         `;
@@ -694,8 +694,8 @@ function renderInspectorFieldsForType(node) {
     if (node.type === 'approval') {
         return `
             <div class="form-group" style="margin-bottom:12px;">
-                <label class="form-label" style="font-size:11px; font-weight:700; color:#334155; margin-bottom:4px; display:block;">Assignee Role</label>
-                <select class="form-control" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;" onchange="updateNodeConfig('assigneeRole', this.value)">
+                <label class="form-label" style="font-size:11px; font-weight:700; color:var(--k-text-2); margin-bottom:4px; display:block;">Assignee Role</label>
+                <select class="form-control" style="width:100%; padding:8px; border:1px solid var(--k-border); border-radius:6px; font-size:12px;" onchange="updateNodeConfig('assigneeRole', this.value)">
                     <option value="manager" ${cfg.assigneeRole === 'manager' ? 'selected' : ''}>Reporting Line Manager</option>
                     <option value="hr_admin" ${cfg.assigneeRole === 'hr_admin' ? 'selected' : ''}>HR Operations Admin</option>
                     <option value="department_head" ${cfg.assigneeRole === 'department_head' ? 'selected' : ''}>Department Head</option>
@@ -703,12 +703,12 @@ function renderInspectorFieldsForType(node) {
                 </select>
             </div>
             <div class="form-group" style="margin-bottom:12px;">
-                <label class="form-label" style="font-size:11px; font-weight:700; color:#334155; margin-bottom:4px; display:block;">SLA Deadline (Hours)</label>
-                <input type="number" class="form-control" value="${cfg.dueHours || 24}" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;" onchange="updateNodeConfig('dueHours', parseInt(this.value) || 24)" />
+                <label class="form-label" style="font-size:11px; font-weight:700; color:var(--k-text-2); margin-bottom:4px; display:block;">SLA Deadline (Hours)</label>
+                <input type="number" class="form-control" value="${cfg.dueHours || 24}" style="width:100%; padding:8px; border:1px solid var(--k-border); border-radius:6px; font-size:12px;" onchange="updateNodeConfig('dueHours', parseInt(this.value) || 24)" />
             </div>
             <div class="form-group">
-                <label class="form-label" style="font-size:11px; font-weight:700; color:#334155; margin-bottom:4px; display:block;">Auto-Escalation Target</label>
-                <select class="form-control" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;" onchange="updateNodeConfig('onSlaBreach', this.value)">
+                <label class="form-label" style="font-size:11px; font-weight:700; color:var(--k-text-2); margin-bottom:4px; display:block;">Auto-Escalation Target</label>
+                <select class="form-control" style="width:100%; padding:8px; border:1px solid var(--k-border); border-radius:6px; font-size:12px;" onchange="updateNodeConfig('onSlaBreach', this.value)">
                     <option value="escalate_hr_director">Escalate to Head of HR</option>
                     <option value="auto_approve">Auto-Approve after SLA</option>
                     <option value="alert_reminder">Send Urgent Reminder Notification</option>
@@ -720,8 +720,8 @@ function renderInspectorFieldsForType(node) {
     if (node.type === 'document') {
         return `
             <div class="form-group" style="margin-bottom:12px;">
-                <label class="form-label" style="font-size:11px; font-weight:700; color:#334155; margin-bottom:4px; display:block;">Document Template</label>
-                <select class="form-control" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;" onchange="updateNodeConfig('templateKey', this.value)">
+                <label class="form-label" style="font-size:11px; font-weight:700; color:var(--k-text-2); margin-bottom:4px; display:block;">Document Template</label>
+                <select class="form-control" style="width:100%; padding:8px; border:1px solid var(--k-border); border-radius:6px; font-size:12px;" onchange="updateNodeConfig('templateKey', this.value)">
                     <option value="offer_letter" ${cfg.templateKey === 'offer_letter' ? 'selected' : ''}>Official Employment Offer Letter</option>
                     <option value="relieving_letter" ${cfg.templateKey === 'relieving_letter' ? 'selected' : ''}>Relieving & Experience Certificate</option>
                     <option value="nda_agreement" ${cfg.templateKey === 'nda_agreement' ? 'selected' : ''}>Non-Disclosure & IP Agreement (NDA)</option>
@@ -730,8 +730,8 @@ function renderInspectorFieldsForType(node) {
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label" style="font-size:11px; font-weight:700; color:#334155; margin-bottom:4px; display:block;">Auto Signature</label>
-                <div style="font-size:11.5px; color:#475569; display:flex; align-items:center; gap:8px;">
+                <label class="form-label" style="font-size:11px; font-weight:700; color:var(--k-text-2); margin-bottom:4px; display:block;">Auto Signature</label>
+                <div style="font-size:11.5px; color:var(--k-text-2); display:flex; align-items:center; gap:8px;">
                     <input type="checkbox" checked disabled /> Head of People & Culture Digital Stamp
                 </div>
             </div>
@@ -741,8 +741,8 @@ function renderInspectorFieldsForType(node) {
     if (node.type === 'notification') {
         return `
             <div class="form-group" style="margin-bottom:12px;">
-                <label class="form-label" style="font-size:11px; font-weight:700; color:#334155; margin-bottom:4px; display:block;">Delivery Channel</label>
-                <select class="form-control" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;" onchange="updateNodeConfig('channel', this.value)">
+                <label class="form-label" style="font-size:11px; font-weight:700; color:var(--k-text-2); margin-bottom:4px; display:block;">Delivery Channel</label>
+                <select class="form-control" style="width:100%; padding:8px; border:1px solid var(--k-border); border-radius:6px; font-size:12px;" onchange="updateNodeConfig('channel', this.value)">
                     <option value="in_app" ${cfg.channel === 'in_app' ? 'selected' : ''}>In-App Notification</option>
                     <option value="email" ${cfg.channel === 'email' ? 'selected' : ''}>Email Dispatch (Direct)</option>
                     <option value="both" ${cfg.channel === 'both' ? 'selected' : ''}>In-App + Email Combo</option>
@@ -750,8 +750,8 @@ function renderInspectorFieldsForType(node) {
                 </select>
             </div>
             <div class="form-group" style="margin-bottom:12px;">
-                <label class="form-label" style="font-size:11px; font-weight:700; color:#334155; margin-bottom:4px; display:block;">Recipient</label>
-                <select class="form-control" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;" onchange="updateNodeConfig('recipient', this.value)">
+                <label class="form-label" style="font-size:11px; font-weight:700; color:var(--k-text-2); margin-bottom:4px; display:block;">Recipient</label>
+                <select class="form-control" style="width:100%; padding:8px; border:1px solid var(--k-border); border-radius:6px; font-size:12px;" onchange="updateNodeConfig('recipient', this.value)">
                     <option value="employee" ${cfg.recipient === 'employee' ? 'selected' : ''}>Employee / Candidate</option>
                     <option value="manager" ${cfg.recipient === 'manager' ? 'selected' : ''}>Reporting Manager</option>
                     <option value="hr_team" ${cfg.recipient === 'hr_team' ? 'selected' : ''}>HR Operations Team</option>
@@ -759,8 +759,8 @@ function renderInspectorFieldsForType(node) {
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label" style="font-size:11px; font-weight:700; color:#334155; margin-bottom:4px; display:block;">Notification Template</label>
-                <textarea class="form-control" rows="3" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px; font-family:inherit;" onchange="updateNodeConfig('template', this.value)">${cfg.template || 'Hello {employee.name}, your request has been updated.'}</textarea>
+                <label class="form-label" style="font-size:11px; font-weight:700; color:var(--k-text-2); margin-bottom:4px; display:block;">Notification Template</label>
+                <textarea class="form-control" rows="3" style="width:100%; padding:8px; border:1px solid var(--k-border); border-radius:6px; font-size:12px; font-family:inherit;" onchange="updateNodeConfig('template', this.value)">${cfg.template || 'Hello {employee.name}, your request has been updated.'}</textarea>
                 <div style="margin-top:6px; display:flex; gap:4px; flex-wrap:wrap;">
                     <span class="token-chip" onclick="insertToken('{employee.name}')">{name}</span>
                     <span class="token-chip" onclick="insertToken('{department}')">{dept}</span>
@@ -772,8 +772,8 @@ function renderInspectorFieldsForType(node) {
 
     return `
         <div class="form-group">
-            <label class="form-label" style="font-size:11px; font-weight:700; color:#334155; margin-bottom:4px; display:block;">Execution Payload Description</label>
-            <input type="text" class="form-control" value="${cfg.description || ''}" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;" onchange="updateNodeConfig('description', this.value)" placeholder="Action notes..." />
+            <label class="form-label" style="font-size:11px; font-weight:700; color:var(--k-text-2); margin-bottom:4px; display:block;">Execution Payload Description</label>
+            <input type="text" class="form-control" value="${cfg.description || ''}" style="width:100%; padding:8px; border:1px solid var(--k-border); border-radius:6px; font-size:12px;" onchange="updateNodeConfig('description', this.value)" placeholder="Action notes..." />
         </div>
     `;
 }
@@ -976,18 +976,18 @@ function loadExecutionLogs() {
         <div class="log-item">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
                 <span class="item-badge success">STAGE 8 SUCCESS</span>
-                <span style="color:#64748b; font-size:10.5px;">Just now</span>
+                <span style="color:var(--k-muted); font-size:10.5px;">Just now</span>
             </div>
-            <div style="font-weight:600; color:#0f172a;">Pipeline run for John Doe (Engineering)</div>
-            <div style="font-size:11px; color:#475569; margin-top:2px;">Offer Letter generated & dispatched to email.</div>
+            <div style="font-weight:600; color:var(--k-text);">Pipeline run for John Doe (Engineering)</div>
+            <div style="font-size:11px; color:var(--k-text-2); margin-top:2px;">Offer Letter generated & dispatched to email.</div>
         </div>
         <div class="log-item">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
                 <span class="item-badge info">SLA COMPLIANT</span>
-                <span style="color:#64748b; font-size:10.5px;">24m ago</span>
+                <span style="color:var(--k-muted); font-size:10.5px;">24m ago</span>
             </div>
-            <div style="font-weight:600; color:#0f172a;">Leave Request Auto-Approved (2 Days)</div>
-            <div style="font-size:11px; color:#475569; margin-top:2px;">Calendar updated and team notified.</div>
+            <div style="font-weight:600; color:var(--k-text);">Leave Request Auto-Approved (2 Days)</div>
+            <div style="font-size:11px; color:var(--k-text-2); margin-top:2px;">Calendar updated and team notified.</div>
         </div>
     `;
 }
@@ -999,21 +999,21 @@ function loadAuditTrail() {
         const raw = localStorage.getItem(STORAGE_LOGS_KEY);
         const logs = raw ? JSON.parse(raw) : [];
         if (logs.length === 0) {
-            list.innerHTML = '<div style="padding:15px; color:#64748b; text-align:center; font-size:11.5px;">No audit events yet. Changes are recorded immutably.</div>';
+            list.innerHTML = '<div style="padding:15px; color:var(--k-muted); text-align:center; font-size:11.5px;">No audit events yet. Changes are recorded immutably.</div>';
             return;
         }
         list.innerHTML = logs.map(l => `
             <div class="audit-item">
                 <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
                     <span class="item-badge info">STAGE 8 AUDIT</span>
-                    <span style="color:#64748b; font-size:10px;">${l.timestamp}</span>
+                    <span style="color:var(--k-muted); font-size:10px;">${l.timestamp}</span>
                 </div>
-                <div style="font-weight:600; color:#0f172a; font-size:11.5px;">${l.action}</div>
-                <div style="color:#64748b; font-size:10.5px; margin-top:2px;">Actor: ${l.actor} | Flow: ${l.workflow}</div>
+                <div style="font-weight:600; color:var(--k-text); font-size:11.5px;">${l.action}</div>
+                <div style="color:var(--k-muted); font-size:10.5px; margin-top:2px;">Actor: ${l.actor} | Flow: ${l.workflow}</div>
             </div>
         `).join('');
     } catch (e) {
-        list.innerHTML = '<div style="padding:10px; color:#64748b;">Audit logs active.</div>';
+        list.innerHTML = '<div style="padding:10px; color:var(--k-muted);">Audit logs active.</div>';
     }
 }
 
@@ -1112,11 +1112,11 @@ window.runTestSimulation = function() {
 
     const nodes = state.currentWorkflow.canvas.nodes || [];
     outputList.innerHTML = nodes.map((n, i) => `
-        <div class="trace-step" style="display:flex; gap:10px; margin-bottom:10px; padding:8px; background:#f8fafc; border-radius:6px; border-left:3px solid ${NODE_COLORS[n.type] || '#2563eb'};">
-            <div style="font-weight:700; color:#2563eb; font-size:12px;">Step ${i + 1}</div>
+        <div class="trace-step" style="display:flex; gap:10px; margin-bottom:10px; padding:8px; background:var(--k-subtle); border-radius:6px; border-left:3px solid ${NODE_COLORS[n.type] || 'var(--k-accent)'};">
+            <div style="font-weight:700; color:var(--k-accent-text); font-size:12px;">Step ${i + 1}</div>
             <div>
-                <div style="font-weight:600; color:#0f172a; font-size:12px;">${n.label} (${n.type})</div>
-                <div style="font-size:11px; color:#10b981;"><i class="fas fa-check-circle"></i> Evaluated simulated payload & passes SLA.</div>
+                <div style="font-weight:600; color:var(--k-text); font-size:12px;">${n.label} (${n.type})</div>
+                <div style="font-size:11px; color:var(--k-success-text);"><i class="fas fa-check-circle"></i> Evaluated simulated payload & passes SLA.</div>
             </div>
         </div>
     `).join('');

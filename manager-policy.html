@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="kylrx-theme-init.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Policy Center | HRFlow</title>
@@ -54,7 +55,7 @@
         }
         .modal-overlay.active { display: flex; }
         .status-modal {
-            background: white; padding: 2rem; border-radius: 32px;
+            background: var(--k-surface); padding: 2rem; border-radius: 32px;
             width: 90%; max-width: 400px; text-align: center;
             box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
             border: 1px solid var(--border); transform: scale(0.9);
@@ -66,8 +67,8 @@
             display: flex; align-items: center; justify-content: center;
             margin: 0 auto 1.5rem; font-size: 1.5rem;
         }
-        .modal-icon.success { background: #dcfce7; color: #10b981; }
-        .modal-icon.info { background: #dbeafe; color: #3b82f6; }
+        .modal-icon.success { background: var(--k-success-soft); color: var(--k-success-text); }
+        .modal-icon.info { background: var(--k-accent-soft); color: var(--k-accent-text); }
         
         .modal-title { font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; }
         .modal-desc { color: var(--text-muted); font-size: 0.875rem; margin-bottom: 2rem; line-height: 1.6; }
@@ -78,7 +79,7 @@
     
         .layout { display: grid; grid-template-columns: var(--sidebar-width, 280px) 1fr; height: 100vh; overflow: hidden; }
         .sidebar {
-            background: white;
+            background: var(--k-surface);
             border-right: 1px solid var(--border);
             padding: 1rem 0.75rem;
             display: flex;
@@ -112,7 +113,7 @@
             border: 1px solid var(--border);
             box-shadow: 0 8px 12px -3px rgba(0, 0, 0, 0.03);
         }
-        .dept-name { font-weight: 800; font-size: 1rem; margin-bottom: 2px; letter-spacing: -0.4px; color: var(--text-main, #0f172a); word-wrap: break-word; overflow-wrap: break-word; hyphens: auto; }
+        .dept-name { font-weight: 800; font-size: 1rem; margin-bottom: 2px; letter-spacing: -0.4px; color: var(--text-main, var(--k-text)); word-wrap: break-word; overflow-wrap: break-word; hyphens: auto; }
         .dept-code { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.2px; opacity: 0.7; }
 
         .nav-label { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.12em; margin: 0.5rem 0 0.25rem 0.5rem; opacity: 0.6; }
@@ -153,10 +154,14 @@
         }
         .avatar { width: 30px; height: 30px; border-radius: 8px; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.8rem; color: white; flex-shrink: 0; }
         .profile-info { flex: 1; min-width: 0; }
-        .profile-name { font-size: 0.8rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main, #0f172a); }
+        .profile-name { font-size: 0.8rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main, var(--k-text)); }
         .profile-role { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     </style>
     <link rel="stylesheet" href="sidebar-lock.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="kylrx-theme.css">
 </head>
 <body>
 
@@ -192,7 +197,7 @@
             <!-- Brand Header matching Admin Console -->
             <a href="manager-dashboard.html" class="logo" id="brandLogoLink">
                 <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
-                <span class="logo-text">Kylrx <span style="color: var(--primary, #2563eb);">AI</span></span>
+                <span class="logo-text">Kylrx <span style="color: var(--primary, var(--k-accent-text));">AI</span></span>
             </a>
 
             <!-- Top Department Card (Zero-Collision Flex Layout) -->
@@ -229,7 +234,7 @@
 
                 <div class="nav-label" style="display: flex; justify-content: space-between; align-items: center;">
                     <span>CUSTOM APPS</span>
-                    <button onclick="if(typeof openAppRegistryModal !== 'undefined') { openAppRegistryModal(); } else { window.location.href=new URLSearchParams(window.location.search).get('id') ? `manager-dashboard.html?id=${new URLSearchParams(window.location.search).get('id')}` : 'manager-dashboard.html'; }" style="background: none; border: none; color: var(--primary, #2563eb); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
+                    <button onclick="if(typeof openAppRegistryModal !== 'undefined') { openAppRegistryModal(); } else { window.location.href=new URLSearchParams(window.location.search).get('id') ? `manager-dashboard.html?id=${new URLSearchParams(window.location.search).get('id')}` : 'manager-dashboard.html'; }" style="background: none; border: none; color: var(--primary, var(--k-accent-text)); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
                         <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
                     </button>
                 </div>
@@ -255,9 +260,9 @@
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="#" class="nav-link" id="logoutBtn" onclick="logout()" style="color: var(--danger, #ef4444) !important;">
-                        <i data-lucide="log-out" style="color: var(--danger, #ef4444) !important;"></i>
-                        <span style="color: var(--danger, #ef4444) !important;">Logout</span>
+                    <a href="#" class="nav-link" id="logoutBtn" onclick="logout()" style="color: var(--danger, var(--k-danger-text)) !important;">
+                        <i data-lucide="log-out" style="color: var(--danger, var(--k-danger-text)) !important;"></i>
+                        <span style="color: var(--danger, var(--k-danger-text)) !important;">Logout</span>
                     </a>
                 </div>
                 <div class="profile-mini" style="margin-top: 6px;">
@@ -277,7 +282,7 @@
 
                 <h1 style="font-size: 2.25rem; font-weight: 800; margin-top: 1rem; letter-spacing: -1px;">Policy Center</h1>
             </div>
-            <div style="font-size: 0.8rem; font-weight: 800; color: var(--text-muted); background: white; padding: 6px 16px; border-radius: 100px; border: 1px solid var(--border);">v2.4 • MAY 2026</div>
+            <div style="font-size: 0.8rem; font-weight: 800; color: var(--text-muted); background: var(--k-surface); padding: 6px 16px; border-radius: 100px; border: 1px solid var(--border);">v2.4 • MAY 2026</div>
         </header>
 
         <div class="policy-layout">

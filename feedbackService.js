@@ -115,7 +115,7 @@ class FeedbackServiceClass {
             .kylrx-toast-close {
                 background: none;
                 border: none;
-                color: #94a3b8;
+                color: var(--k-muted);
                 cursor: pointer;
                 padding: 2px 4px;
                 font-size: 1rem;
@@ -179,9 +179,9 @@ class FeedbackServiceClass {
                 align-items: center;
                 gap: 14px;
                 padding: 12px 16px;
-                background: #ffffff;
+                background: var(--k-surface);
                 border-radius: 10px;
-                border: 1px solid #f1f5f9;
+                border: 1px solid var(--k-border);
             }
 
             .kylrx-skeleton-cell {
@@ -197,8 +197,8 @@ class FeedbackServiceClass {
             }
 
             .kylrx-skeleton-card {
-                background: #ffffff;
-                border: 1px solid #e2e8f0;
+                background: var(--k-surface);
+                border: 1px solid var(--k-border);
                 border-radius: 16px;
                 padding: 20px;
                 display: flex;
@@ -208,7 +208,7 @@ class FeedbackServiceClass {
 
             /* Inline Field Validation Error */
             .kylrx-field-error-msg {
-                color: #ef4444;
+                color: var(--k-danger-text);
                 font-size: 0.74rem;
                 font-weight: 700;
                 margin-top: 4px;
@@ -425,7 +425,7 @@ class FeedbackServiceClass {
             skeletonHTML = `
                 <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; width: 100%;" aria-busy="true">
                     ${Array.from({ length: count }).map(() => `
-                        <div style="background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.25rem; display: flex; justify-content: space-between; align-items: center;">
+                        <div style="background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 14px; padding: 1.25rem; display: flex; justify-content: space-between; align-items: center;">
                             <div style="width: 60%; display: flex; flex-direction: column; gap: 8px;">
                                 <div class="kylrx-skeleton-shimmer" style="width: 80%; height: 12px;"></div>
                                 <div class="kylrx-skeleton-shimmer" style="width: 50%; height: 28px;"></div>

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="kylrx-theme-init.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Kylrx AI Employee Portal. Access your employee dashboard, log shift hours, request leave, review pay documents, and connect with HR support.">
@@ -142,12 +143,12 @@
         .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; position: relative; }
         .header-right { display: flex; align-items: center; gap: 1.5rem; }
         .header-actions { display: flex; gap: 0.75rem; }
-        .icon-btn { width: 44px; height: 44px; border-radius: 14px; background: white; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-muted); cursor: pointer; transition: 0.3s; position: relative; }
+        .icon-btn { width: 44px; height: 44px; border-radius: 14px; background: var(--k-surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-muted); cursor: pointer; transition: 0.3s; position: relative; }
         .icon-btn:hover { background: var(--bg); color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .icon-badge { position: absolute; top: -4px; right: -4px; width: 18px; height: 18px; background: #ef4444; color: white; border-radius: 50%; font-size: 0.7rem; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 2px solid white; }
+        .icon-badge { position: absolute; top: -4px; right: -4px; width: 18px; height: 18px; background: var(--k-danger); color: white; border-radius: 50%; font-size: 0.7rem; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 2px solid white; }
 
         /* Notification Dropdown */
-        .notif-dropdown { position: absolute; top: 100%; right: 0; width: 100%; max-width: 320px; background: white; border-radius: 24px; border: 1px solid var(--border); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); display: none; flex-direction: column; z-index: 100; margin-top: 12px; animation: dropdownFade 0.3s ease; }
+        .notif-dropdown { position: absolute; top: 100%; right: 0; width: 100%; max-width: 320px; background: var(--k-surface); border-radius: 24px; border: 1px solid var(--border); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); display: none; flex-direction: column; z-index: 100; margin-top: 12px; animation: dropdownFade 0.3s ease; }
         .notif-dropdown.active { display: flex; }
         .notif-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
         .notif-title { font-size: 0.875rem; font-weight: 800; color: var(--text-main); }
@@ -236,7 +237,7 @@
         /* Task List */
         .task-item { display: flex; align-items: center; gap: 16px; padding: 1rem; background: var(--bg); border-radius: 14px; margin-bottom: 12px; border: 1px solid var(--border); cursor: pointer; transition: 0.2s; }
         .task-item:hover { border-color: var(--primary); transform: translateX(4px); }
-        .task-icon { width: 40px; height: 40px; border-radius: 10px; background: white; color: var(--primary); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow); }
+        .task-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--k-surface); color: var(--primary); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow); }
         .task-content { flex: 1; }
         .task-name { font-size: 0.875rem; font-weight: 700; margin-bottom: 2px; }
         .task-meta { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; }
@@ -245,7 +246,7 @@
         /* Quick Actions */
         .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .action-card {
-            background: white;
+            background: var(--k-surface);
             border: 1px solid var(--border);
             padding: 1.5rem;
             border-radius: 16px;
@@ -259,7 +260,7 @@
         .action-icon { width: 48px; height: 48px; background: var(--bg); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: var(--primary); }
         .action-card h3 { font-size: 0.875rem; font-weight: 700; }
 
-        .badge { background: #fee2e2; color: #ef4444; padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; }
+        .badge { background: var(--k-danger-soft); color: var(--k-danger-text); padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; }
 
         /* Centered Status Modal */
         .modal-overlay-status {
@@ -270,7 +271,7 @@
         }
         .modal-overlay-status.active { display: flex; }
         .status-modal {
-            background: white; padding: 2rem; border-radius: 32px;
+            background: var(--k-surface); padding: 2rem; border-radius: 32px;
             width: 90%; max-width: 400px; text-align: center;
             box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
             border: 1px solid var(--border); transform: scale(0.9);
@@ -282,8 +283,8 @@
             display: flex; align-items: center; justify-content: center;
             margin: 0 auto 1.5rem; font-size: 1.5rem;
         }
-        .modal-icon-status.error { background: #fee2e2; color: #ef4444; }
-        .modal-icon-status.success { background: #dcfce7; color: #10b981; }
+        .modal-icon-status.error { background: var(--k-danger-soft); color: var(--k-danger-text); }
+        .modal-icon-status.success { background: var(--k-success-soft); color: var(--k-success-text); }
         .modal-icon-status.info { background: #fce7f3; color: #ec4899; }
         
         .modal-title { font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; }
@@ -353,14 +354,18 @@
         }
     </style>
     <link rel="stylesheet" href="sidebar-lock.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="kylrx-theme.css">
 </head>
 <body>
     <!-- Onboarding Flow Modal Overlay -->
     <div id="onboardingModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-        <div style="background: white; width: 90%; max-width: 1200px; height: 85vh; border-radius: 24px; display: grid; grid-template-columns: 2fr 1fr; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
+        <div style="background: var(--k-surface); width: 90%; max-width: 1200px; height: 85vh; border-radius: 24px; display: grid; grid-template-columns: 2fr 1fr; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
             
             <!-- Document View Area -->
-            <div style="background: #f8fafc; padding: 2rem; display: flex; flex-direction: column; border-right: 1px solid var(--border); height: 100%; max-height: 100%; overflow: hidden;">
+            <div style="background: var(--k-subtle); padding: 2rem; display: flex; flex-direction: column; border-right: 1px solid var(--border); height: 100%; max-height: 100%; overflow: hidden;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                     <div>
                         <h2 style="font-size: 1.5rem; font-weight: 800;">Welcome to HRFlow</h2>
@@ -368,7 +373,7 @@
                     </div>
                 </div>
                 
-                <div style="flex: 1; background: white; border: 1px solid var(--border); border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem;">
+                <div style="flex: 1; background: var(--k-surface); border: 1px solid var(--border); border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem;">
                     <i data-lucide="file-text" style="width: 64px; height: 64px; color: var(--primary); margin-bottom: 1rem;"></i>
                     <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;" id="obDocTitle">Employee_Handbook_2026.pdf</h3>
                     <p style="color: var(--text-muted); max-width: 400px; font-size: 0.875rem; margin-bottom: 2rem;">Please review the company policies, benefits, and IT compliance guidelines thoroughly. Acknowledge once completed.</p>
@@ -377,7 +382,7 @@
             </div>
 
             <!-- Chat Request Area -->
-            <div style="background: white; display: flex; flex-direction: column; position: relative; height: 100%; max-height: 100%; overflow: hidden;">
+            <div style="background: var(--k-surface); display: flex; flex-direction: column; position: relative; height: 100%; max-height: 100%; overflow: hidden;">
                 <div style="padding: 1.5rem; border-bottom: 1px solid var(--border); background: var(--primary-light);">
                     <h3 style="font-size: 1.125rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 8px;">
                         <i data-lucide="message-square"></i> Support Chat
@@ -386,7 +391,7 @@
                 </div>
                 
                 <div style="flex: 1; padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; scroll-behavior: smooth;" id="chatAreaOb" onscroll="window.handleChatScrollOb && window.handleChatScrollOb()">
-                    <div style="align-self: flex-start; background: #f8fafc; padding: 12px 16px; border-radius: 16px; border-bottom-left-radius: 4px; font-size: 0.875rem; border: 1px solid var(--border); max-width: 85%;">
+                    <div style="align-self: flex-start; background: var(--k-subtle); padding: 12px 16px; border-radius: 16px; border-bottom-left-radius: 4px; font-size: 0.875rem; border: 1px solid var(--border); max-width: 85%;">
                         <div style="font-size: 0.75rem; font-weight: 700; color: var(--primary); margin-bottom: 4px; display: flex; align-items: center; gap: 4px;"><i data-lucide="bot" size="12"></i> AI Assistant</div>
                         Hello! Welcome aboard. I'm here to help answer any questions you have about the onboarding document. Would you like to connect with a human HR rep?
                     </div>
@@ -399,9 +404,9 @@
                     <i data-lucide="arrow-down" size="18"></i>
                 </button>
 
-                <div style="padding: 1rem 1.5rem; border-top: 1px solid var(--border); background: white;">
+                <div style="padding: 1rem 1.5rem; border-top: 1px solid var(--border); background: var(--k-surface);">
                     <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-                        <button style="flex: 1; background: #ecfdf5; color: #10b981; border: 1px solid #a7f3d0; padding: 6px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer;" onclick="document.getElementById('chatInputOb').value = 'What is the leave policy?'; sendObChat();">Ask AI</button>
+                        <button style="flex: 1; background: var(--k-success-soft); color: var(--k-success-text); border: 1px solid var(--k-success-border); padding: 6px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer;" onclick="document.getElementById('chatInputOb').value = 'What is the leave policy?'; sendObChat();">Ask AI</button>
                         <button style="flex: 1; background: #fdf2f8; color: #ec4899; border: 1px solid #fbcfe8; padding: 6px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer;" onclick="document.getElementById('chatInputOb').value = 'Connect to HR please.'; sendObChat();">Request HR</button>
                     </div>
                     <div style="display: flex; gap: 8px;">
@@ -416,11 +421,11 @@
 
     <!-- HR Message Hub Modal (Dual Pane Refactor) -->
     <div id="hrMessageModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(8px);">
-        <div style="background: white; width: 95%; max-width: 900px; height: 650px; border-radius: 32px; display: flex; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid var(--border); animation: modalFadeIn 0.3s ease;">
+        <div style="background: var(--k-surface); width: 95%; max-width: 900px; height: 650px; border-radius: 32px; display: flex; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid var(--border); animation: modalFadeIn 0.3s ease;">
             
             <!-- Left Pane: Communication Channels -->
-            <div style="width: 280px; background: #f8fafc; border-right: 1px solid var(--border); display: flex; flex-direction: column;">
-                <div style="padding: 1.5rem; border-bottom: 1px solid var(--border); background: white;">
+            <div style="width: 280px; background: var(--k-subtle); border-right: 1px solid var(--border); display: flex; flex-direction: column;">
+                <div style="padding: 1.5rem; border-bottom: 1px solid var(--border); background: var(--k-surface);">
                     <h2 style="font-size: 1.125rem; font-weight: 800; color: var(--text-main);">Messages</h2>
                     <p style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Organizational Sync</p>
                 </div>
@@ -435,7 +440,7 @@
                     </div>
                     
                     <div class="msg-channel" onclick="switchChat('manager', this)" style="padding: 12px; border-radius: 16px; transition: 0.2s; cursor: pointer; display: flex; gap: 12px; align-items: center;">
-                        <div class="channel-icon" style="width: 40px; height: 40px; border-radius: 12px; background: #fee2e2; color: #ef4444; display: flex; align-items: center; justify-content: center;"><i data-lucide="user" size="20"></i></div>
+                        <div class="channel-icon" style="width: 40px; height: 40px; border-radius: 12px; background: var(--k-danger-soft); color: var(--k-danger-text); display: flex; align-items: center; justify-content: center;"><i data-lucide="user" size="20"></i></div>
                         <div>
                             <div style="font-size: 0.875rem; font-weight: 800; color: var(--text-main);">My Manager</div>
                             <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600;">Your manager</div>
@@ -443,7 +448,7 @@
                     </div>
 
                     <div class="msg-channel" onclick="switchChat('team', this)" style="padding: 12px; border-radius: 16px; transition: 0.2s; cursor: pointer; display: flex; gap: 12px; align-items: center;">
-                        <div class="channel-icon" style="width: 40px; height: 40px; border-radius: 12px; background: #dcfce7; color: #10b981; display: flex; align-items: center; justify-content: center;"><i data-lucide="users" size="20"></i></div>
+                        <div class="channel-icon" style="width: 40px; height: 40px; border-radius: 12px; background: var(--k-success-soft); color: var(--k-success-text); display: flex; align-items: center; justify-content: center;"><i data-lucide="users" size="20"></i></div>
                         <div>
                             <div style="font-size: 0.875rem; font-weight: 800; color: var(--text-main);">Team Group</div>
                             <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600;" id="deptLabelMsg">General</div>
@@ -458,7 +463,7 @@
             </div>
 
             <!-- Right Pane: Active Messaging Suite -->
-            <div style="flex: 1; display: flex; flex-direction: column; background: white; position: relative;">
+            <div style="flex: 1; display: flex; flex-direction: column; background: var(--k-surface); position: relative;">
                 <!-- Header -->
                 <div style="padding: 1.25rem 2rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
                     <div style="display: flex; align-items: center; gap: 12px;">
@@ -473,7 +478,7 @@
 
                 <!-- Chat Area -->
                 <div style="flex: 1; padding: 2rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1.25rem; background: var(--bg); scroll-behavior: smooth;" id="hrChatArea" onscroll="window.handleChatScrollHr && window.handleChatScrollHr()">
-                    <div style="align-self: flex-start; background: white; padding: 12px 16px; border-radius: 16px; border-bottom-left-radius: 4px; font-size: 0.875rem; border: 1px solid var(--border); max-width: 85%; line-height: 1.5; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                    <div style="align-self: flex-start; background: var(--k-surface); padding: 12px 16px; border-radius: 16px; border-bottom-left-radius: 4px; font-size: 0.875rem; border: 1px solid var(--border); max-width: 85%; line-height: 1.5; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
                         <div style="font-size: 0.7rem; font-weight: 800; color: var(--primary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">SYSTEM ASSISTANT</div>
                         Hello! I'm your HR assistant. How can I help you today?
                     </div>
@@ -487,7 +492,7 @@
                 </button>
 
                 <!-- Input Area -->
-                <div style="padding: 1.5rem 2rem; border-top: 1px solid var(--border); background: white;">
+                <div style="padding: 1.5rem 2rem; border-top: 1px solid var(--border); background: var(--k-surface);">
                     <div style="display: flex; gap: 12px; align-items: center;">
                         <input type="file" id="msgAttachmentInput" style="display: none;" onchange="handleMessageAttachment(this)">
                         <button onclick="document.getElementById('msgAttachmentInput').click()" style="background: var(--bg); border: none; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted);"><i data-lucide="plus" size="20"></i></button>
@@ -572,8 +577,8 @@
                     <p class="sub-header">You have 3 tasks that need your attention today.</p>
                 </div>
                 <div class="header-right" style="display: flex; align-items: center; gap: 1rem;">
-                    <div id="backendStatusPill" style="display: flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; box-shadow: var(--shadow); transition: 0.3s;">
-                        <span id="backendStatusDot" style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block; box-shadow: 0 0 8px #10b981;"></span>
+                    <div id="backendStatusPill" style="display: flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; background: var(--k-success-soft); color: var(--k-success-text); border: 1px solid var(--k-success-border); box-shadow: var(--shadow); transition: 0.3s;">
+                        <span id="backendStatusDot" style="width: 8px; height: 8px; border-radius: 50%; background: var(--k-success); display: inline-block; box-shadow: 0 0 8px #10b981;"></span>
                         <span id="backendStatusText">Firebase Backend Online</span>
                     </div>
                     <div class="header-actions">
@@ -637,8 +642,8 @@
                         <div class="card-title">Attendance Tracking</div>
                         <i data-lucide="info" class="text-muted" size="16"></i>
                     </div>
-                    <div id="mandateAlert" style="display: none; background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 12px; padding: 10px 14px; margin: 0 1.5rem 15px 1.5rem; align-items: center; gap: 10px; font-size: 0.8rem; font-weight: 700; color: #b45309;">
-                        <i data-lucide="alert-triangle" style="color: #d97706; width: 18px; height: 18px;"></i>
+                    <div id="mandateAlert" style="display: none; background: var(--k-warning-soft); border: 1.5px solid var(--k-warning-border); border-radius: 12px; padding: 10px 14px; margin: 0 1.5rem 15px 1.5rem; align-items: center; gap: 10px; font-size: 0.8rem; font-weight: 700; color: var(--k-warning-text);">
+                        <i data-lucide="alert-triangle" style="color: var(--k-warning-text); width: 18px; height: 18px;"></i>
                         <span>Strict 8-Hour Mandate Active today due to short-hours (<4h) yesterday!</span>
                     </div>
                     <div class="attendance-hero">
@@ -648,7 +653,7 @@
                                 <i data-lucide="log-in" id="punchIcon"></i>
                                 <span id="punchText">Punch In</span>
                             </button>
-                            <button class="punch-btn" id="breakBtn" disabled style="flex: 1; background: #f59e0b; opacity: 0.5; display: none;">
+                            <button class="punch-btn" id="breakBtn" disabled style="flex: 1; background: var(--k-warning); opacity: 0.5; display: none;">
                                 <i data-lucide="coffee"></i>
                                 <span>Break</span>
                             </button>
@@ -1267,7 +1272,7 @@
                                     ${m.uid === (currentUser?.uid) ? '<span style="font-size: 0.7rem; color: var(--primary); background: var(--primary-light); padding: 2px 6px; border-radius: 4px;">YOU</span>' : ''}
                                 </div>
                                 <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin-bottom: 4px;">${m.department || dept}</div>
-                                <div style="display: inline-block; font-size: 0.7rem; font-weight: 800; padding: 3px 10px; border-radius: 100px; text-transform: uppercase; letter-spacing: 0.5px; background: ${isManager ? '#fee2e2' : '#dcfce7'}; color: ${isManager ? '#991b1b' : '#15803d'};">
+                                <div style="display: inline-block; font-size: 0.7rem; font-weight: 800; padding: 3px 10px; border-radius: 100px; text-transform: uppercase; letter-spacing: 0.5px; background: ${isManager ? 'var(--k-danger-soft)' : 'var(--k-success-soft)'}; color: ${isManager ? 'var(--k-danger-text)' : 'var(--k-success-text)'};">
                                     ${role}
                                 </div>
                             </div>
@@ -1737,7 +1742,7 @@
                     try {
                         const mSnap = await getDoc(doc(db, 'users', currentUser.managerId));
                         if (mSnap.exists()) managerName = mSnap.data().name || managerName;
-                    } catch(e) {}
+                    } catch (err) { console.error('[employee-dashboard] const mSnap = await getDoc(doc(db, users, curr failed:', err); }
                 } else if (currentUser && currentUser.managerName) {
                     managerName = currentUser.managerName;
                 }
@@ -1783,7 +1788,7 @@
                 area.innerHTML = '';
 
                 if (msgs.length === 0) {
-                    area.innerHTML = '<div style="align-self:flex-start;background:white;padding:12px 16px;border-radius:16px;border-bottom-left-radius:4px;font-size: 0.875rem;border:1px solid var(--border);max-width:85%;">'
+                    area.innerHTML = '<div style="align-self:flex-start;background:var(--k-surface);padding:12px 16px;border-radius:16px;border-bottom-left-radius:4px;font-size: 0.875rem;border:1px solid var(--border);max-width:85%;">'
                         + '<div style="font-size: 0.7rem;font-weight:800;color:var(--primary);margin-bottom:4px;text-transform:uppercase;">SYSTEM ASSISTANT</div>'
                         + 'Hello! I\'m your HR assistant. How can I help you today?</div>';
                     return;

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="kylrx-theme-init.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Finance Command Center | Kylrx AI</title>
@@ -71,7 +72,7 @@
         /* Refined Enterprise Sidebar & Custom Scrollbar Styling */
         .sidebar {
             width: var(--sidebar-width, 280px);
-            background: #ffffff;
+            background: var(--k-surface);
             border-right: 1px solid var(--border);
             padding: 1.25rem 0.75rem 1rem;
             display: flex;
@@ -91,7 +92,7 @@
             align-items: center;
             gap: 12px;
             margin-bottom: 1.25rem;
-            color: var(--primary, #2563eb);
+            color: var(--primary, var(--k-accent-text));
             text-decoration: none;
             padding-left: 0.5rem;
         }
@@ -100,7 +101,7 @@
             font-size: 1.25rem;
             font-weight: 800;
             letter-spacing: -0.5px;
-            color: var(--text-main, #0f172a);
+            color: var(--text-main, var(--k-text));
         }
 
         .nav-menu {
@@ -143,7 +144,7 @@
         .nav-label {
             font-size: 0.7rem;
             font-weight: 800;
-            color: #94a3b8;
+            color: var(--k-muted);
             text-transform: uppercase;
             letter-spacing: 0.08em;
             margin: 1.25rem 0 0.5rem 0.5rem;
@@ -161,7 +162,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            color: #475569;
+            color: var(--k-text-2);
             text-decoration: none;
             transition: all 0.15s ease;
             position: relative;
@@ -169,14 +170,14 @@
         }
 
         .sidebar .nav-link:hover {
-            background: #f1f5f9;
-            color: var(--primary, #2563eb);
+            background: var(--k-subtle);
+            color: var(--primary, var(--k-accent-text));
             transform: none;
         }
 
         .sidebar .nav-link.active {
-            background: #eff6ff;
-            color: var(--primary, #2563eb);
+            background: var(--k-accent-soft);
+            color: var(--primary, var(--k-accent-text));
             font-weight: 600;
             box-shadow: none;
         }
@@ -188,7 +189,7 @@
             top: 6px;
             bottom: 6px;
             width: 3px;
-            background: var(--primary, #2563eb);
+            background: var(--primary, var(--k-accent));
             border-radius: 0 4px 4px 0;
         }
 
@@ -227,7 +228,7 @@
         }
 
         .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
-        .header h1 { font-size: 2.25rem; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 8px; color: #1e293b; }
+        .header h1 { font-size: 2.25rem; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 8px; color: var(--k-text); }
         .header p { color: var(--text-muted); font-size: 1rem; }
 
         /* Finance Widgets */
@@ -239,7 +240,7 @@
         }
 
         .f-card {
-            background: white;
+            background: var(--k-surface);
             border: 1px solid var(--border);
             padding: 2rem;
             border-radius: 28px;
@@ -266,7 +267,7 @@
             opacity: 0.8;
         }
 
-        .f-card h3 { font-size: 1.875rem; font-weight: 800; color: #1e293b; letter-spacing: -0.5px; }
+        .f-card h3 { font-size: 1.875rem; font-weight: 800; color: var(--k-text); letter-spacing: -0.5px; }
         .f-card .f-label { font-size: 0.7rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; }
         
         .f-icon-box {
@@ -280,8 +281,8 @@
 
         /* Upload Zone */
         .upload-zone {
-            background: white;
-            border: 2px dashed #cbd5e1;
+            background: var(--k-surface);
+            border: 2px dashed var(--k-border);
             border-radius: 40px;
             padding: 2rem 2rem;
             text-align: center;
@@ -315,7 +316,7 @@
 
         /* Results Table */
         .table-container {
-            background: white;
+            background: var(--k-surface);
             border: 1px solid var(--border);
             border-radius: 32px;
             overflow: hidden;
@@ -331,11 +332,11 @@
 
         table { width: 100%; border-collapse: collapse; }
         th { text-align: left; padding: 1.5rem 1.25rem; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; border-bottom: 1px solid var(--border); background: #fcfdfe; font-weight: 800; letter-spacing: 0.5px; }
-        td { padding: 1.5rem 1.25rem; border-bottom: 1px solid var(--border); font-size: 0.875rem; color: #334155; font-weight: 500; }
+        td { padding: 1.5rem 1.25rem; border-bottom: 1px solid var(--border); font-size: 0.875rem; color: var(--k-text-2); font-weight: 500; }
         
         .val-pill { padding: 6px 14px; border-radius: 100px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
-        .pill-success { background: #dcfce7; color: #15803d; }
-        .pill-error { background: #fee2e2; color: #b91c1c; }
+        .pill-success { background: var(--k-success-soft); color: var(--k-success-text); }
+        .pill-error { background: var(--k-danger-soft); color: var(--k-danger-text); }
 
         .btn {
             padding: 14px 28px;
@@ -352,12 +353,12 @@
         .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 12px 20px -4px rgba(59, 130, 246, 0.5); }
         .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
         
-        .btn-outline { background: white; border: 1px solid var(--border); color: var(--text-main); }
-        .btn-outline:hover { background: var(--bg-soft); border-color: #cbd5e1; transform: translateY(-2px); }
+        .btn-outline { background: var(--k-surface); border: 1px solid var(--border); color: var(--text-main); }
+        .btn-outline:hover { background: var(--bg-soft); border-color: var(--k-border); transform: translateY(-2px); }
 
         /* Verification Layer Styles */
         .verification-container {
-            background: white;
+            background: var(--k-surface);
             border: 1px solid var(--border);
             border-radius: 32px;
             padding: 2rem;
@@ -379,7 +380,7 @@
         .verification-title {
             font-size: 1.5rem;
             font-weight: 800;
-            color: #1e293b;
+            color: var(--k-text);
             letter-spacing: -0.5px;
             display: flex;
             align-items: center;
@@ -398,9 +399,9 @@
             gap: 6px;
         }
 
-        .health-success { background: #dcfce7; color: #15803d; }
+        .health-success { background: var(--k-success-soft); color: var(--k-success-text); }
         .health-warning { background: #fef9c3; color: #a16207; }
-        .health-danger { background: #fee2e2; color: #b91c1c; }
+        .health-danger { background: var(--k-danger-soft); color: var(--k-danger-text); }
 
         .schema-grid {
             display: grid;
@@ -422,7 +423,7 @@
         }
 
         .schema-card {
-            background: #f8fafc;
+            background: var(--k-subtle);
             border: 1px solid var(--border);
             border-radius: 20px;
             padding: 1.25rem;
@@ -461,7 +462,7 @@
         .schema-name {
             font-weight: 700;
             font-size: 1rem;
-            color: #1e293b;
+            color: var(--k-text);
         }
 
         .schema-req {
@@ -472,8 +473,8 @@
             text-transform: uppercase;
         }
 
-        .req-badge { background: #fee2e2; color: #ef4444; }
-        .opt-badge { background: #f1f5f9; color: #64748b; }
+        .req-badge { background: var(--k-danger-soft); color: var(--k-danger-text); }
+        .opt-badge { background: var(--k-subtle); color: var(--k-muted); }
 
         .schema-select-wrapper {
             position: relative;
@@ -485,11 +486,11 @@
             padding: 10px 12px;
             border-radius: 12px;
             border: 1px solid var(--border);
-            background: white;
+            background: var(--k-surface);
             font-family: inherit;
             font-size: 0.875rem;
             font-weight: 600;
-            color: #334155;
+            color: var(--k-text-2);
             outline: none;
             cursor: pointer;
             transition: border-color 0.2s;
@@ -507,10 +508,10 @@
             gap: 6px;
         }
 
-        .status-success { color: #10b981; }
-        .status-fuzzy { color: #3b82f6; }
-        .status-warning { color: #f59e0b; }
-        .status-danger { color: #ef4444; }
+        .status-success { color: var(--k-success-text); }
+        .status-fuzzy { color: var(--k-accent-text); }
+        .status-warning { color: var(--k-warning-text); }
+        .status-danger { color: var(--k-danger-text); }
 
         .anomaly-alert {
             background: #fff7ed;
@@ -524,13 +525,13 @@
         }
 
         .anomaly-alert.danger {
-            background: #fef2f2;
+            background: var(--k-danger-soft);
             border-color: #fee2e2;
         }
 
         .anomaly-alert.success {
-            background: #eff6ff;
-            border-color: #bfdbfe;
+            background: var(--k-accent-soft);
+            border-color: var(--k-accent-border);
         }
 
         .anomaly-alert-icon {
@@ -552,7 +553,7 @@
 
         /* ─── EXCEL SCHEMA & COLUMN SEQUENCE GUIDE STYLING ─── */
         .excel-guide-container {
-            background: #ffffff;
+            background: var(--k-surface);
             border: 1px solid var(--border);
             border-radius: 28px;
             padding: 2rem;
@@ -582,8 +583,8 @@
             width: 44px;
             height: 44px;
             border-radius: 12px;
-            background: #ecfdf5;
-            color: #059669;
+            background: var(--k-success-soft);
+            color: var(--k-success-text);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -606,8 +607,8 @@
         }
 
         .guide-col-card {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
+            background: var(--k-subtle);
+            border: 1px solid var(--k-border);
             border-radius: 16px;
             padding: 1.25rem;
             display: flex;
@@ -620,8 +621,8 @@
         .guide-col-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 16px -4px rgba(15, 23, 42, 0.08);
-            border-color: #cbd5e1;
-            background: #ffffff;
+            border-color: var(--k-border);
+            background: var(--k-surface);
         }
 
         .guide-col-card.is-required {
@@ -629,7 +630,7 @@
         }
 
         .guide-col-card.is-optional {
-            border-left: 3.5px solid #3b82f6;
+            border-left: 3.5px solid var(--k-accent);
         }
 
         .guide-col-top {
@@ -642,8 +643,8 @@
             font-size: 0.7rem;
             font-weight: 800;
             letter-spacing: 0.5px;
-            color: #2563eb;
-            background: #eff6ff;
+            color: var(--k-accent-text);
+            background: var(--k-accent-soft);
             padding: 3px 8px;
             border-radius: 6px;
         }
@@ -653,8 +654,8 @@
             font-weight: 800;
             letter-spacing: 0.5px;
             text-transform: uppercase;
-            color: #b91c1c;
-            background: #fee2e2;
+            color: var(--k-danger-text);
+            background: var(--k-danger-soft);
             padding: 3px 8px;
             border-radius: 6px;
         }
@@ -664,8 +665,8 @@
             font-weight: 700;
             letter-spacing: 0.5px;
             text-transform: uppercase;
-            color: #64748b;
-            background: #f1f5f9;
+            color: var(--k-muted);
+            background: var(--k-subtle);
             padding: 3px 8px;
             border-radius: 6px;
         }
@@ -673,27 +674,27 @@
         .guide-col-name {
             font-size: 1rem;
             font-weight: 800;
-            color: #0f172a;
+            color: var(--k-text);
             margin: 2px 0 0;
         }
 
         .guide-col-meta {
             font-size: 0.75rem;
-            color: #64748b;
+            color: var(--k-muted);
             display: flex;
             flex-direction: column;
             gap: 3px;
         }
 
         .guide-col-meta strong {
-            color: #334155;
+            color: var(--k-text-2);
         }
 
         .guide-col-alias {
             font-size: 0.7rem;
-            color: #94a3b8;
-            background: #ffffff;
-            border: 1px dashed #cbd5e1;
+            color: var(--k-muted);
+            background: var(--k-surface);
+            border: 1px dashed var(--k-border);
             padding: 4px 8px;
             border-radius: 6px;
             margin-top: 4px;
@@ -702,10 +703,10 @@
 
         /* Mock Excel Table */
         .mock-excel-table-wrap {
-            border: 1px solid #cbd5e1;
+            border: 1px solid var(--k-border);
             border-radius: 14px;
             overflow-x: auto;
-            background: #ffffff;
+            background: var(--k-surface);
             box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
             margin-bottom: 1.5rem;
         }
@@ -738,29 +739,30 @@
 
         .mock-excel-table td {
             padding: 9px 14px;
-            border-bottom: 1px solid #e2e8f0;
-            border-right: 1px solid #f1f5f9;
-            color: #334155;
+            border-bottom: 1px solid var(--k-border);
+            border-right: 1px solid var(--k-border);
+            color: var(--k-text-2);
             font-family: 'Inter', -apple-system, sans-serif;
             font-size: 0.8rem;
         }
 
         .mock-excel-table tr:nth-child(even) td {
-            background: #f8fafc;
+            background: var(--k-subtle);
         }
 
         .mock-excel-table .row-num {
-            background: #f1f5f9 !important;
-            color: #64748b;
+            background: var(--k-subtle) !important;
+            color: var(--k-muted);
             font-weight: 700;
             text-align: center;
             width: 38px;
-            border-right: 1px solid #cbd5e1;
+            border-right: 1px solid var(--k-border);
             user-select: none;
         }
 
     </style>
     <link rel="stylesheet" href="sidebar-lock.css">
+    <link rel="stylesheet" href="kylrx-theme.css">
 </head>
 <body>
 
@@ -851,16 +853,16 @@
         </aside>
 
         <main class="main-content">
-            <div style="font-size: 0.8rem; font-weight: 600; color: #94a3b8; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 6px;">
+            <div style="font-size: 0.8rem; font-weight: 600; color: var(--k-muted); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 6px;">
                 <span>Kylrx AI</span>
                 <i data-lucide="chevron-right" style="width: 13px; height: 13px;"></i>
                 <span>Operations</span>
                 <i data-lucide="chevron-right" style="width: 13px; height: 13px;"></i>
-                <span style="color: var(--primary, #2563eb);">Finance Payroll Upload</span>
+                <span style="color: var(--primary, var(--k-accent-text));">Finance Payroll Upload</span>
             </div>
             <header class="header">
                 <div>
-                    <h1 style="font-size: 2.25rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 6px; color: #0f172a;">Finance Command Center</h1>
+                    <h1 style="font-size: 2.25rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 6px; color: var(--k-text);">Finance Command Center</h1>
                     <p style="color: var(--text-muted); font-size: 1rem;">Secure payroll onboarding, salary component provisioning, and schema validation.</p>
                 </div>
                 <div style="display: flex; gap: 12px; align-items: center;">
@@ -916,12 +918,12 @@
                         </div>
                         <div>
                             <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                                <h3 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0;">Expected Excel Sheet Column Sequence</h3>
-                                <span style="background: #eff6ff; color: #2563eb; font-size: 0.7rem; font-weight: 800; padding: 3px 10px; border-radius: 100px; border: 1px solid #bfdbfe;">
+                                <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--k-text); margin: 0;">Expected Excel Sheet Column Sequence</h3>
+                                <span style="background: var(--k-accent-soft); color: var(--k-accent-text); font-size: 0.7rem; font-weight: 800; padding: 3px 10px; border-radius: 100px; border: 1px solid var(--k-accent-border);">
                                     12 Columns · 3 Required · 9 Optional
                                 </span>
                             </div>
-                            <p style="color: #64748b; font-size: 0.875rem; margin: 4px 0 0 0;">
+                            <p style="color: var(--k-muted); font-size: 0.875rem; margin: 4px 0 0 0;">
                                 Prepare your spreadsheet in this exact 12-column sequence. Columns 1–3 are mandatory; columns 4–12 will apply automatic zero-defaults if left blank.
                             </p>
                         </div>
@@ -947,7 +949,7 @@
                         <h4 class="guide-col-name">Employee ID</h4>
                         <div class="guide-col-meta">
                             <span>Format: <strong>Unique Alphanumeric Code</strong></span>
-                            <span>Example: <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;color:#2563eb;">EMP-1048</code></span>
+                            <span>Example: <code style="background:var(--k-subtle);padding:2px 6px;border-radius:4px;color:var(--k-accent-text);">EMP-1048</code></span>
                         </div>
                         <div class="guide-col-alias">
                             <strong>Aliases:</strong> empid, employeeid, id, empno
@@ -979,7 +981,7 @@
                         <h4 class="guide-col-name">Salary (Base)</h4>
                         <div class="guide-col-meta">
                             <span>Format: <strong>Numeric Amount (INR)</strong></span>
-                            <span>Example: <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;color:#2563eb;">150000</code> or ₹1,50,000</span>
+                            <span>Example: <code style="background:var(--k-subtle);padding:2px 6px;border-radius:4px;color:var(--k-accent-text);">150000</code> or ₹1,50,000</span>
                         </div>
                         <div class="guide-col-alias">
                             <strong>Aliases:</strong> base, basic, basic salary, salary
@@ -995,7 +997,7 @@
                         <h4 class="guide-col-name">Incentives</h4>
                         <div class="guide-col-meta">
                             <span>Format: <strong>Numeric (Default: 0)</strong></span>
-                            <span>Example: <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;color:#2563eb;">15000</code></span>
+                            <span>Example: <code style="background:var(--k-subtle);padding:2px 6px;border-radius:4px;color:var(--k-accent-text);">15000</code></span>
                         </div>
                         <div class="guide-col-alias">
                             <strong>Aliases:</strong> incentive, incentives
@@ -1011,7 +1013,7 @@
                         <h4 class="guide-col-name">PF Contribution</h4>
                         <div class="guide-col-meta">
                             <span>Format: <strong>Numeric (Default: 0)</strong></span>
-                            <span>Example: <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;color:#2563eb;">1800</code></span>
+                            <span>Example: <code style="background:var(--k-subtle);padding:2px 6px;border-radius:4px;color:var(--k-accent-text);">1800</code></span>
                         </div>
                         <div class="guide-col-alias">
                             <strong>Aliases:</strong> pf, provident fund, pf contribution
@@ -1027,7 +1029,7 @@
                         <h4 class="guide-col-name">ESIC</h4>
                         <div class="guide-col-meta">
                             <span>Format: <strong>Numeric (Default: 0)</strong></span>
-                            <span>Example: <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;color:#2563eb;">0</code></span>
+                            <span>Example: <code style="background:var(--k-subtle);padding:2px 6px;border-radius:4px;color:var(--k-accent-text);">0</code></span>
                         </div>
                         <div class="guide-col-alias">
                             <strong>Aliases:</strong> esic, esi, esicontribution
@@ -1043,7 +1045,7 @@
                         <h4 class="guide-col-name">Gratuity Provision</h4>
                         <div class="guide-col-meta">
                             <span>Format: <strong>Numeric (Default: 0)</strong></span>
-                            <span>Example: <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;color:#2563eb;">4500</code></span>
+                            <span>Example: <code style="background:var(--k-subtle);padding:2px 6px;border-radius:4px;color:var(--k-accent-text);">4500</code></span>
                         </div>
                         <div class="guide-col-alias">
                             <strong>Aliases:</strong> gratuity, gratuityprovision
@@ -1075,7 +1077,7 @@
                         <h4 class="guide-col-name">Variable Pay %</h4>
                         <div class="guide-col-meta">
                             <span>Format: <strong>Percentage (Default: 0)</strong></span>
-                            <span>Example: <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;color:#2563eb;">10%</code> or <strong>10</strong></span>
+                            <span>Example: <code style="background:var(--k-subtle);padding:2px 6px;border-radius:4px;color:var(--k-accent-text);">10%</code> or <strong>10</strong></span>
                         </div>
                         <div class="guide-col-alias">
                             <strong>Aliases:</strong> variable, variablepay, variable %
@@ -1091,7 +1093,7 @@
                         <h4 class="guide-col-name">Tax Deductions</h4>
                         <div class="guide-col-meta">
                             <span>Format: <strong>Numeric (Default: 0)</strong></span>
-                            <span>Example: <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;color:#2563eb;">12000</code></span>
+                            <span>Example: <code style="background:var(--k-subtle);padding:2px 6px;border-radius:4px;color:var(--k-accent-text);">12000</code></span>
                         </div>
                         <div class="guide-col-alias">
                             <strong>Aliases:</strong> tax, taxdeduction, tds
@@ -1123,7 +1125,7 @@
                         <h4 class="guide-col-name">Shift Allowance</h4>
                         <div class="guide-col-meta">
                             <span>Format: <strong>Numeric (Default: 0)</strong></span>
-                            <span>Example: <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;color:#2563eb;">5000</code></span>
+                            <span>Example: <code style="background:var(--k-subtle);padding:2px 6px;border-radius:4px;color:var(--k-accent-text);">5000</code></span>
                         </div>
                         <div class="guide-col-alias">
                             <strong>Aliases:</strong> shift, shiftallowance
@@ -1134,11 +1136,11 @@
                 <!-- Realistic Mock Excel Sheet Representation -->
                 <div style="margin-top: 1.5rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-                        <h4 style="font-size: 0.875rem; font-weight: 800; color: #1e293b; margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <h4 style="font-size: 0.875rem; font-weight: 800; color: var(--k-text); margin: 0; display: flex; align-items: center; gap: 8px;">
                             <i data-lucide="table" style="width: 16px; height: 16px; color: #107c41;"></i>
                             <span>Simulated Excel Spreadsheet Layout (Row 1 Header + Sample Data)</span>
                         </h4>
-                        <span style="font-size: 0.75rem; color: #64748b;">Scroll horizontally to view all 12 columns →</span>
+                        <span style="font-size: 0.75rem; color: var(--k-muted);">Scroll horizontally to view all 12 columns →</span>
                     </div>
 
                     <div class="mock-excel-table-wrap">
@@ -1212,8 +1214,8 @@
                 </div>
 
                 <!-- Info footer notice -->
-                <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 12px 16px; font-size: 0.8rem; color: #1e40af; display: flex; align-items: center; gap: 10px;">
-                    <i data-lucide="info" style="width: 18px; height: 18px; flex-shrink: 0; color: #2563eb;"></i>
+                <div style="background: var(--k-accent-soft); border: 1px solid var(--k-accent-border); border-radius: 12px; padding: 12px 16px; font-size: 0.8rem; color: var(--k-accent-text); display: flex; align-items: center; gap: 10px;">
+                    <i data-lucide="info" style="width: 18px; height: 18px; flex-shrink: 0; color: var(--k-accent-text);"></i>
                     <span><strong>Pro-Tip:</strong> Our smart parsing engine automatically trims currency symbols, commas, and recognizes common column aliases. If any optional field is blank, sensible zero-defaults are applied automatically.</span>
                 </div>
             </div>
@@ -1240,7 +1242,7 @@
                         <i data-lucide="info"></i>
                     </div>
                     <div>
-                        <h4 id="anomalyAlertTitle" style="font-weight: 800; font-size: 1rem; color: #1e293b;">Validation Warnings</h4>
+                        <h4 id="anomalyAlertTitle" style="font-weight: 800; font-size: 1rem; color: var(--k-text);">Validation Warnings</h4>
                         <p id="anomalyAlertDesc" style="font-size: 0.875rem; color: var(--text-muted); margin-top: 4px; line-height: 1.4;"></p>
                     </div>
                 </div>
@@ -1293,27 +1295,27 @@
                 justify-content: center;
             }
             #customAppsModal .modal {
-                background: #ffffff !important;
-                color: #0f172a !important;
+                background: var(--k-surface) !important;
+                color: var(--k-text) !important;
                 padding: 2rem;
                 border-radius: 24px;
                 width: 90%;
                 max-width: 500px;
                 box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-                border: 1px solid #e2e8f0;
+                border: 1px solid var(--k-border);
                 position: relative;
                 text-align: left;
             }
             #customAppsModal .modal h2 {
                 font-weight: 800;
                 font-size: 1.25rem;
-                color: #0f172a !important;
+                color: var(--k-text) !important;
                 margin-bottom: 4px;
                 margin-top: 0;
             }
             #customAppsModal .modal p {
                 font-size: 0.75rem;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 margin: 0;
             }
             #customAppsModal .modal .form-group {
@@ -1325,7 +1327,7 @@
             #customAppsModal .modal label {
                 font-size: 0.7rem;
                 font-weight: 800;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 text-transform: uppercase;
                 display: block;
                 margin-bottom: 4px;
@@ -1334,9 +1336,9 @@
                 width: 100%;
                 padding: 12px 16px;
                 border-radius: 12px;
-                border: 1px solid #cbd5e1 !important;
-                background: #ffffff !important;
-                color: #0f172a !important;
+                border: 1px solid var(--k-border) !important;
+                background: var(--k-surface) !important;
+                color: var(--k-text) !important;
                 outline: none;
                 margin-top: 4px;
                 font-family: inherit;
@@ -1344,15 +1346,15 @@
                 transition: border-color 0.2s, box-shadow 0.2s;
             }
             #customAppsModal .modal input:focus {
-                border-color: #3b82f6 !important;
+                border-color: var(--k-accent) !important;
                 box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
             }
             #customAppsModal .modal input::placeholder {
-                color: #94a3b8 !important;
+                color: var(--k-muted) !important;
                 opacity: 0.8;
             }
             #customAppsModal .modal button.map-btn {
-                background: #3b82f6;
+                background: var(--k-accent);
                 color: white !important;
                 border: none;
                 border-radius: 12px;
@@ -1366,13 +1368,13 @@
                 margin-top: 0.5rem;
             }
             #customAppsModal .modal button.map-btn:hover {
-                background: #2563eb;
+                background: var(--k-accent);
                 transform: translateY(-1px);
             }
             #customAppsModal .modal h3 {
                 font-size: 0.7rem;
                 font-weight: 800;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 text-transform: uppercase;
                 margin-bottom: 10px;
                 margin-top: 0;
@@ -1384,8 +1386,8 @@
                 width: 36px;
                 height: 36px;
                 border-radius: 10px;
-                background: #f8fafc;
-                color: #64748b !important;
+                background: var(--k-subtle);
+                color: var(--k-muted) !important;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -1394,8 +1396,8 @@
                 border: none;
             }
             #customAppsModal .close-modal:hover {
-                color: #ef4444 !important;
-                background: #fee2e2;
+                color: var(--k-danger-text) !important;
+                background: var(--k-danger-soft);
             }
         </style>
         <div class="modal">
@@ -1419,7 +1421,7 @@
                 <button class="map-btn" onclick="addCustomApp()">Map Tool Link</button>
             </div>
 
-            <div style="border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
+            <div style="border-top: 1px solid var(--k-border); padding-top: 1.25rem;">
                 <h3>Mapped Connections</h3>
                 <div id="registryAppsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;">
                     <!-- Mapped apps inside the registry panel -->

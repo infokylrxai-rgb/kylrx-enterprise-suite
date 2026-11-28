@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="kylrx-theme-init.js"></script>
     <script src="config.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -148,7 +149,7 @@
 
         /* Channels Side Pane */
         .channels-pane {
-            background: #f8fafc;
+            background: var(--k-subtle);
             border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
@@ -157,7 +158,7 @@
         .pane-header {
             padding: 1.5rem;
             border-bottom: 1px solid var(--border);
-            background: white;
+            background: var(--k-surface);
         }
         .pane-title { font-size: 1rem; font-weight: 800; color: var(--text-main); }
         .pane-sub { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
@@ -182,7 +183,7 @@
         }
         .msg-channel:hover { background: rgba(59,130,246,0.05); }
         .msg-channel.active {
-            background: white;
+            background: var(--k-surface);
             border: 1px solid var(--primary);
             box-shadow: 0 4px 12px rgba(59,130,246,0.08);
         }
@@ -207,7 +208,7 @@
         .chat-workspace {
             display: flex;
             flex-direction: column;
-            background: white;
+            background: var(--k-surface);
             position: relative;
         }
 
@@ -253,7 +254,7 @@
         }
         .message-bubble.received {
             align-self: flex-start;
-            background: #ffffff;
+            background: var(--k-surface);
             border-top-left-radius: 0;
         }
 
@@ -279,7 +280,7 @@
             padding: 8px 12px;
             border-radius: 8px;
             border: 1px solid rgba(0,0,0,0.08);
-            color: #1e293b;
+            color: var(--k-text);
             text-decoration: none;
             margin-top: 8px;
             font-size: 0.8rem;
@@ -335,11 +336,11 @@
             gap: 8px;
             padding: 0.75rem 2rem;
             border-top: 1px solid var(--border);
-            background: #f8fafc;
+            background: var(--k-subtle);
             flex-wrap: wrap;
         }
         .file-pill {
-            background: white;
+            background: var(--k-surface);
             border: 1px solid var(--border);
             padding: 6px 12px;
             border-radius: 20px;
@@ -348,7 +349,7 @@
             gap: 8px;
             font-size: 0.8rem;
             font-weight: 600;
-            color: #334155;
+            color: var(--k-text-2);
             box-shadow: var(--shadow-sm);
         }
         .file-pill .remove-file {
@@ -365,7 +366,7 @@
         .input-bar {
             padding: 1.5rem 2rem;
             border-top: 1px solid var(--border);
-            background: white;
+            background: var(--k-surface);
         }
         .input-wrapper {
             display: flex;
@@ -381,11 +382,11 @@
             font-family: inherit;
             font-size: 0.875rem;
             font-weight: 500;
-            background: #f8fafc;
+            background: var(--k-subtle);
             transition: 0.3s;
         }
         .chat-input-box:focus {
-            background: white;
+            background: var(--k-surface);
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
@@ -459,18 +460,18 @@
         .config-header h2 { font-weight: 800; font-size: 1.25rem; }
         .config-section { margin-bottom: 2rem; }
         .config-section h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--primary); margin-bottom: 1.25rem; font-weight: 800; }
-        .config-option { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 0.75rem; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border); }
+        .config-option { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 0.75rem; background: var(--k-subtle); border-radius: 12px; border: 1px solid var(--border); }
         .config-option span { font-size: 0.875rem; font-weight: 600; }
 
         /* switches */
         .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 20px; }
-        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: var(--k-surface); transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: var(--primary); }
         input:checked + .slider:before { transform: translateX(20px); }
 
-        .btn-theme { padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: white; cursor: pointer; font-size: 0.8rem; font-weight: 700; transition: 0.3s; text-align: center; }
+        .btn-theme { padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--k-surface); cursor: pointer; font-size: 0.8rem; font-weight: 700; transition: 0.3s; text-align: center; }
         .btn-theme.active { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
 
         /* Bubble customization */
@@ -486,7 +487,7 @@
         }
         .modal-overlay-status.active { display: flex; }
         .status-modal {
-            background: white; padding: 2rem; border-radius: 32px;
+            background: var(--k-surface); padding: 2rem; border-radius: 32px;
             width: 90%; max-width: 400px; text-align: center;
             box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
             border: 1px solid var(--border); transform: scale(0.9);
@@ -498,9 +499,9 @@
             display: flex; align-items: center; justify-content: center;
             margin: 0 auto 1.5rem; font-size: 1.5rem;
         }
-        .modal-icon-status.error { background: #fee2e2; color: #ef4444; }
-        .modal-icon-status.success { background: #dcfce7; color: #10b981; }
-        .modal-icon-status.info { background: #dbeafe; color: #3b82f6; }
+        .modal-icon-status.error { background: var(--k-danger-soft); color: var(--k-danger-text); }
+        .modal-icon-status.success { background: var(--k-success-soft); color: var(--k-success-text); }
+        .modal-icon-status.info { background: var(--k-accent-soft); color: var(--k-accent-text); }
         
         .modal-title { font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; }
         .modal-desc { color: var(--text-muted); font-size: 0.875rem; margin-bottom: 2rem; line-height: 1.6; }
@@ -510,6 +511,10 @@
         @keyframes modalFadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
     <link rel="stylesheet" href="sidebar-lock.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="kylrx-theme.css">
 </head>
 <body>
 
@@ -578,11 +583,11 @@
                     <h1>Communications Hub</h1>
                     <p class="sub-header">Collaborate instantly with HR, managers, and teammates</p>
                 <div style="display: flex; align-items: center; gap: 0.75rem;">
-                    <div id="backendStatusPill" style="display: flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; box-shadow: var(--shadow-sm); transition: 0.3s;">
-                        <span id="backendStatusDot" style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block; box-shadow: 0 0 8px #10b981;"></span>
+                    <div id="backendStatusPill" style="display: flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; background: var(--k-success-soft); color: var(--k-success-text); border: 1px solid var(--k-success-border); box-shadow: var(--shadow-sm); transition: 0.3s;">
+                        <span id="backendStatusDot" style="width: 8px; height: 8px; border-radius: 50%; background: var(--k-success); display: inline-block; box-shadow: 0 0 8px #10b981;"></span>
                         <span id="backendStatusText">Firebase Backend Connected</span>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 0.75rem; background: white; padding: 6px; border-radius: 14px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                    <div style="display: flex; align-items: center; gap: 0.75rem; background: var(--k-surface); padding: 6px; border-radius: 14px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
                         <button class="action-btn-chat" title="Customize Layout" id="btnCustom" style="width: 42px; height: 42px;">
                             <i data-lucide="sliders-horizontal"></i>
                         </button>
@@ -608,7 +613,7 @@
                         </div>
                         
                         <div class="msg-channel" id="chan-manager" onclick="switchChatChannel('manager', this)">
-                            <div class="channel-icon" style="background: #fee2e2; color: #ef4444;"><i data-lucide="user" size="20"></i></div>
+                            <div class="channel-icon" style="background: var(--k-danger-soft); color: var(--k-danger-text);"><i data-lucide="user" size="20"></i></div>
                             <div class="channel-info">
                                 <div class="channel-name" id="managerLabel">My Manager</div>
                                 <div class="channel-desc" id="managerSub">Direct reports channel</div>
@@ -616,7 +621,7 @@
                         </div>
 
                         <div class="msg-channel" id="chan-team" onclick="switchChatChannel('team', this)">
-                            <div class="channel-icon" style="background: #dcfce7; color: #10b981;"><i data-lucide="users" size="20"></i></div>
+                            <div class="channel-icon" style="background: var(--k-success-soft); color: var(--k-success-text);"><i data-lucide="users" size="20"></i></div>
                             <div class="channel-info">
                                 <div class="channel-name" id="teamLabel">Team Channel</div>
                                 <div class="channel-desc" id="teamSub">Team group sync</div>
@@ -664,12 +669,12 @@
 
                     <!-- Chat Messages list -->
                     <div class="chat-messages" id="chatArea">
-                        <div style="align-self: flex-start; background: white; padding: 14px 18px; border-radius: 16px; border-bottom-left-radius: 4px; font-size: 0.875rem; border: 1px solid #fce7f3; max-width: 85%; box-shadow: 0 2px 8px rgba(236,72,153,0.06);">
+                        <div style="align-self: flex-start; background: var(--k-surface); padding: 14px 18px; border-radius: 16px; border-bottom-left-radius: 4px; font-size: 0.875rem; border: 1px solid #fce7f3; max-width: 85%; box-shadow: 0 2px 8px rgba(236,72,153,0.06);">
                             <div style="display:flex; align-items:center; gap:6px; font-size: 0.7rem; font-weight: 800; color: var(--primary); margin-bottom: 6px; text-transform: uppercase;">
                                 <span style="width:6px; height:6px; border-radius:50%; background:var(--primary); display:inline-block;"></span>
                                 SECURE WORKSPACE BACKEND CONNECTED
                             </div>
-                            <div style="color: #334155; line-height: 1.5;">Direct channel active with <strong>HR Support Hub</strong>. You can now chat securely, attach policy requests, and share compliance updates.</div>
+                            <div style="color: var(--k-text-2); line-height: 1.5;">Direct channel active with <strong>HR Support Hub</strong>. You can now chat securely, attach policy requests, and share compliance updates.</div>
                         </div>
                     </div>
 
@@ -703,7 +708,7 @@
                             </button>
                             <input type="text" id="chatInputText" placeholder="Type your message..." class="chat-input-box">
                             
-                            <button class="action-btn-chat" id="clearChatHistoryBtn" title="Clear All Chat History" onclick="clearAllChatHistory()" style="color: #ef4444; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); width: auto; padding: 0 14px; gap: 6px; display: flex; align-items: center;">
+                            <button class="action-btn-chat" id="clearChatHistoryBtn" title="Clear All Chat History" onclick="clearAllChatHistory()" style="color: var(--k-danger-text); background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); width: auto; padding: 0 14px; gap: 6px; display: flex; align-items: center;">
                             <i data-lucide="trash-2" style="pointer-events: none; width: 16px; height: 16px;"></i>
                             Clear All
                         </button>
@@ -1046,7 +1051,7 @@
                             <div class="channel-info">
                                 <div class="channel-name" style="font-size: 0.8rem; display:flex; align-items:center; gap:4px;">
                                     ${escapeHtml(p.name || 'Teammate')}
-                                    ${isHr ? '<span style="font-size: 0.7rem; background:#dbeafe; color:#1e40af; padding:1px 5px; border-radius:4px; font-weight:700;">HQ</span>' : ''}
+                                    ${isHr ? '<span style="font-size: 0.7rem; background:var(--k-accent-soft); color:var(--k-accent-text); padding:1px 5px; border-radius:4px; font-weight:700;">HQ</span>' : ''}
                                 </div>
                                 <div class="channel-desc" style="font-size: 0.7rem;">${escapeHtml(p.role || department)}</div>
                             </div>
@@ -1296,11 +1301,11 @@
 
             if (m.attachments && m.attachments.length > 0) {
                 const atts = m.attachments.map(att => `
-                    <div style="display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.9); padding:8px 12px; border-radius:10px; border:1px solid rgba(0,0,0,0.1); margin-top:6px; font-size: 0.8rem; font-weight:600; color:#1e293b;">
+                    <div style="display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.9); padding:8px 12px; border-radius:10px; border:1px solid rgba(0,0,0,0.1); margin-top:6px; font-size: 0.8rem; font-weight:600; color:var(--k-text);">
                         <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">📎 ${esc(att.name || 'Attachment')}</span>
                         <div style="display:flex; gap:6px;">
-                            <a href="#" onclick="window.openAttachment(this); return false;" data-url="${esc(att.dataUrl || '')}" style="background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; padding:4px 8px; border-radius:6px; font-size: 0.7rem; font-weight:700; text-decoration:none;">Open</a>
-                            <a href="${esc(att.dataUrl || '')}" download="${esc(att.name || 'download')}" style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; padding:4px 8px; border-radius:6px; font-size: 0.7rem; font-weight:700; text-decoration:none;">Download</a>
+                            <a href="#" onclick="window.openAttachment(this); return false;" data-url="${esc(att.dataUrl || '')}" style="background:var(--k-accent-soft); color:var(--k-accent-text); border:1px solid var(--k-accent-border); padding:4px 8px; border-radius:6px; font-size: 0.7rem; font-weight:700; text-decoration:none;">Open</a>
+                            <a href="${esc(att.dataUrl || '')}" download="${esc(att.name || 'download')}" style="background:var(--k-success-soft); color:var(--k-success-text); border:1px solid var(--k-success-border); padding:4px 8px; border-radius:6px; font-size: 0.7rem; font-weight:700; text-decoration:none;">Download</a>
                         </div>
                     </div>
                 `).join('');
@@ -1312,7 +1317,7 @@
                 bodyHtml += `
                     <div style="display:flex; gap:12px; margin-top:6px; font-size: 0.7rem; opacity:0.8; justify-content:flex-end;">
                         <span style="cursor:pointer; color: var(--primary); text-decoration: underline;" onclick="window.editMessage('${safeMsgId}', \`${(m.text || '').replace(/`/g, '\\`').replace(/"/g, '&quot;')}\`)">Edit</span>
-                        <span style="cursor:pointer; color: #ef4444; text-decoration: underline;" onclick="window.clearMessage('${safeMsgId}')">Clear</span>
+                        <span style="cursor:pointer; color: var(--k-danger-text); text-decoration: underline;" onclick="window.clearMessage('${safeMsgId}')">Clear</span>
                     </div>
                 `;
             }
@@ -1368,12 +1373,12 @@
             const renderWelcome = () => {
                 const displayPartner = activeChatType === 'hr' ? 'HR Support Hub (Super Admin)' : (activeChatType === 'manager' ? (currentUser?.managerName || 'Your Manager') : (activeChatType === 'team' ? `${currentUser?.department || 'Department'} Channel` : (pName || 'Direct Line')));
                 chatArea.innerHTML = `
-                    <div class="secure-welcome-card" style="align-self: flex-start; background: white; padding: 14px 18px; border-radius: 16px; border-bottom-left-radius: 4px; font-size: 0.875rem; border: 1px solid #fce7f3; max-width: 85%; box-shadow: 0 2px 8px rgba(236,72,153,0.06);">
+                    <div class="secure-welcome-card" style="align-self: flex-start; background: var(--k-surface); padding: 14px 18px; border-radius: 16px; border-bottom-left-radius: 4px; font-size: 0.875rem; border: 1px solid #fce7f3; max-width: 85%; box-shadow: 0 2px 8px rgba(236,72,153,0.06);">
                         <div style="display:flex; align-items:center; gap:6px; font-size: 0.7rem; font-weight: 800; color: var(--primary); margin-bottom: 6px; text-transform: uppercase;">
                             <span style="width:6px; height:6px; border-radius:50%; background:var(--primary); display:inline-block;"></span>
                             SECURE WORKSPACE BACKEND CONNECTED
                         </div>
-                        <div style="color: #334155; line-height: 1.5;">Direct channel active with <strong>${displayPartner}</strong>. You can now chat securely, attach policy requests, and share compliance updates.</div>
+                        <div style="color: var(--k-text-2); line-height: 1.5;">Direct channel active with <strong>${displayPartner}</strong>. You can now chat securely, attach policy requests, and share compliance updates.</div>
                     </div>
                 `;
                 if (window.lucide) lucide.createIcons();
@@ -1669,7 +1674,7 @@
             if (document.getElementById('customEditModal')) return;
             
             const modalStyle = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center; z-index:9999; backdrop-filter:blur(2px);';
-            const contentStyle = 'background:white; padding:24px; border-radius:12px; width: 100%; max-width: min(400px, 90%); box-shadow:0 10px 25px rgba(0,0,0,0.1); font-family:inherit; text-align:left;';
+            const contentStyle = 'background:var(--k-surface); color:var(--k-text); padding:24px; border-radius:12px; width: 100%; max-width: min(400px, 90%); box-shadow:0 10px 25px rgba(0,0,0,0.1); font-family:inherit; text-align:left;';
             const btnStyle = 'padding:8px 16px; border-radius:6px; cursor:pointer; font-weight:500; font-family:inherit;';
             
             // Edit Modal
@@ -1678,14 +1683,14 @@
             editModal.style.cssText = modalStyle;
             editModal.innerHTML = `
                 <div style="${contentStyle}">
-                    <h3 style="margin-top:0; margin-bottom:12px; color:#1e293b; font-size: 1.125rem; font-weight:700;">Edit Message</h3>
-                    <textarea id="customEditInput" style="width:100%; height:100px; padding:12px; border:1px solid #cbd5e1; border-radius:8px; resize:none; font-family:inherit; box-sizing:border-box; outline:none; font-size: 0.875rem;"></textarea>
+                    <h3 style="margin-top:0; margin-bottom:12px; color:var(--k-text); font-size: 1.125rem; font-weight:700;">Edit Message</h3>
+                    <textarea id="customEditInput" style="width:100%; height:100px; padding:12px; border:1px solid var(--k-border); border-radius:8px; resize:none; font-family:inherit; box-sizing:border-box; outline:none; font-size: 0.875rem;"></textarea>
                     <button id="customEditAIFix" style="margin-top:10px; width:100%; padding:10px 16px; border-radius:8px; border:none; background:linear-gradient(135deg,#db2777,#9333ea); color:white; font-weight:700; font-size: 0.875rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:0.2s; font-family:inherit;">
                         <span style="font-size: 1rem;">✨</span> AI Fix
                     </button>
                     <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:12px;">
-                        <button id="customEditCancel" style="${btnStyle} border:1px solid #cbd5e1; background:white; color:#475569;">Cancel</button>
-                        <button id="customEditSave" style="${btnStyle} border:none; background:var(--primary, #3b82f6); color:white;">Save Changes</button>
+                        <button id="customEditCancel" style="${btnStyle} border:1px solid #cbd5e1; background:var(--k-surface); color:var(--k-text-2);">Cancel</button>
+                        <button id="customEditSave" style="${btnStyle} border:none; background:var(--primary, var(--k-accent)); color:white;">Save Changes</button>
                     </div>
                 </div>
             `;
@@ -1696,11 +1701,11 @@
             delModal.style.cssText = modalStyle;
             delModal.innerHTML = `
                 <div style="${contentStyle}">
-                    <h3 style="margin-top:0; margin-bottom:8px; color:#ef4444; font-size: 1.125rem; font-weight:700;">Clear Message</h3>
-                    <p style="color:#475569; margin-bottom:20px; font-size: 0.875rem;">Are you sure you want to permanently clear this message? This action cannot be undone.</p>
+                    <h3 style="margin-top:0; margin-bottom:8px; color:var(--k-danger-text); font-size: 1.125rem; font-weight:700;">Clear Message</h3>
+                    <p style="color:var(--k-text-2); margin-bottom:20px; font-size: 0.875rem;">Are you sure you want to permanently clear this message? This action cannot be undone.</p>
                     <div style="display:flex; justify-content:flex-end; gap:12px;">
-                        <button id="customDelCancel" style="${btnStyle} border:1px solid #cbd5e1; background:white; color:#475569;">Cancel</button>
-                        <button id="customDelConfirm" style="${btnStyle} border:none; background:#ef4444; color:white;">Clear Message</button>
+                        <button id="customDelCancel" style="${btnStyle} border:1px solid #cbd5e1; background:var(--k-surface); color:var(--k-text-2);">Cancel</button>
+                        <button id="customDelConfirm" style="${btnStyle} border:none; background:var(--k-danger); color:white;">Clear Message</button>
                     </div>
                 </div>
             `;
@@ -1749,11 +1754,11 @@
             clearAllModal.style.cssText = modalStyle;
             clearAllModal.innerHTML = `
                 <div style="${contentStyle}">
-                    <h3 style="margin-top:0; margin-bottom:8px; color:#ef4444; font-size: 1.125rem; font-weight:700;">Clear All History</h3>
-                    <p style="color:#475569; margin-bottom:20px; font-size: 0.875rem;">Are you sure you want to permanently clear the entire conversation? This action cannot be undone.</p>
+                    <h3 style="margin-top:0; margin-bottom:8px; color:var(--k-danger-text); font-size: 1.125rem; font-weight:700;">Clear All History</h3>
+                    <p style="color:var(--k-text-2); margin-bottom:20px; font-size: 0.875rem;">Are you sure you want to permanently clear the entire conversation? This action cannot be undone.</p>
                     <div style="display:flex; justify-content:flex-end; gap:12px;">
-                        <button id="customClearAllCancel" style="${btnStyle} border:1px solid #cbd5e1; background:white; color:#475569;">Cancel</button>
-                        <button id="customClearAllConfirm" style="${btnStyle} border:none; background:#ef4444; color:white;">Clear Chat</button>
+                        <button id="customClearAllCancel" style="${btnStyle} border:1px solid #cbd5e1; background:var(--k-surface); color:var(--k-text-2);">Cancel</button>
+                        <button id="customClearAllConfirm" style="${btnStyle} border:none; background:var(--k-danger); color:white;">Clear Chat</button>
                     </div>
                 </div>
             `;

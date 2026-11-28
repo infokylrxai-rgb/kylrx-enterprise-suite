@@ -34,6 +34,9 @@ const buRulesModule = { exports: {} };
 const buRulesFn = new Function('module', 'exports', 'require', buRulesContent);
 buRulesFn(buRulesModule, buRulesModule.exports, () => ({}));
 const buRules = buRulesModule.exports;
+// The module no longer preloads its sample business units (a new organisation saw them
+// as its own), so the interoperability checks below load them as fixtures.
+buRules.loadSampleRulesForTesting();
 
 // Load backend BuEmployeeTypeRulesService
 import buRulesService from '../services/bu-employee-type-rules-service.js';

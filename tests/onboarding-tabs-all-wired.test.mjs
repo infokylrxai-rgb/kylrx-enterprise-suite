@@ -56,26 +56,40 @@ describe('every onboarding tab opens something', () => {
   });
 });
 
-describe('a panel that is not built says so', () => {
+describe('the three duplicate bulk tabs are gone', () => {
   /**
-   * These three panels have a template button, a drop zone, a file input and an ingest
-   * button, none of which is referenced anywhere in script. Now that the tabs open, a
-   * dead file picker would be worse than the dead tab: somebody would drop a file in and
-   * wait for an import that is never going to happen.
+   * Job & Rosters, Finance & Statutory IDs and Org Statutory Registrations were wired -
+   * by unifiedIngestionUIController.js, not by this file, which is why an earlier pass
+   * here wrongly called them unbuilt and disabled them. What they did was worse than
+   * nothing: in the browser window.db is the modular Firestore instance, which has no
+   * .batch(), and window.firestoreModules was never defined, so neither write branch ran
+   * - yet every row was counted a success and the page announced "Successfully committed
+   * N records to Cloud Firestore". "Triggered N Decentro Penny Drop verifications" was
+   * announced the same way, without any call being made.
+   *
+   * Had the writes worked they would have done damage: users/{employeeCode} (user docs
+   * are keyed by auth uid), full bank account numbers copied into a top-level
+   * bank_verifications collection, and salary_structures overwritten with an invented
+   * 50/40 Basic/HRA split. The Finance tab's parser was handed raw bytes where it
+   * expects rows and threw on every file.
+   *
+   * The Bulk File Upload tab already imports Employee Finance and Statutory Compliance
+   * through code that writes for real, so the duplicates were removed, not repaired.
    */
-  it('disables the controls that were never implemented', () => {
-    assert.match(js, /function markBulkPanelUnavailable/);
-    assert.match(js, /is not built yet/);
-  });
-
-  it('points at what does work instead', () => {
-    assert.match(js, /Bulk File Upload tab/);
-  });
-
-  it('is applied to all three of them', () => {
-    for (const label of ['Job & Rosters', 'Finance & Statutory IDs', 'Org Statutory Registrations']) {
-      assert.ok(js.includes(label), 'no notice for ' + label);
+  it('has no tab or panel for them', () => {
+    for (const id of ['tabUnifiedJobRoster', 'tabUnifiedEmployeeFinance', 'tabUnifiedOrgCompliance',
+                      'unifiedJobRosterView', 'unifiedEmployeeFinanceView', 'unifiedOrgComplianceView']) {
+      assert.ok(!html.includes('id="' + id + '"'), id + ' is back');
+      assert.ok(!js.includes("'" + id + "'"), id + ' is still looked up');
     }
+  });
+
+  it('loads none of their scripts, which are deleted', () => {
+    for (const f of ['jobRosterParser.js', 'orgComplianceParser.js', 'unifiedIngestionService.js', 'unifiedIngestionUIController.js']) {
+      assert.ok(!html.includes('src="' + f + '"'), f + ' is still loaded');
+      assert.ok(!fs.existsSync(path.join(ROOT, f)), f + ' is back');
+    }
+    assert.ok(!/UnifiedIngestionUIController/.test(html));
   });
 });
 

@@ -360,7 +360,9 @@ test('PRD Sections 1, 4 & 13: Employee Finance & Statutory Details Module', asyn
     });
 
     await t.test('3. Decentro Fabric Beneficiary Integration (PRD Section 4)', async (st) => {
-        await st.test('Penny Drop / Account Verification simulates live staging API response', async () => {
+        await st.test('A format check reports a format check, not a verified account', async () => {
+            // No bank or provider is contacted. This used to answer VERIFIED with a
+            // successful penny drop, and the profile announced a Cashfree success.
             const verification = await financeService.validateBankAccountWithDecentro({
                 accountNumber: '50100234567890',
                 ifsc: 'HDFC0000053',
@@ -368,10 +370,11 @@ test('PRD Sections 1, 4 & 13: Employee Finance & Statutory Details Module', asyn
             });
 
             assert.equal(verification.success, true);
-            assert.equal(verification.verificationStatus, 'VERIFIED');
+            assert.equal(verification.formatValid, true);
+            assert.equal(verification.verificationStatus, 'NOT_VERIFIED');
+            assert.equal(verification.pennyDropStatus, 'NOT_PERFORMED');
+            assert.equal(verification.accountHolderMatch, null, 'nothing was matched against the bank');
             assert.ok(verification.decentroBeneficiaryId.startsWith('ben_'));
-            assert.equal(verification.pennyDropStatus, 'SUCCESS');
-            assert.equal(verification.accountHolderMatch, true);
             assert.equal(verification.accountHolderName, 'Arun Kumar');
         });
 
@@ -573,7 +576,11 @@ test('PRD Sections 1, 4 & 13: Employee Finance & Statutory Details Module', asyn
         assert.ok(onboardingHtml.includes('id="employeeFinanceManagementView"'), 'Must have employeeFinanceManagementView');
         assert.ok(onboardingHtml.includes('id="employeeFinanceParseResultsContainer"'), 'Must have employeeFinanceParseResultsContainer');
         assert.ok(onboardingHtml.includes('id="parsedEmployeeFinanceTableBody"'), 'Must have parsedEmployeeFinanceTableBody');
-        assert.ok(onboardingHtml.includes('id="btnConfirmEmployeeFinanceIngest"'), 'Must have btnConfirmEmployeeFinanceIngest');
+        // The finance sheet's Ingest button in the Bulk File Upload panel. The id
+        // btnConfirmEmployeeFinanceIngest belonged to a duplicate "Finance & Statutory IDs"
+        // tab that wrote nothing while reporting success, and was removed.
+        assert.ok(onboardingHtml.includes('id="btnConfirmLegacyEmpFinanceIngest"'), 'Must have the finance Ingest button');
+        assert.ok(!onboardingHtml.includes('id="btnConfirmEmployeeFinanceIngest"'), 'the removed duplicate tab is back');
 
         // admin-onboarding-upload.js check
         const onboardingJsPath = path.join(rootDir, 'admin-onboarding-upload.js');

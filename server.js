@@ -273,10 +273,10 @@ app.get('/reset-browser-data', (req, res) => {
     res.set('Clear-Site-Data', '"cache", "cookies", "storage"');
     res.set('Cache-Control', 'no-store');
     res.type('html').send(`<!doctype html><html><head><meta charset="utf-8"><title>Browser data cleared</title></head>
-<body style="font-family:system-ui,sans-serif;max-width:560px;margin:80px auto;padding:0 16px;color:#0f172a">
+<body style="font-family:system-ui,sans-serif;max-width:560px;margin:80px auto;padding:0 16px;color:var(--k-text)">
 <h2>Kylrx browser data cleared</h2>
 <p>Saved logins, cached data and any queued (unconfirmed) Firebase saves for this site were removed from this browser.</p>
-<p><a href="/login.html" style="color:#2563eb;font-weight:600">Go to login</a></p>
+<p><a href="/login.html" style="color:var(--k-accent-text);font-weight:600">Go to login</a></p>
 </body></html>`);
 });
 // Credential-shaped files are refused by SHAPE, not by name. The lists below are denylists

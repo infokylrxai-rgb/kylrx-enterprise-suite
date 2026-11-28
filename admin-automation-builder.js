@@ -419,7 +419,7 @@ function renderCanvas() {
                         <button class="btn-builder" style="padding: 4px 8px; font-size: 0.7rem;" title="Move Down" onclick="moveNode(event, ${index}, 1)" ${index === currentWorkflow.steps.length - 1 ? 'disabled style="opacity:0.3"' : ''}>
                             ▼
                         </button>
-                        <button class="btn-builder" style="padding: 4px 8px; font-size: 0.7rem; color: #dc2626;" title="Delete Step" onclick="deleteNode(event, ${index})" ${currentWorkflow.steps.length <= 1 ? 'disabled style="opacity:0.3"' : ''}>
+                        <button class="btn-builder" style="padding: 4px 8px; font-size: 0.7rem; color: var(--k-danger-text);" title="Delete Step" onclick="deleteNode(event, ${index})" ${currentWorkflow.steps.length <= 1 ? 'disabled style="opacity:0.3"' : ''}>
                             ✕
                         </button>
                     </div>
@@ -466,10 +466,10 @@ function renderStepMetaChips(step) {
         return `<span class="node-chip" style="color:#e11d48; border-color:#fecdd3;"><i data-lucide="shield-alert" size="12"></i> SLA: ${step.config?.thresholdHours || 48}h</span>`;
     }
     if (step.type === 'branch') {
-        return `<span class="node-chip" style="color:#b45309; border-color:#fde68a;"><i data-lucide="git-branch" size="12"></i> 2-Way Decision</span>`;
+        return `<span class="node-chip" style="color:var(--k-warning-text); border-color:var(--k-warning-border);"><i data-lucide="git-branch" size="12"></i> 2-Way Decision</span>`;
     }
     if (step.type === 'action') {
-        return `<span class="node-chip" style="color:#059669; border-color:#a7f3d0;"><i data-lucide="play" size="12"></i> Automated Action</span>`;
+        return `<span class="node-chip" style="color:var(--k-success-text); border-color:var(--k-success-border);"><i data-lucide="play" size="12"></i> Automated Action</span>`;
     }
     if (step.type === 'notification') {
         return `<span class="node-chip" style="color:#4338ca; border-color:#c7d2fe;"><i data-lucide="mail" size="12"></i> Multi-Channel</span>`;
@@ -575,7 +575,7 @@ function renderInspectorFields(step, spec) {
             html += `
                 <div class="form-group">
                     <label class="form-label">Condition Rules (Evaluation Gate)</label>
-                    <div style="background:#f8fafc; border:1px solid var(--border); border-radius:10px; padding:10px; font-size:0.8rem; display:flex; flex-direction:column; gap:8px;">
+                    <div style="background:var(--k-subtle); border:1px solid var(--border); border-radius:10px; padding:10px; font-size:0.8rem; display:flex; flex-direction:column; gap:8px;">
                         <div style="display:flex; justify-content:space-between;">
                             <span>Rule 1:</span> <strong>employeeType == "Full-Time"</strong>
                         </div>
@@ -594,11 +594,11 @@ function renderInspectorFields(step, spec) {
                     <input class="form-input" value="${escapeHtml(step.config?.conditionField || 'hasAssignedAssets')}" oninput="setStepConfig('conditionField', this.value)">
                 </div>
                 <div class="form-group">
-                    <label class="form-label" style="color: #059669;">Branch Path A (True)</label>
+                    <label class="form-label" style="color: var(--k-success-text);">Branch Path A (True)</label>
                     <input class="form-input" value="Collect Physical & Cloud Assets" readonly>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" style="color: #d97706;">Branch Path B (False)</label>
+                    <label class="form-label" style="color: var(--k-warning-text);">Branch Path B (False)</label>
                     <input class="form-input" value="Skip Directly to Finance Clearance" readonly>
                 </div>
             `;
@@ -608,7 +608,7 @@ function renderInspectorFields(step, spec) {
             html += `
                 <div class="form-group">
                     <label class="form-label">Sequential Approval Hierarchy</label>
-                    <div style="background:#f8fafc; border:1px solid var(--border); border-radius:10px; padding:10px; font-size:0.8rem; display:flex; flex-direction:column; gap:6px;">
+                    <div style="background:var(--k-subtle); border:1px solid var(--border); border-radius:10px; padding:10px; font-size:0.8rem; display:flex; flex-direction:column; gap:6px;">
                         <div>1. Direct Reporting Manager (N+1)</div>
                         <div>2. HR Operations Specialist</div>
                         <div>3. Finance / Payroll Controller</div>
@@ -681,7 +681,7 @@ function renderInspectorFields(step, spec) {
                     <div style="display:flex; gap: 8px; flex-wrap: wrap;">
                         <span class="node-chip" style="background:#e0e7ff; color:#3730a3;"><i data-lucide="mail" size="12"></i> Email</span>
                         <span class="node-chip" style="background:#e0f2fe; color:#0369a1;"><i data-lucide="bell" size="12"></i> In-App Portal</span>
-                        <span class="node-chip" style="background:#fef3c7; color:#92400e;"><i data-lucide="message-square" size="12"></i> Slack</span>
+                        <span class="node-chip" style="background:var(--k-warning-soft); color:var(--k-warning-text);"><i data-lucide="message-square" size="12"></i> Slack</span>
                     </div>
                 </div>
                 <div class="form-group">
@@ -704,7 +704,7 @@ function renderInspectorFields(step, spec) {
     // Add Delete This Step action button in inspector drawer
     html += `
         <div style="margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid var(--border);">
-            <button type="button" class="btn-builder" style="width: 100%; padding: 11px; color: #dc2626; border: 1px solid #fecaca; background: #fef2f2; font-weight: 700; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: 0.2s;" onclick="deleteNode(event, selectedNodeIndex)" ${currentWorkflow.steps.length <= 1 ? 'disabled style="opacity:0.3"' : ''}>
+            <button type="button" class="btn-builder" style="width: 100%; padding: 11px; color: var(--k-danger-text); border: 1px solid var(--k-danger-border); background: var(--k-danger-soft); font-weight: 700; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: 0.2s;" onclick="deleteNode(event, selectedNodeIndex)" ${currentWorkflow.steps.length <= 1 ? 'disabled style="opacity:0.3"' : ''}>
                 <i data-lucide="trash-2" size="16"></i>
                 <span>Delete This Step (Syncs to Firebase)</span>
             </button>
@@ -1037,7 +1037,7 @@ async function deleteNode(e, index) {
 
     const confirmed = await showConfirmModal({
         title: 'Remove Step',
-        message: `Remove step ${index + 1}: "<strong>${escapeHtml(stepTitle)}</strong>"?<br><span style="font-size:0.8rem; color:#059669; margin-top:8px; display:inline-block;">⚡ Connected to Backend Firebase: changes will be automatically saved.</span>`,
+        message: `Remove step ${index + 1}: "<strong>${escapeHtml(stepTitle)}</strong>"?<br><span style="font-size:0.8rem; color:var(--k-success-text); margin-top:8px; display:inline-block;">⚡ Connected to Backend Firebase: changes will be automatically saved.</span>`,
         confirmText: 'Remove Step',
         cancelText: 'Cancel',
         danger: true,
@@ -1218,7 +1218,7 @@ async function runFlowSimulation() {
         <div style="color: #38bdf8; font-weight: 700; margin-bottom: 6px;">
             [${new Date().toLocaleTimeString()}] ⚡ Initializing Kylrx Unified 8-Stage Automation Pipeline...
         </div>
-        <div style="color: #94a3b8; margin-bottom: 8px;">
+        <div style="color: var(--k-muted); margin-bottom: 8px;">
             Target Flow: <strong>${escapeHtml(currentWorkflow.name)}</strong> (${currentWorkflow.steps.length} Steps)
         </div>
     `;
@@ -1314,7 +1314,7 @@ async function deployWorkflow() {
 
     await showAlertModal({
         title: 'Automation Deployed Successfully',
-        message: `Workflow <strong>${escapeHtml(currentWorkflow.name)}</strong> is now active and connected to Backend Firebase.<br><br><div style="text-align: left; background: #f8fafc; border: 1px solid var(--border, #e2e8f0); border-radius: 12px; padding: 14px 16px; font-size: 0.85rem; color: #475569;"><div style="margin-bottom: 6px; display: flex; justify-content: space-between;"><span>• Steps:</span><strong>${currentWorkflow.steps.length}</strong></div><div style="margin-bottom: 6px; display: flex; justify-content: space-between;"><span>• Status:</span><span style="color: #16a34a; font-weight: 700;">ACTIVE</span></div><div style="margin-bottom: 6px; display: flex; justify-content: space-between;"><span>• Backend API:</span><strong style="color: #2563eb;">${syncRes.backendSynced ? 'Connected (200 OK)' : 'Offline'}</strong></div><div style="display: flex; justify-content: space-between;"><span>• Firebase Firestore:</span><strong style="color: #059669;">${syncRes.firestoreSynced || syncRes.backendSynced ? 'Connected (Synced)' : 'Local Cache'}</strong></div></div>`,
+        message: `Workflow <strong>${escapeHtml(currentWorkflow.name)}</strong> is now active and connected to Backend Firebase.<br><br><div style="text-align: left; background: var(--k-subtle); border: 1px solid var(--border, var(--k-border)); border-radius: 12px; padding: 14px 16px; font-size: 0.85rem; color: var(--k-text-2);"><div style="margin-bottom: 6px; display: flex; justify-content: space-between;"><span>• Steps:</span><strong>${currentWorkflow.steps.length}</strong></div><div style="margin-bottom: 6px; display: flex; justify-content: space-between;"><span>• Status:</span><span style="color: var(--k-success-text); font-weight: 700;">ACTIVE</span></div><div style="margin-bottom: 6px; display: flex; justify-content: space-between;"><span>• Backend API:</span><strong style="color: var(--k-accent-text);">${syncRes.backendSynced ? 'Connected (200 OK)' : 'Offline'}</strong></div><div style="display: flex; justify-content: space-between;"><span>• Firebase Firestore:</span><strong style="color: var(--k-success-text);">${syncRes.firestoreSynced || syncRes.backendSynced ? 'Connected (Synced)' : 'Local Cache'}</strong></div></div>`,
         type: 'success',
         okText: 'Done'
     });

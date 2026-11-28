@@ -102,7 +102,8 @@ class PayrollEmailAccountService {
 
         // Seed initial approved email templates and sample records
         this._seedApprovedTemplates();
-        this._seedSampleEmployees();
+        // No sample employees: the API served them as the organisation's.
+        this.sampleEmployees = new Map();
         this._seedCanonicalRules();
     }
 

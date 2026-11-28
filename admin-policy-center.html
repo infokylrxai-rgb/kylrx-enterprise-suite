@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="kylrx-theme-init.js"></script>
     <script src="config.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,7 +19,7 @@
         }
 
         .policy-card {
-            background: white; border-radius: 24px; padding: 2rem;
+            background: var(--k-surface); border-radius: 24px; padding: 2rem;
             border: 1px solid var(--border); box-shadow: var(--shadow-sm);
             margin-bottom: 2rem;
         }
@@ -29,18 +30,18 @@
 
         .policy-item {
             display: grid; grid-template-columns: 50px 1fr 120px 100px 40px;
-            padding: 1.25rem; background: #f8fafc; border-radius: 16px;
+            padding: 1.25rem; background: var(--k-subtle); border-radius: 16px;
             align-items: center; border: 1px solid transparent; transition: 0.2s;
         }
 
-        .policy-item:hover { border-color: var(--primary-soft); background: white; }
+        .policy-item:hover { border-color: var(--primary-soft); background: var(--k-surface); }
 
         .rollout-stat {
             display: flex; flex-direction: column; gap: 6px;
         }
 
         .progress-bar {
-            height: 6px; background: #e2e8f0; border-radius: 10px; overflow: hidden;
+            height: 6px; background: var(--k-border); border-radius: 10px; overflow: hidden;
         }
 
         .progress-fill { height: 100%; background: var(--primary); }
@@ -51,7 +52,7 @@
         }
 
         .type-icon {
-            width: 32px; height: 32px; border-radius: 8px; background: white;
+            width: 32px; height: 32px; border-radius: 8px; background: var(--k-surface);
             display: flex; align-items: center; justify-content: center;
             color: var(--primary); border: 1px solid var(--border);
         }
@@ -74,7 +75,7 @@
         }
         .modal-overlay.active { display: flex; opacity: 1; }
         .modal-card {
-            background: white; width: 100%; max-width: 500px; border-radius: 32px; padding: 2rem;
+            background: var(--k-surface); width: 100%; max-width: 500px; border-radius: 32px; padding: 2rem;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
             transform: translateY(20px); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -83,13 +84,17 @@
         /* Toast Notification */
         .toast-notification {
             position: fixed; top: 2rem; left: 50%; transform: translateX(-50%) translateY(-20px);
-            background: #10b981; color: white; padding: 1rem 2rem; border-radius: 100px;
+            background: var(--k-success); color: white; padding: 1rem 2rem; border-radius: 100px;
             font-weight: 700; font-size: 0.875rem; display: flex; align-items: center; gap: 12px;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
             z-index: 4000; opacity: 0; pointer-events: none; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .toast-notification.active { opacity: 1; transform: translateX(-50%) translateY(0); }
     </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="kylrx-theme.css">
 </head>
 <body class="admin-dashboard">
     <div class="dashboard-container">
@@ -184,8 +189,8 @@
                     <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
                         <h1>Enterprise Policy Center</h1>
                         <!-- Firebase Backend Status Badge -->
-                        <div class="firebase-status-badge" id="firebaseLiveBadge" onclick="toggleFirebaseDetailsModal()" style="cursor: pointer; display: flex; align-items: center; gap: 7px; background: #ecfdf5; border: 1.5px solid #a7f3d0; border-radius: 20px; padding: 5px 12px; font-size: 0.8rem; font-weight: 700; color: #065f46; transition: all 0.2s;" title="Click to inspect live Firebase connection">
-                            <span class="pulse-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);"></span>
+                        <div class="firebase-status-badge" id="firebaseLiveBadge" onclick="toggleFirebaseDetailsModal()" style="cursor: pointer; display: flex; align-items: center; gap: 7px; background: var(--k-success-soft); border: 1.5px solid var(--k-success-border); border-radius: 20px; padding: 5px 12px; font-size: 0.8rem; font-weight: 700; color: var(--k-success-text); transition: all 0.2s;" title="Click to inspect live Firebase connection">
+                            <span class="pulse-dot" style="width: 8px; height: 8px; border-radius: 50%; background: var(--k-success); display: inline-block; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);"></span>
                             <span id="firebaseStatusText">Firebase: Connected</span>
                         </div>
                     </div>
@@ -213,18 +218,18 @@
                         </div>
                     </div>
 
-                    <div class="card" style="padding: 2rem; border-radius: 24px; background: white; border: 1px solid var(--border);">
+                    <div class="card" style="padding: 2rem; border-radius: 24px; background: var(--k-surface); border: 1px solid var(--border);">
                         <h3 style="font-weight: 800; margin-bottom: 1.5rem;">Policy Assignment Engine</h3>
                         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
-                            <div class="assignment-card active" id="btnAutoAssign" style="padding: 1.25rem; background: #eff6ff; border-radius: 16px; cursor: pointer; border: 2px solid var(--primary-soft); transition: 0.2s;">
+                            <div class="assignment-card active" id="btnAutoAssign" style="padding: 1.25rem; background: var(--k-accent-soft); border-radius: 16px; cursor: pointer; border: 2px solid var(--primary-soft); transition: 0.2s;">
                                 <p class="nav-label" style="margin:0">Newly Joined</p>
                                 <h4 style="font-weight: 800; color: var(--primary); margin-top: 4px;">Auto-Assign</h4>
                             </div>
-                            <div class="assignment-card" id="btnSelective" style="padding: 1.25rem; background: #f8fafc; border-radius: 16px; cursor: pointer; border: 2px solid transparent; transition: 0.2s;">
+                            <div class="assignment-card" id="btnSelective" style="padding: 1.25rem; background: var(--k-subtle); border-radius: 16px; cursor: pointer; border: 2px solid transparent; transition: 0.2s;">
                                 <p class="nav-label" style="margin:0">Dept Wise</p>
                                 <h4 style="font-weight: 800; color: var(--text-muted); margin-top: 4px;">Selective</h4>
                             </div>
-                            <div class="assignment-card" id="btnCustomPlans" style="padding: 1.25rem; background: #f8fafc; border-radius: 16px; cursor: pointer; border: 2px solid transparent; transition: 0.2s;">
+                            <div class="assignment-card" id="btnCustomPlans" style="padding: 1.25rem; background: var(--k-subtle); border-radius: 16px; cursor: pointer; border: 2px solid transparent; transition: 0.2s;">
                                 <p class="nav-label" style="margin:0">Legal Entities</p>
                                 <h4 style="font-weight: 800; color: var(--text-muted); margin-top: 4px;">Custom Plans</h4>
                             </div>
@@ -233,7 +238,7 @@
                 </div>
 
                 <div class="doc-right">
-                    <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.5rem;">
+                    <div class="ai-glass-card" style="background: var(--k-surface); border: 1px solid var(--border); padding: 1.5rem;">
                         <h3 style="font-weight: 800; margin-bottom: 1.5rem;">Acknowledgement Audit</h3>
                         <div class="audit-list">
                             <p style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.8rem;">Awaiting organizational activity...</p>
@@ -241,7 +246,7 @@
                         <button class="btn btn-outline" style="width:100%; margin-top: 1.5rem; font-size: 0.75rem;" onclick="toggleAuditModal(true)">View Full Logs</button>
                     </div>
 
-                    <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.5rem; margin-top: 2rem;">
+                    <div class="ai-glass-card" style="background: var(--k-surface); border: 1px solid var(--border); padding: 1.5rem; margin-top: 2rem;">
                         <h3 style="font-weight: 800; margin-bottom: 1.5rem;">Compliance Pulse</h3>
                         <div style="display: flex; flex-direction: column; gap: 1rem;">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -250,12 +255,12 @@
                             </div>
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <span style="font-size: 0.875rem; font-weight: 600;">Overdue (SLA)</span>
-                                <span style="font-size: 0.875rem; font-weight: 800; color: #ef4444;" id="overdueCount">12 Emp</span>
+                                <span style="font-size: 0.875rem; font-weight: 800; color: var(--k-danger-text);" id="overdueCount">12 Emp</span>
                             </div>
                         </div>
-                        <div style="margin-top: 1.5rem; padding: 1rem; background: #fff1f2; border-radius: 12px; border: 1px solid #fecaca; display: flex; gap: 10px; align-items: start;">
-                            <i data-lucide="shield-alert" size="18" style="color: #ef4444; flex-shrink: 0;"></i>
-                            <p style="font-size: 0.7rem; color: #991b1b; line-height: 1.4;" id="blockedMsg"><strong>Critical Block:</strong> 4 employees have blocked system access due to unacknowledged Security Policies.</p>
+                        <div style="margin-top: 1.5rem; padding: 1rem; background: #fff1f2; border-radius: 12px; border: 1px solid var(--k-danger-border); display: flex; gap: 10px; align-items: start;">
+                            <i data-lucide="shield-alert" size="18" style="color: var(--k-danger-text); flex-shrink: 0;"></i>
+                            <p style="font-size: 0.7rem; color: var(--k-danger-text); line-height: 1.4;" id="blockedMsg"><strong>Critical Block:</strong> 4 employees have blocked system access due to unacknowledged Security Policies.</p>
                         </div>
                     </div>
                 </div>
@@ -266,15 +271,15 @@
     <!-- Policy Delete Confirm Modal -->
     <div class="modal-overlay" id="policyDeleteModal">
         <div class="modal-card" style="max-width: 400px; text-align: center;">
-            <div style="background: #fef2f2; color: #ef4444; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem auto; font-size: 1.5rem;">
-                <i data-lucide="alert-triangle" style="width: 28px; height: 28px; color: #ef4444;"></i>
+            <div style="background: var(--k-danger-soft); color: var(--k-danger-text); width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem auto; font-size: 1.5rem;">
+                <i data-lucide="alert-triangle" style="width: 28px; height: 28px; color: var(--k-danger-text);"></i>
             </div>
-            <h3 style="font-weight: 800; font-size: 1.25rem; margin-bottom: 0.5rem; color: #1e293b;">Retire Policy?</h3>
+            <h3 style="font-weight: 800; font-size: 1.25rem; margin-bottom: 0.5rem; color: var(--k-text);">Retire Policy?</h3>
             <p id="policyDeleteMsg" style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 2rem;">Are you sure you want to permanently delete this policy? All signature records and active requirements will be revoked.</p>
             
             <div style="display: flex; gap: 12px;">
                 <button class="btn btn-outline" style="flex: 1; justify-content: center;" onclick="togglePolicyDeleteModal(false)">Cancel</button>
-                <button class="btn btn-primary" id="btnConfirmDeletePolicy" style="flex: 1; justify-content: center; background: #ef4444; border-color: #ef4444;">Delete</button>
+                <button class="btn btn-primary" id="btnConfirmDeletePolicy" style="flex: 1; justify-content: center; background: var(--k-danger); border-color: #ef4444;">Delete</button>
             </div>
         </div>
     </div>
@@ -360,7 +365,7 @@
                 <div id="logicContainer" style="display: flex; flex-direction: column; gap: 10px;">
                     <!-- Logic rows injected here -->
                 </div>
-                <div id="btnAddLogic" style="padding: 1.25rem; background: #f8fafc; border-radius: 16px; border: 1px dashed var(--border); text-align: center; cursor: pointer; transition: 0.2s;">
+                <div id="btnAddLogic" style="padding: 1.25rem; background: var(--k-subtle); border-radius: 16px; border: 1px dashed var(--border); text-align: center; cursor: pointer; transition: 0.2s;">
                     <i data-lucide="plus-circle" style="color: var(--primary); margin-bottom: 8px;"></i>
                     <p style="font-size: 0.75rem; font-weight: 600;">Add Requirement Logic</p>
                 </div>
@@ -386,7 +391,7 @@
                 <label class="nav-label">SELECT DEPARTMENTS</label>
                 <div id="deptChecklist" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                     <!-- Dynamically populated -->
-                    <div style="padding: 12px; background: #f8fafc; border-radius: 12px; display: flex; align-items: center; gap: 8px; grid-column: span 2;">
+                    <div style="padding: 12px; background: var(--k-subtle); border-radius: 12px; display: flex; align-items: center; gap: 8px; grid-column: span 2;">
                         <span style="font-size: 0.75rem; color: var(--text-muted);">Syncing departments...</span>
                     </div>
                 </div>
@@ -545,7 +550,7 @@
                 list.innerHTML = versions.map(data => {
                     const date = data.timestamp ? (new Date(data.timestamp).toLocaleDateString()) : 'Recent';
                     return `
-                        <div style="padding: 1.25rem; background: #f8fafc; border: 1px solid var(--border); border-radius: 16px; display: flex; justify-content: space-between; align-items: center;">
+                        <div style="padding: 1.25rem; background: var(--k-subtle); border: 1px solid var(--border); border-radius: 16px; display: flex; justify-content: space-between; align-items: center;">
                             <div>
                                 <h4 style="font-weight: 800; font-size: 0.875rem;">${data.title}</h4>
                                 <p style="font-size: 0.75rem; color: var(--text-muted);">v${data.version || '1.0'} • ${data.category || 'General'}</p>
@@ -560,7 +565,7 @@
                 if (window.lucide) lucide.createIcons();
             } catch (err) {
                 console.error("Error fetching versions:", err);
-                list.innerHTML = `<p style="text-align:center; color:#ef4444; padding: 2rem;">Failed to retrieve version history.</p>`;
+                list.innerHTML = `<p style="text-align:center; color:var(--k-danger-text); padding: 2rem;">Failed to retrieve version history.</p>`;
             }
         }
 
@@ -690,7 +695,7 @@
                         <option>If Location is...</option>
                     </select>
                     <input type="text" class="input-box" placeholder="Value" style="padding: 6px; font-size: 0.75rem;">
-                    <button class="action-icon" style="color: #ef4444;"><i data-lucide="trash-2" size="14"></i></button>
+                    <button class="action-icon" style="color: var(--k-danger-text);"><i data-lucide="trash-2" size="14"></i></button>
                 `;
                 row.querySelector('button').addEventListener('click', () => row.remove());
                 container.appendChild(row);
@@ -869,7 +874,7 @@
                         <div class="progress-bar"><div class="progress-fill" style="width: ${pct}%; background: ${color};"></div></div>
                     </div>
                     <span class="assignment-badge">${escapeText(policy.scope || 'Global')}</span>
-                    <button class="action-icon" style="color: #ef4444; border: 1px solid #fca5a5; background: #fff5f5; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;" data-policy-id="${escapeText(policy.id)}" title="Delete Policy"><i data-lucide="trash-2" size="14"></i></button>
+                    <button class="action-icon" style="color: #ef4444; border: 1px solid var(--k-danger-border); background: #fff5f5; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;" data-policy-id="${escapeText(policy.id)}" title="Delete Policy"><i data-lucide="trash-2" size="14"></i></button>
                 `;
                 item.querySelector('[data-policy-id]').addEventListener('click', () => deletePolicyConfirm(policy.id, policy.title || ''));
                 list.appendChild(item);
@@ -920,7 +925,7 @@
                 updateFullAuditUI(logs);
             } catch (err) {
                 console.error("Error fetching full audit logs:", err);
-                list.innerHTML = '<p style="text-align: center; color: #ef4444;">Failed to retrieve audit history.</p>';
+                list.innerHTML = '<p style="text-align: center; color: var(--k-danger-text);">Failed to retrieve audit history.</p>';
             }
         }
 
@@ -974,7 +979,7 @@
                 });
             } catch (err) {
                 console.error("Error loading departments:", err);
-                list.innerHTML = '<p style="font-size: 0.7rem; color: #ef4444;">Failed to load units.</p>';
+                list.innerHTML = '<p style="font-size: 0.7rem; color: var(--k-danger-text);">Failed to load units.</p>';
             }
         }
 
@@ -1049,7 +1054,7 @@
 
     <!-- Firebase Backend Connection Inspection Modal -->
     <div class="modal-overlay" id="firebaseDetailsModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center;">
-        <div class="modal-card" style="max-width: 580px; width: 92%; padding: 0; border-radius: 20px; overflow: hidden; background: #ffffff; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+        <div class="modal-card" style="max-width: 580px; width: 92%; padding: 0; border-radius: 20px; overflow: hidden; background: var(--k-surface); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
             <div class="modal-header" style="background: linear-gradient(135deg, #065f46 0%, #047857 100%); padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between; border-bottom: none;">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: center; color: white;">
@@ -1064,33 +1069,33 @@
             </div>
             
             <div class="modal-body" style="padding: 1.5rem;">
-                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem; margin-bottom: 1.25rem;">
+                <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 10px; padding: 1rem; margin-bottom: 1.25rem;">
                     <div style="display: grid; grid-template-columns: 140px 1fr; row-gap: 8px; font-size: 0.8rem;">
-                        <span style="color: #64748b; font-weight: 700;">Project ID:</span>
-                        <span style="font-weight: 800; color: #0f172a; font-family: monospace;" id="fbModalProject" data-firebase-project>—</span>
+                        <span style="color: var(--k-muted); font-weight: 700;">Project ID:</span>
+                        <span style="font-weight: 800; color: var(--k-text); font-family: monospace;" id="fbModalProject" data-firebase-project>—</span>
 
-                        <span style="color: #64748b; font-weight: 700;">Backend Status:</span>
-                        <span style="color: #059669; font-weight: 800; display: flex; align-items: center; gap: 6px;" id="fbModalStatus">
-                            <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+                        <span style="color: var(--k-muted); font-weight: 700;">Backend Status:</span>
+                        <span style="color: var(--k-success-text); font-weight: 800; display: flex; align-items: center; gap: 6px;" id="fbModalStatus">
+                            <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--k-success); display: inline-block;"></span>
                             Active &amp; Operational
                         </span>
 
-                        <span style="color: #64748b; font-weight: 700;">Client Firestore:</span>
-                        <span style="font-weight: 800; color: #0f172a;" id="fbModalClient">Firebase JS SDK v12.12.1 (Online)</span>
+                        <span style="color: var(--k-muted); font-weight: 700;">Client Firestore:</span>
+                        <span style="font-weight: 800; color: var(--k-text);" id="fbModalClient">Firebase JS SDK v12.12.1 (Online)</span>
 
-                        <span style="color: #64748b; font-weight: 700;">Admin Service:</span>
-                        <span style="font-size: 0.75rem; color: #475569; word-break: break-all;" id="fbModalEmail">the server's service account</span>
+                        <span style="color: var(--k-muted); font-weight: 700;">Admin Service:</span>
+                        <span style="font-size: 0.75rem; color: var(--k-text-2); word-break: break-all;" id="fbModalEmail">the server's service account</span>
 
-                        <span style="color: #64748b; font-weight: 700;">Storage Bucket:</span>
-                        <span style="color: #0f172a; font-family: monospace;" data-firebase-bucket>—</span>
+                        <span style="color: var(--k-muted); font-weight: 700;">Storage Bucket:</span>
+                        <span style="color: var(--k-text); font-family: monospace;" data-firebase-bucket>—</span>
 
-                        <span style="color: #64748b; font-weight: 700;">Live Collections:</span>
-                        <span style="color: #1d4ed8; font-weight: 700;" id="fbModalCollections">policies (4), policy_audit (7), system_config, users</span>
+                        <span style="color: var(--k-muted); font-weight: 700;">Live Collections:</span>
+                        <span style="color: var(--k-accent-text); font-weight: 700;" id="fbModalCollections">policies (4), policy_audit (7), system_config, users</span>
                     </div>
                 </div>
 
-                <div style="background: #eff6ff; border-left: 4px solid #3b82f6; padding: 10px 14px; border-radius: 4px; margin-bottom: 1.25rem;">
-                    <p style="margin: 0; font-size: 0.75rem; color: #1e40af; line-height: 1.4;">
+                <div style="background: var(--k-accent-soft); border-left: 4px solid var(--k-accent); padding: 10px 14px; border-radius: 4px; margin-bottom: 1.25rem;">
+                    <p style="margin: 0; font-size: 0.75rem; color: var(--k-accent-text); line-height: 1.4;">
                         ⚡ <strong>Realtime Cloud Sync:</strong> All policy rollouts, signatures, acknowledgements, and assignment engine state stream live with Google Cloud Firestore.
                     </p>
                 </div>
@@ -1121,27 +1126,27 @@
                 justify-content: center;
             }
             #customAppsModal .modal {
-                background: #ffffff !important;
-                color: #0f172a !important;
+                background: var(--k-surface) !important;
+                color: var(--k-text) !important;
                 padding: 2rem;
                 border-radius: 24px;
                 width: 90%;
                 max-width: 500px;
                 box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-                border: 1px solid #e2e8f0;
+                border: 1px solid var(--k-border);
                 position: relative;
                 text-align: left;
             }
             #customAppsModal .modal h2 {
                 font-weight: 800;
                 font-size: 1.25rem;
-                color: #0f172a !important;
+                color: var(--k-text) !important;
                 margin-bottom: 4px;
                 margin-top: 0;
             }
             #customAppsModal .modal p {
                 font-size: 0.75rem;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 margin: 0;
             }
             #customAppsModal .modal .form-group {
@@ -1153,7 +1158,7 @@
             #customAppsModal .modal label {
                 font-size: 0.7rem;
                 font-weight: 800;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 text-transform: uppercase;
                 display: block;
                 margin-bottom: 4px;
@@ -1162,9 +1167,9 @@
                 width: 100%;
                 padding: 12px 16px;
                 border-radius: 12px;
-                border: 1px solid #cbd5e1 !important;
-                background: #ffffff !important;
-                color: #0f172a !important;
+                border: 1px solid var(--k-border) !important;
+                background: var(--k-surface) !important;
+                color: var(--k-text) !important;
                 outline: none;
                 margin-top: 4px;
                 font-family: inherit;
@@ -1172,15 +1177,15 @@
                 transition: border-color 0.2s, box-shadow 0.2s;
             }
             #customAppsModal .modal input:focus {
-                border-color: #3b82f6 !important;
+                border-color: var(--k-accent) !important;
                 box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
             }
             #customAppsModal .modal input::placeholder {
-                color: #94a3b8 !important;
+                color: var(--k-muted) !important;
                 opacity: 0.8;
             }
             #customAppsModal .modal button.map-btn {
-                background: #3b82f6;
+                background: var(--k-accent);
                 color: white !important;
                 border: none;
                 border-radius: 12px;
@@ -1194,13 +1199,13 @@
                 margin-top: 0.5rem;
             }
             #customAppsModal .modal button.map-btn:hover {
-                background: #2563eb;
+                background: var(--k-accent);
                 transform: translateY(-1px);
             }
             #customAppsModal .modal h3 {
                 font-size: 0.7rem;
                 font-weight: 800;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 text-transform: uppercase;
                 margin-bottom: 10px;
                 margin-top: 0;
@@ -1212,8 +1217,8 @@
                 width: 36px;
                 height: 36px;
                 border-radius: 10px;
-                background: #f8fafc;
-                color: #64748b !important;
+                background: var(--k-subtle);
+                color: var(--k-muted) !important;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -1222,8 +1227,8 @@
                 border: none;
             }
             #customAppsModal .close-modal:hover {
-                color: #ef4444 !important;
-                background: #fee2e2;
+                color: var(--k-danger-text) !important;
+                background: var(--k-danger-soft);
             }
         </style>
         <div class="modal">
@@ -1247,7 +1252,7 @@
                 <button class="map-btn" onclick="addCustomApp()">Map Tool Link</button>
             </div>
 
-            <div style="border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
+            <div style="border-top: 1px solid var(--k-border); padding-top: 1.25rem;">
                 <h3>Mapped Connections</h3>
                 <div id="registryAppsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;">
                     <!-- Mapped apps inside the registry panel -->

@@ -169,7 +169,9 @@
     }
 
     // Auto-seed default ledger
-    seedDefaultRecords();
+    // Not run on load. Sample employees (EMP0001...) seeded here answered lookups as
+
+    // if they were real records; seedDefaultRecords() stays exported for tests.
 
     /**
      * Computes service duration and completed years per Payment of Gratuity Act, 1972:
@@ -445,11 +447,11 @@
       </li>
       <li>
         <span class="item-label">8. Amount of gratuity claimed / payable:</span>
-        <span class="item-val" style="color: #059669; font-weight: 800; font-size: 15px;">₹${Number(claimAmount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+        <span class="item-val" style="color: var(--k-success-text); font-weight: 800; font-size: 15px;">₹${Number(claimAmount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
       </li>
     </ul>
 
-    <p style="font-size: 13px; color: #475569; margin-top: 20px;">
+    <p style="font-size: 13px; color: var(--k-text-2); margin-top: 20px;">
       It is requested that the settlement amount may kindly be disbursed through Decentro Fabric Core Banking transfer / NEFT to my verified primary salary bank account.
     </p>
 

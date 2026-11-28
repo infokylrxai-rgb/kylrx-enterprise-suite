@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="kylrx-theme-init.js"></script>
     <script src="config.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -55,7 +56,7 @@
 
         .sidebar {
             width: var(--sidebar-width);
-            background: #ffffff;
+            background: var(--k-surface);
             border-right: 1px solid var(--border);
             padding: 1.5rem 1rem 1rem;
             display: flex;
@@ -90,11 +91,11 @@
         .sidebar-bottom {
             padding-top: 0.75rem;
             margin-top: auto;
-            border-top: 1px solid #f1f5f9;
+            border-top: 1px solid var(--k-border);
             display: flex;
             flex-direction: column;
             gap: 2px;
-            background: #ffffff;
+            background: var(--k-surface);
         }
 
         .main-content {
@@ -102,7 +103,7 @@
             flex: 1;
             padding: 2rem 2rem;
             min-height: 100vh;
-            background: var(--bg-soft, #f8fafc);
+            background: var(--bg-soft, var(--k-subtle));
             display: flex;
             flex-direction: column;
         }
@@ -116,17 +117,17 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            color: #475569 !important;
+            color: var(--k-text-2) !important;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
         }
         .sidebar .nav-link:hover {
-            background: #eff6ff !important;
-            color: #2563eb !important;
+            background: var(--k-accent-soft) !important;
+            color: var(--k-accent-text) !important;
         }
         .sidebar .nav-link.active {
-            background: #eff6ff !important;
-            color: #2563eb !important;
+            background: var(--k-accent-soft) !important;
+            color: var(--k-accent-text) !important;
             font-weight: 700;
         }
         .sidebar .nav-link.active::before {
@@ -136,13 +137,13 @@
             top: 15%;
             bottom: 15%;
             width: 3.5px;
-            background: #2563eb;
+            background: var(--k-accent);
             border-radius: 0 4px 4px 0;
         }
 
         .chat-container {
             flex: 1;
-            background: var(--card, #ffffff);
+            background: var(--card, var(--k-surface));
             border-radius: var(--radius, 20px);
             border: 1px solid var(--border);
             box-shadow: var(--shadow-sm);
@@ -161,7 +162,7 @@
         .contacts-header {
             padding: 1.25rem;
             border-bottom: 1px solid var(--border);
-            background: white;
+            background: var(--k-surface);
         }
         .contacts-scrollable {
             flex: 1;
@@ -169,15 +170,15 @@
         }
         .contact-item {
             padding: 1rem 1.25rem;
-            border-bottom: 1px solid #f1f5f9;
+            border-bottom: 1px solid var(--k-border);
             cursor: pointer;
             transition: all 0.15s;
             display: flex;
             gap: 12px;
             align-items: center;
         }
-        .contact-item:hover { background: #f8fafc; }
-        .contact-item.selected { background: #eff6ff; border-left: 4px solid var(--primary); }
+        .contact-item:hover { background: var(--k-subtle); }
+        .contact-item.selected { background: var(--k-accent-soft); border-left: 4px solid var(--primary); }
         .contact-avatar {
             width: 42px;
             height: 42px;
@@ -192,13 +193,13 @@
             flex-shrink: 0;
         }
         .contact-info { flex: 1; min-width: 0; }
-        .contact-name { font-weight: 700; font-size: 0.875rem; color: #0f172a; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .contact-name { font-weight: 700; font-size: 0.875rem; color: var(--k-text); margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .contact-last { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
         .chat-window {
             display: flex;
             flex-direction: column;
-            background: white;
+            background: var(--k-surface);
             min-width: 0;
         }
         .chat-header {
@@ -207,7 +208,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background: white;
+            background: var(--k-surface);
         }
         .chat-messages {
             flex: 1;
@@ -216,7 +217,7 @@
             display: flex;
             flex-direction: column;
             gap: 1rem;
-            background: #f8fafc;
+            background: var(--k-subtle);
         }
         .message {
             max-width: 70%;
@@ -229,18 +230,18 @@
             word-wrap: break-word;
         }
         .message.received {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
+            background: var(--k-surface);
+            border: 1px solid var(--k-border);
             align-self: flex-start;
             border-bottom-left-radius: 4px;
-            color: #0f172a;
+            color: var(--k-text);
         }
         .message.sent {
-            background: #eff6ff;
-            border: 1px solid #bfdbfe;
+            background: var(--k-accent-soft);
+            border: 1px solid var(--k-accent-border);
             align-self: flex-end;
             border-bottom-right-radius: 4px;
-            color: #1e3a8a;
+            color: var(--k-accent-text);
         }
 
         .chat-input {
@@ -249,7 +250,7 @@
             display: flex;
             gap: 0.75rem;
             position: relative;
-            background: white;
+            background: var(--k-surface);
             align-items: center;
         }
         .input-box {
@@ -263,7 +264,7 @@
             transition: border-color 0.2s;
         }
         .input-box:focus {
-            border-color: #2563eb;
+            border-color: var(--k-accent);
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
         }
 
@@ -286,7 +287,7 @@
         .ai-btn:hover { background: #fce7f3; transform: scale(1.02); }
 
         .send-btn {
-            background: #2563eb;
+            background: var(--k-accent);
             color: white;
             border: none;
             padding: 0 20px;
@@ -300,10 +301,10 @@
             flex-shrink: 0;
             font-weight: 700;
         }
-        .send-btn:hover { background: #1d4ed8; }
+        .send-btn:hover { background: var(--k-accent); }
 
         .attach-btn {
-            background: #f8fafc;
+            background: var(--k-subtle);
             color: var(--text-muted);
             border: 1px solid var(--border);
             padding: 0 14px;
@@ -316,10 +317,10 @@
             height: 44px;
             flex-shrink: 0;
         }
-        .attach-btn:hover { background: #e2e8f0; color: #1e293b; }
+        .attach-btn:hover { background: var(--k-border); color: var(--k-text); }
 
         .file-pill {
-            background: #f1f5f9;
+            background: var(--k-subtle);
             border: 1px solid var(--border);
             padding: 6px 12px;
             border-radius: 20px;
@@ -328,11 +329,11 @@
             gap: 8px;
             font-size: 0.8rem;
             font-weight: 600;
-            color: #334155;
+            color: var(--k-text-2);
         }
         .file-pill .remove {
             cursor: pointer;
-            color: #ef4444;
+            color: var(--k-danger-text);
             display: flex;
             align-items: center;
         }
@@ -343,7 +344,7 @@
             bottom: 100%;
             left: 1.5rem;
             width: 260px;
-            background: white;
+            background: var(--k-surface);
             border: 1px solid var(--border);
             border-radius: 12px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
@@ -365,7 +366,7 @@
             transition: 0.2s;
             font-size: 0.875rem;
         }
-        .mention-item:hover { background: #eff6ff; }
+        .mention-item:hover { background: var(--k-accent-soft); }
         .mention-avatar {
             width: 26px;
             height: 26px;
@@ -386,7 +387,7 @@
             padding: 8px 4px;
             border-radius: 8px;
             border: 1px solid var(--border);
-            background: #f8fafc;
+            background: var(--k-subtle);
             font-size: 0.7rem;
             font-weight: 700;
             cursor: pointer;
@@ -398,9 +399,9 @@
             gap: 4px;
         }
         .bulk-btn:hover, .bulk-btn.active {
-            background: #eff6ff;
-            color: #2563eb;
-            border-color: #93c5fd;
+            background: var(--k-accent-soft);
+            color: var(--k-accent-text);
+            border-color: var(--k-accent-border);
         }
 
         .search-filter { position: relative; }
@@ -414,7 +415,7 @@
             transition: 0.2s;
         }
         .search-filter input:focus {
-            border-color: #2563eb;
+            border-color: var(--k-accent);
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
         }
         .search-filter i,
@@ -433,7 +434,7 @@
             position: absolute;
             top: 100%;
             right: 0;
-            background: white;
+            background: var(--k-surface);
             border: 1px solid var(--border);
             border-radius: 12px;
             box-shadow: var(--shadow);
@@ -450,12 +451,12 @@
             padding: 8px 14px;
             cursor: pointer;
             font-size: 0.8rem;
-            color: #334155;
+            color: var(--k-text-2);
             transition: 0.2s;
         }
         .dept-item:hover, .dept-item.active {
-            background: #eff6ff;
-            color: #2563eb;
+            background: var(--k-accent-soft);
+            color: var(--k-accent-text);
             font-weight: 700;
         }
 
@@ -467,11 +468,11 @@
             text-transform: uppercase;
             display: inline-block;
         }
-        .badge.manager { background: #fee2e2; color: #dc2626; }
-        .badge.employee { background: #dcfce7; color: #16a34a; }
-        .badge.admin { background: #eff6ff; color: #2563eb; }
+        .badge.manager { background: var(--k-danger-soft); color: var(--k-danger-text); }
+        .badge.employee { background: var(--k-success-soft); color: var(--k-success-text); }
+        .badge.admin { background: var(--k-accent-soft); color: var(--k-accent-text); }
         .badge.hrms { background: #faf5ff; color: #9333ea; }
-        .badge.team { background: #fef3c7; color: #d97706; }
+        .badge.team { background: var(--k-warning-soft); color: var(--k-warning-text); }
 
         /* Action Icon Badges */
         .action-icon {
@@ -481,7 +482,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: white;
+            background: var(--k-surface);
             border: 1px solid var(--border);
             border-radius: 10px;
             color: var(--text-muted);
@@ -498,7 +499,7 @@
             position: absolute;
             top: -3px;
             right: -3px;
-            background: #ef4444;
+            background: var(--k-danger);
             color: white;
             font-size: 0.7rem;
             font-weight: 800;
@@ -529,6 +530,10 @@
             z-index: 9999; display: none; align-items: center; justify-content: center;
         }
     </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="kylrx-theme.css">
 </head>
 <body>
     <div class="dashboard-container">
@@ -633,7 +638,7 @@
 
                 <!-- Controls & Profile on Right -->
                 <div style="display: flex; align-items: center; gap: 0.75rem;">
-                    <button class="action-icon" title="Messages" onclick="window.location.href='admin-message.html'" style="border-color: #93c5fd; background: #eff6ff; color: #2563eb;">
+                    <button class="action-icon" title="Messages" onclick="window.location.href='admin-message.html'" style="border-color: var(--k-accent-border); background: var(--k-accent-soft); color: var(--k-accent-text);">
                         <i data-lucide="message-square" style="width: 18px; height: 18px;"></i>
                         <span class="action-icon-badge" id="headerMsgBadge"></span>
                     </button>
@@ -644,8 +649,8 @@
                     </button>
 
                     <!-- Super Admin Badge Pill -->
-                    <div style="display: flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 20px; background: linear-gradient(135deg, #eff6ff, #dbeafe); border: 1.5px solid #93c5fd; color: #1d4ed8; font-weight: 800; font-size: 0.7rem; letter-spacing: 0.5px;">
-                        <i data-lucide="shield-check" style="width: 14px; height: 14px; color: #2563eb;"></i>
+                    <div style="display: flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 20px; background: linear-gradient(135deg, #eff6ff, #dbeafe); border: 1.5px solid var(--k-accent-border); color: var(--k-accent-text); font-weight: 800; font-size: 0.7rem; letter-spacing: 0.5px;">
+                        <i data-lucide="shield-check" style="width: 14px; height: 14px; color: var(--k-accent-text);"></i>
                         <span>SUPER ADMIN</span>
                     </div>
 
@@ -656,7 +661,7 @@
 
             <!-- Page Title -->
             <div style="margin-bottom: 1.5rem;">
-                <h1 style="font-size: 1.875rem; font-weight: 800; letter-spacing: -0.5px; color: #0f172a; margin-bottom: 4px;">Admin Communications & Messaging</h1>
+                <h1 style="font-size: 1.875rem; font-weight: 800; letter-spacing: -0.5px; color: var(--k-text); margin-bottom: 4px;">Admin Communications & Messaging</h1>
                 <p style="color: var(--text-muted); font-size: 0.875rem; font-weight: 500;">Secure, omni-channel messaging with leadership, employees, and departmental units</p>
             </div>
 
@@ -690,7 +695,7 @@
                         <div class="search-filter">
                             <i data-lucide="search"></i>
                             <input type="text" id="contactSearch" placeholder="Search people or depts..." oninput="filterContacts()">
-                            <button class="filter-btn" id="filterOptionsBtn" title="Filter options" onclick="toggleDeptDropdown(event)" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: white; border: 1px solid var(--border); border-radius: 6px; padding: 4px 6px; cursor: pointer;">
+                            <button class="filter-btn" id="filterOptionsBtn" title="Filter options" onclick="toggleDeptDropdown(event)" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: var(--k-surface); border: 1px solid var(--border); border-radius: 6px; padding: 4px 6px; cursor: pointer;">
                                 <i data-lucide="sliders-horizontal" style="width: 14px; height: 14px; position: static;"></i>
                             </button>
                             <div class="dept-dropdown" id="deptDropdown">
@@ -701,15 +706,15 @@
                     </div>
 
                     <!-- Multi-select Info Bar -->
-                    <div class="selection-info" id="selectionInfo" style="padding: 8px 14px; background: #eff6ff; border-bottom: 1px solid var(--border); display: none; align-items: center; justify-content: space-between; font-size: 0.8rem;">
-                        <span id="selectionCount" style="font-weight: 700; color: #1e40af;">0 selected</span>
-                        <span class="clear-selection" onclick="clearSelection()" style="color: #2563eb; font-weight: 700; cursor: pointer; text-decoration: underline;">Clear</span>
+                    <div class="selection-info" id="selectionInfo" style="padding: 8px 14px; background: var(--k-accent-soft); border-bottom: 1px solid var(--border); display: none; align-items: center; justify-content: space-between; font-size: 0.8rem;">
+                        <span id="selectionCount" style="font-weight: 700; color: var(--k-accent-text);">0 selected</span>
+                        <span class="clear-selection" onclick="clearSelection()" style="color: var(--k-accent-text); font-weight: 700; cursor: pointer; text-decoration: underline;">Clear</span>
                     </div>
 
                     <!-- Contacts List Scrollable -->
                     <div class="contacts-scrollable" id="contactsContainer">
                         <div style="padding: 2rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.875rem;">
-                            <div class="spinner" style="width: 22px; height: 22px; border: 2px solid #e2e8f0; border-top-color: #2563eb; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 10px;"></div>
+                            <div class="spinner" style="width: 22px; height: 22px; border: 2px solid var(--k-border); border-top-color: var(--k-accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 10px;"></div>
                             Loading directory...
                         </div>
                     </div>
@@ -719,7 +724,7 @@
                 <div class="chat-window">
                     <div class="chat-header" id="chatWindowHeader">
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="width: 38px; height: 38px; border-radius: 10px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; color: #94a3b8;">
+                            <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--k-subtle); display: flex; align-items: center; justify-content: center; color: var(--k-muted);">
                                 <i data-lucide="message-square" style="width: 18px; height: 18px;"></i>
                             </div>
                             <p style="color: var(--text-muted); font-size: 0.875rem; margin: 0; font-weight: 600;">Select a contact or team to open conversation</p>
@@ -729,16 +734,16 @@
                     <!-- Chat Messages Stream -->
                     <div class="chat-messages" id="chatMessages">
                         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); text-align: center; padding: 2rem;">
-                            <div style="width: 52px; height: 52px; border-radius: 50%; background: #ffffff; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; color: #94a3b8;">
+                            <div style="width: 52px; height: 52px; border-radius: 50%; background: var(--k-surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; color: var(--k-muted);">
                                 <i data-lucide="messages-square" style="width: 24px; height: 24px;"></i>
                             </div>
-                            <h3 style="font-size: 1rem; font-weight: 700; color: #1e293b; margin-bottom: 4px;">Direct & Broadcast Communications</h3>
+                            <h3 style="font-size: 1rem; font-weight: 700; color: var(--k-text); margin-bottom: 4px;">Direct & Broadcast Communications</h3>
                             <p style="font-size: 0.8rem; max-width: 320px; line-height: 1.4;">Pick any personnel from the directory on the left to review chat history, answer support queries, or broadcast company updates.</p>
                         </div>
                     </div>
                     
                     <!-- File Attachment Previews -->
-                    <div id="attachmentPreview" style="padding: 0.75rem 1.5rem 0; display: none; gap: 8px; flex-wrap: wrap; background: white; border-top: 1px solid var(--border);"></div>
+                    <div id="attachmentPreview" style="padding: 0.75rem 1.5rem 0; display: none; gap: 8px; flex-wrap: wrap; background: var(--k-surface); border-top: 1px solid var(--border);"></div>
                     
                     <!-- Input Controls -->
                     <div class="chat-input" id="chatInputArea">
@@ -766,27 +771,27 @@
 
         <!-- Custom App Registry Modal -->
         <div id="customAppsModal" class="modal-overlay">
-            <div style="background: white; border-radius: 20px; padding: 2rem; width: 90%; max-width: 480px; box-shadow: var(--shadow); border: 1px solid var(--border);">
+            <div style="background: var(--k-surface); border-radius: 20px; padding: 2rem; width: 90%; max-width: 480px; box-shadow: var(--shadow); border: 1px solid var(--border);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                     <div>
-                        <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0;">Custom App Registry</h2>
-                        <p style="font-size: 0.75rem; color: #64748b; margin: 0;">Map external tools in real time to the sidebar</p>
+                        <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--k-text); margin: 0;">Custom App Registry</h2>
+                        <p style="font-size: 0.75rem; color: var(--k-muted); margin: 0;">Map external tools in real time to the sidebar</p>
                     </div>
-                    <button style="background: none; border: none; cursor: pointer; color: #64748b;" onclick="document.getElementById('customAppsModal').style.display='none'"><i data-lucide="x"></i></button>
+                    <button style="background: none; border: none; cursor: pointer; color: var(--k-muted);" onclick="document.getElementById('customAppsModal').style.display='none'"><i data-lucide="x"></i></button>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
                     <div class="form-group">
-                        <label style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">App Name</label>
+                        <label style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">App Name</label>
                         <input type="text" id="appNameInput" class="input-box" placeholder="e.g. AWS Console" style="margin-top: 4px;">
                     </div>
                     <div class="form-group">
-                        <label style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">External URL</label>
+                        <label style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">External URL</label>
                         <input type="text" id="appUrlInput" class="input-box" placeholder="e.g. console.aws.amazon.com" style="margin-top: 4px;">
                     </div>
                     <button class="send-btn" style="width: 100%; border-radius: 10px;" onclick="window.addCustomApp()">Map Tool Link</button>
                 </div>
-                <div style="border-top: 1px solid #e2e8f0; padding-top: 1rem;">
-                    <h3 style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 8px;">Active Mappings</h3>
+                <div style="border-top: 1px solid var(--k-border); padding-top: 1rem;">
+                    <h3 style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase; margin-bottom: 8px;">Active Mappings</h3>
                     <div id="registryAppsList" style="display: flex; flex-direction: column; gap: 6px; max-height: 160px; overflow-y: auto;"></div>
                 </div>
             </div>
@@ -813,7 +818,7 @@
 
         <!-- Toast Feedback -->
         <div id="successToast" style="position: fixed; bottom: 24px; right: 24px; background: #1e293b; color: white; padding: 12px 20px; border-radius: 12px; font-size: 0.875rem; font-weight: 600; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: none; align-items: center; gap: 10px; z-index: 10000;">
-            <i data-lucide="check-circle" style="color: #10b981; width: 18px; height: 18px;"></i>
+            <i data-lucide="check-circle" style="color: var(--k-success-text); width: 18px; height: 18px;"></i>
             <span>Operation completed</span>
         </div>
     </div>
@@ -1126,10 +1131,10 @@
                             <div class="contact-avatar" style="background: ${escapeHtml(entity.color)}">${escapeHtml(entity.initials)}</div>
                             <div>
                                 <div class="contact-name" style="font-size: 1rem;">${escapeHtml(entity.name)}</div>
-                                <div style="font-size: 0.75rem; color:#10b981; font-weight:700;">${entity.type === 'team' ? 'Team Broadcast Stream' : 'Direct Conversation'}</div>
+                                <div style="font-size: 0.75rem; color:var(--k-success-text); font-weight:700;">${entity.type === 'team' ? 'Team Broadcast Stream' : 'Direct Conversation'}</div>
                             </div>
                         </div>
-                        <button onclick="window.clearAllChatHistory()" title="Clear Chat History" style="background:none; border:1px solid #fee2e2; color:#ef4444; padding:6px 12px; border-radius:8px; font-size: 0.75rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px;">
+                        <button onclick="window.clearAllChatHistory()" title="Clear Chat History" style="background:none; border:1px solid #fee2e2; color:var(--k-danger-text); padding:6px 12px; border-radius:8px; font-size: 0.75rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px;">
                             <i data-lucide="trash-2" style="width:14px; height:14px;"></i> Clear Chat
                         </button>
                     `;
@@ -1137,7 +1142,7 @@
                 } else {
                     chatHeader.innerHTML = `
                         <div style="display:flex; align-items:center; gap:12px;">
-                            <div class="contact-avatar" style="background:#2563eb;"><i data-lucide="megaphone" style="width:20px; height:20px;"></i></div>
+                            <div class="contact-avatar" style="background:var(--k-accent);"><i data-lucide="megaphone" style="width:20px; height:20px;"></i></div>
                             <div>
                                 <div class="contact-name" style="font-size: 1rem;">Broadcast Dispatch</div>
                                 <div style="font-size: 0.75rem; color:var(--text-muted); font-weight:700;">Selected ${selectedUserIds.size} recipients</div>
@@ -1150,7 +1155,7 @@
             } else {
                 chatHeader.innerHTML = `
                     <div style="display:flex; align-items:center; gap:10px;">
-                        <div style="width:38px; height:38px; border-radius:10px; background:#f1f5f9; display:flex; align-items:center; justify-content:center; color:#94a3b8;"><i data-lucide="message-square" style="width:18px; height:18px;"></i></div>
+                        <div style="width:38px; height:38px; border-radius:10px; background:var(--k-subtle); display:flex; align-items:center; justify-content:center; color:var(--k-muted);"><i data-lucide="message-square" style="width:18px; height:18px;"></i></div>
                         <p style="color:var(--text-muted); font-size: 0.875rem; margin:0; font-weight:600;">Select a contact or team to open conversation</p>
                     </div>
                 `;
@@ -1162,7 +1167,7 @@
 
         function formatEscapedMessageText(text) {
             const esc = (typeof escapeHtml === 'function') ? escapeHtml(text || '') : (window.escapeHtml ? window.escapeHtml(text || '') : String(text || ''));
-            return esc.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:#2563eb; text-decoration:underline;">$1</a>');
+            return esc.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:var(--k-accent-text); text-decoration:underline;">$1</a>');
         }
 
         // Fetch Messages with Omni-channel Matching
@@ -1226,8 +1231,8 @@
                     <div style="display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.9); padding:8px 12px; border-radius:8px; border:1px solid rgba(0,0,0,0.08); margin-top:8px; font-size: 0.8rem; font-weight:600;">
                         <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">📎 ${escapeHtml(att.name)}</span>
                         <div style="display:flex; gap:6px;">
-                            <a href="#" onclick="window.openAttachment(this); return false;" data-url="${escapeHtml(att.dataUrl)}" style="background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; padding:4px 8px; border-radius:6px; font-size: 0.7rem; font-weight:700; text-decoration:none;">Open</a>
-                            <a href="${escapeHtml(att.dataUrl)}" download="${escapeHtml(att.name)}" style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; padding:4px 8px; border-radius:6px; font-size: 0.7rem; font-weight:700; text-decoration:none;">Download</a>
+                            <a href="#" onclick="window.openAttachment(this); return false;" data-url="${escapeHtml(att.dataUrl)}" style="background:var(--k-accent-soft); color:var(--k-accent-text); border:1px solid var(--k-accent-border); padding:4px 8px; border-radius:6px; font-size: 0.7rem; font-weight:700; text-decoration:none;">Open</a>
+                            <a href="${escapeHtml(att.dataUrl)}" download="${escapeHtml(att.name)}" style="background:var(--k-success-soft); color:var(--k-success-text); border:1px solid var(--k-success-border); padding:4px 8px; border-radius:6px; font-size: 0.7rem; font-weight:700; text-decoration:none;">Download</a>
                         </div>
                     </div>
                 `).join('');
@@ -1237,8 +1242,8 @@
             if (isSent) {
                 html += `
                     <div style="display:flex; gap:10px; margin-top:6px; font-size: 0.7rem; opacity:0.8; justify-content:flex-end;">
-                        <span style="cursor:pointer; color:#2563eb; text-decoration:underline;" onclick="window.editMessage('${msg.id}', \`${(msg.text || '').replace(/`/g, '\\`').replace(/"/g, '&quot;')}\`)">Edit</span>
-                        <span style="cursor:pointer; color:#ef4444; text-decoration:underline;" onclick="window.clearMessage('${msg.id}')">Delete</span>
+                        <span style="cursor:pointer; color:var(--k-accent-text); text-decoration:underline;" onclick="window.editMessage('${msg.id}', \`${(msg.text || '').replace(/`/g, '\\`').replace(/"/g, '&quot;')}\`)">Edit</span>
+                        <span style="cursor:pointer; color:var(--k-danger-text); text-decoration:underline;" onclick="window.clearMessage('${msg.id}')">Delete</span>
                     </div>
                 `;
             }
@@ -1299,7 +1304,7 @@
                 chatMessages.scrollTop = chatMessages.scrollHeight;
                 renderLucideIcons();
             } else {
-                chatMessages.innerHTML = '<div class="chat-empty-state" style="text-align:center; padding: 2rem; color:var(--text-muted); font-size: 0.875rem;"><div class="spinner" style="width:20px; height:20px; border:2px solid #cbd5e1; border-top-color:#2563eb; border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 8px;"></div>Loading conversation...</div>';
+                chatMessages.innerHTML = '<div class="chat-empty-state" style="text-align:center; padding: 2rem; color:var(--text-muted); font-size: 0.875rem;"><div class="spinner" style="width:20px; height:20px; border:2px solid var(--k-border); border-top-color:var(--k-accent); border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 8px;"></div>Loading conversation...</div>';
             }
 
             // 2. Fetch from Backend Messages Store with unified multi-candidate matching
@@ -1566,7 +1571,7 @@
             mentionsEl.innerHTML = filtered.length
                 ? filtered.map(u => `
                     <div class="mention-item" onclick="insertMention('${u.name.replace(/'/g, "\\'")}')">
-                        <div class="mention-avatar" style="background:${u.color || '#2563eb'}">${u.initials}</div>
+                        <div class="mention-avatar" style="background:${u.color || 'var(--k-accent)'}">${u.initials}</div>
                         <span>${u.name} <span style="opacity:0.6; font-size: 0.75rem;">(${u.role})</span></span>
                     </div>`).join('')
                 : '<div style="padding:10px 14px; font-size: 0.8rem; color:var(--text-muted);">No users found</div>';
@@ -1646,7 +1651,7 @@
                 const el = chatMessages.querySelector(`[data-msg-id="${msgId}"]`);
                 if (el) {
                     const body = el.querySelector('.msg-body-text');
-                    if (body) body.innerHTML = trimmed.replace(/(https?:\/\/\S+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:#2563eb; text-decoration:underline;">$1</a>');
+                    if (body) body.innerHTML = trimmed.replace(/(https?:\/\/\S+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:var(--k-accent-text); text-decoration:underline;">$1</a>');
                 }
                 // Update LocalStorage
                 try {

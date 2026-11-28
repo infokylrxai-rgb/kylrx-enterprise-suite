@@ -1636,33 +1636,33 @@ class CustomTemplateEngine {
             const milestones = tpl.structure.defaultMilestones || [];
 
             previewHtml = `
-<div style="background: white; border: 1.5px solid #e2e8f0; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); font-family: inherit;">
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px;">
+<div style="background: var(--k-surface); border: 1.5px solid var(--k-border); border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); font-family: inherit;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; border-bottom: 1px solid var(--k-border); padding-bottom: 12px;">
         <div>
-            <span style="font-size: 11px; font-weight: 800; background: #eff6ff; color: #2563eb; padding: 3px 10px; border-radius: 12px; text-transform: uppercase;">${tpl.category}</span>
-            <h3 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 8px 0 4px;">${title}</h3>
-            <p style="font-size: 0.85rem; color: #64748b; margin: 0;"><strong>Target Outcome:</strong> ${outcome}</p>
+            <span style="font-size: 11px; font-weight: 800; background: var(--k-accent-soft); color: var(--k-accent-text); padding: 3px 10px; border-radius: 12px; text-transform: uppercase;">${tpl.category}</span>
+            <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--k-text); margin: 8px 0 4px;">${title}</h3>
+            <p style="font-size: 0.85rem; color: var(--k-muted); margin: 0;"><strong>Target Outcome:</strong> ${outcome}</p>
         </div>
         <div style="text-align: right;">
-            <div style="font-size: 1.5rem; font-weight: 800; color: #2563eb;">${target} <span style="font-size: 0.85rem; color: #64748b;">${unit}</span></div>
-            <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 600;">Target Deadline: ${targetDate}</div>
+            <div style="font-size: 1.5rem; font-weight: 800; color: var(--k-accent-text);">${target} <span style="font-size: 0.85rem; color: var(--k-muted);">${unit}</span></div>
+            <div style="font-size: 0.75rem; color: var(--k-muted); font-weight: 600;">Target Deadline: ${targetDate}</div>
         </div>
     </div>
     <div style="margin-bottom: 16px;">
-        <h4 style="font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 8px;">Completion Criteria</h4>
-        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; font-size: 0.85rem; color: #334155;">
+        <h4 style="font-size: 0.75rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase; margin-bottom: 8px;">Completion Criteria</h4>
+        <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 10px; padding: 12px; font-size: 0.85rem; color: var(--k-text-2);">
             ${criteria}
         </div>
     </div>
     ${milestones.length > 0 ? `
     <div>
-        <h4 style="font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 8px;">Template Milestones (${milestones.length})</h4>
+        <h4 style="font-size: 0.75rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase; margin-bottom: 8px;">Template Milestones (${milestones.length})</h4>
         <div style="display: flex; flex-direction: column; gap: 6px;">
             ${milestones.map((m, i) => `
-                <div style="display: flex; align-items: center; gap: 10px; background: #ffffff; border: 1px solid #e2e8f0; padding: 8px 12px; border-radius: 8px; font-size: 0.82rem;">
-                    <span style="width: 18px; height: 18px; border-radius: 50%; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800;">${i+1}</span>
-                    <span style="flex: 1; font-weight: 600; color: #1e293b;">${m.title}</span>
-                    <span style="font-size: 11px; color: #94a3b8;">+${m.targetOffsetDays || 14} days</span>
+                <div style="display: flex; align-items: center; gap: 10px; background: var(--k-surface); border: 1px solid var(--k-border); padding: 8px 12px; border-radius: 8px; font-size: 0.82rem;">
+                    <span style="width: 18px; height: 18px; border-radius: 50%; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800;">${i+1}</span>
+                    <span style="flex: 1; font-weight: 600; color: var(--k-text);">${m.title}</span>
+                    <span style="font-size: 11px; color: var(--k-muted);">+${m.targetOffsetDays || 14} days</span>
                 </div>
             `).join('')}
         </div>
@@ -1674,9 +1674,9 @@ class CustomTemplateEngine {
                 body = body.split(`{{${k}}}`).join(v);
             }
             previewHtml = `
-<div style="background: white; border: 1.5px solid #e2e8f0; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); font-family: inherit;">
-    <div style="margin-bottom: 12px; font-size: 12px; font-weight: 700; color: #2563eb; text-transform: uppercase;">[${tpl.module.toUpperCase()}] ${tpl.name} (Preview)</div>
-    <div style="font-size: 0.9rem; line-height: 1.6; color: #1e293b;">${body}</div>
+<div style="background: var(--k-surface); border: 1.5px solid var(--k-border); border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); font-family: inherit;">
+    <div style="margin-bottom: 12px; font-size: 12px; font-weight: 700; color: var(--k-accent-text); text-transform: uppercase;">[${tpl.module.toUpperCase()}] ${tpl.name} (Preview)</div>
+    <div style="font-size: 0.9rem; line-height: 1.6; color: var(--k-text);">${body}</div>
 </div>`;
         }
 

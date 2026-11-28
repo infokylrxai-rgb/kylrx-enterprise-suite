@@ -1,0 +1,260 @@
+/*
+ * Kylrx design tokens: a dark command-centre theme and a light theme.
+ *
+ * Dark is the default for a first visit; the choice is remembered and applied before
+ * the first paint by kylrx-theme-init.js, so the wrong theme never flashes.
+ *
+ * Every colour in the app resolves to one of these tokens. The previous theme attempt
+ * was layered over about 13,000 hard-coded colours that a stylesheet cannot override,
+ * so dark mode only partly applied and looked like a patchwork. Those colours have now
+ * been converted to the tokens below, which is what lets both themes be complete.
+ *
+ * Palette from the brief, with four refinements where it failed WCAG 2.2 AA, measured:
+ *   --k-accent-text (light)  #A5B52E is 2.27:1 as text on white; text uses #5F6E14 (5.63:1)
+ *                            and the brief's #A5B52E stays for fills, where dark text on it
+ *                            is 6.95:1.
+ *   --k-border-strong        the brief's borders are ~1.3:1 - fine for decorative card
+ *                            edges and dividers, but a form input's edge identifies the
+ *                            control and needs 3:1. Light #8C918A (3.21:1), dark #6B6F74 (3.31:1).
+ * tests/theme-contrast.test.mjs checks every text/background pairing in both themes.
+ */
+
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --k-bg:            #111214;
+  --k-sidebar:       #17191B;
+  --k-surface:       #1C1E20;
+  --k-elevated:      #25282A;
+  --k-subtle:        #222527;
+  --k-border:        #303235;
+  --k-border-strong: #6B6F74;
+
+  --k-text:          #F2F2F2;
+  --k-text-2:        #C7CACE;
+  --k-muted:         #92969B;
+
+  --k-accent:        #D5E45C;
+  --k-accent-text:   #D5E45C;
+  --k-accent-soft:   #2B2F18;
+  --k-accent-border: #5A6224;
+  --k-on-accent:     #111214;
+
+  --k-success:        #34D399;
+  --k-success-text:   #4ADE80;
+  --k-success-soft:   #10291E;
+  --k-success-border: #1F5137;
+  --k-on-success:     #0B1F15;
+
+  --k-danger:         #F87171;
+  --k-danger-text:    #FCA5A5;
+  --k-danger-soft:    #2A1416;
+  --k-danger-border:  #5A2125;
+  --k-on-danger:      #1F0A0B;
+
+  --k-warning:        #FBBF24;
+  --k-warning-text:   #FCD34D;
+  --k-warning-soft:   #2A2010;
+  --k-warning-border: #5A4415;
+  --k-on-warning:     #1F1606;
+
+  --k-info:           #7DB4F5;
+  --k-info-text:      #A9CDF8;
+  --k-info-soft:      #142233;
+  --k-info-border:    #24446A;
+  --k-on-info:        #0A1626;
+
+  --k-shadow: 0 1px 2px rgb(0 0 0 / 0.40), 0 4px 16px -6px rgb(0 0 0 / 0.55);
+  --k-focus:  0 0 0 2px var(--k-bg), 0 0 0 4px var(--k-accent);
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+
+  --k-bg:            #F4F5F3;
+  --k-sidebar:       #ECEEEC;
+  --k-surface:       #FFFFFF;
+  --k-elevated:      #FFFFFF;
+  --k-subtle:        #F7F8F6;
+  --k-border:        #E2E5E1;
+  --k-border-strong: #8C918A;
+
+  --k-text:          #202326;
+  --k-text-2:        #3E4347;
+  --k-muted:         #686D70;
+
+  --k-accent:        #A5B52E;
+  --k-accent-text:   #5F6E14;
+  --k-accent-soft:   #F2F5DA;
+  --k-accent-border: #D3DC97;
+  --k-on-accent:     #202326;
+
+  --k-success:        #15803D;
+  --k-success-text:   #166534;
+  --k-success-soft:   #ECFDF3;
+  --k-success-border: #A7F3C4;
+  --k-on-success:     #FFFFFF;
+
+  --k-danger:         #DC2626;
+  --k-danger-text:    #B91C1C;
+  --k-danger-soft:    #FEF2F2;
+  --k-danger-border:  #FECACA;
+  --k-on-danger:      #FFFFFF;
+
+  --k-warning:        #B45309;
+  --k-warning-text:   #92400E;
+  --k-warning-soft:   #FFFBEB;
+  --k-warning-border: #FDE68A;
+  --k-on-warning:     #FFFFFF;
+
+  --k-info:           #1D4ED8;
+  --k-info-text:      #1E40AF;
+  --k-info-soft:      #EFF6FF;
+  --k-info-border:    #BFDBFE;
+  --k-on-info:        #FFFFFF;
+
+  --k-shadow: 0 1px 2px rgb(32 35 38 / 0.06), 0 4px 16px -6px rgb(32 35 38 / 0.10);
+  --k-focus:  0 0 0 2px var(--k-bg), 0 0 0 4px var(--k-accent-text);
+}
+
+/*
+ * The app's existing variable names, pointed at the tokens. About 2,500 references to
+ * these already exist across the pages; aliasing them keeps every one of those working
+ * and themed without touching them.
+ */
+:root,
+[data-theme="dark"],
+[data-theme="light"] {
+  --primary:       var(--k-accent);
+  --primary-dark:  var(--k-accent-text);
+  --primary-light: var(--k-accent-soft);
+  --primary-soft:  var(--k-accent-soft);
+  --secondary:     var(--k-accent-text);
+  --accent:        var(--k-info);
+  --danger:        var(--k-danger);
+  --success:       var(--k-success);
+  --warning:       var(--k-warning);
+  --bg:            var(--k-bg);
+  --bg-soft:       var(--k-subtle);
+  --sidebar:       var(--k-sidebar);
+  --card:          var(--k-surface);
+  --text-main:     var(--k-text);
+  --text-muted:    var(--k-muted);
+  --border:        var(--k-border);
+  --border-card:   var(--k-border);
+  --shadow-sm:     var(--k-shadow);
+  --shadow:        var(--k-shadow);
+}
+
+/* ── Base ────────────────────────────────────────────────────────────────────────── */
+
+html, body {
+  background: var(--k-bg);
+  color: var(--k-text);
+}
+body {
+  font-family: 'Inter', 'Outfit', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-feature-settings: 'cv11', 'ss01';
+  -webkit-font-smoothing: antialiased;
+}
+/* Figures line up in tables and KPI blocks. */
+table, .kpi, .stat-value, [class*="stat-"] { font-variant-numeric: tabular-nums; }
+
+a { color: var(--k-accent-text); }
+
+input, select, textarea {
+  background: var(--k-surface);
+  color: var(--k-text);
+  border-color: var(--k-border-strong);
+}
+input::placeholder, textarea::placeholder { color: var(--k-muted); }
+
+/* A visible focus ring on everything that can take focus, in both themes. */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--k-focus);
+  border-radius: 6px;
+}
+
+hr { border-color: var(--k-border); }
+
+/* Panels: restrained radius, subtle border, minimal shadow. */
+.card, .stat-card, .widget, .panel, .modal {
+  background: var(--k-surface);
+  border: 1px solid var(--k-border);
+  border-radius: 12px;
+}
+.modal { box-shadow: var(--k-shadow); }
+
+/* Filled primary actions: dark text on lime, which is what passes contrast. */
+.btn-primary, button.primary {
+  background: var(--k-accent);
+  color: var(--k-on-accent);
+  border-color: var(--k-accent);
+}
+
+::selection { background: var(--k-accent-soft); color: var(--k-text); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+
+/* ── Portals ─────────────────────────────────────────────────────────────────────
+ * Each portal carries its own marker colour (set as data-portal by kylrx-theme-init.js
+ * from the page's file name), so an HR admin switching between the admin and manager
+ * views can tell at a glance which one they are in. */
+:root { --k-portal: var(--k-accent); }
+[data-portal="manager"]  { --k-portal: var(--k-info); }
+[data-portal="employee"] { --k-portal: var(--k-success); }
+[data-portal="hr"]       { --k-portal: var(--k-warning); }
+[data-portal] aside, [data-portal] .sidebar { border-top: 3px solid var(--k-portal); }
+.kylrx-portal-tag {
+  margin: 10px 14px 4px; padding: 3px 10px; border-radius: 999px; width: fit-content;
+  font-size: 0.68rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--k-text); background: var(--k-subtle); border: 1px solid var(--k-portal);
+}
+
+/* ── Keyboard ────────────────────────────────────────────────────────────────── */
+.kylrx-skip-link {
+  position: absolute; left: 12px; top: -48px; z-index: 10000;
+  padding: 10px 16px; border-radius: 10px; font-weight: 700;
+  background: var(--k-accent); color: var(--k-on-accent); text-decoration: none;
+  transition: top .15s ease;
+}
+.kylrx-skip-link:focus { top: 12px; }
+main:focus, #kylrxMain:focus { outline: none; }
+
+/* ── Tables ──────────────────────────────────────────────────────────────────────
+ * One look for data tables: muted, small header; quiet row separators; a subtle hover. */
+table { border-collapse: collapse; }
+th { color: var(--k-muted); font-weight: 700; font-size: 0.75rem; letter-spacing: .02em; text-align: left; }
+th, td { border-bottom: 1px solid var(--k-border); }
+tbody tr:hover > td { background: var(--k-subtle); }
+caption { caption-side: top; text-align: left; color: var(--k-muted); font-size: .8rem; padding-bottom: 6px; }
+
+/* ── Forms ───────────────────────────────────────────────────────────────────── */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]),
+select, textarea {
+  min-height: 40px;
+  border-radius: 10px;
+  border-width: 1px;
+  border-style: solid;
+  font: inherit;
+}
+input:disabled, select:disabled, textarea:disabled, button:disabled { opacity: .55; cursor: not-allowed; }
+[aria-invalid="true"], input:user-invalid, select:user-invalid, textarea:user-invalid { border-color: var(--k-danger) !important; }
+label { color: var(--k-text-2); }
+
+/* ── Small screens ───────────────────────────────────────────────────────────────
+ * Wide tables scroll inside themselves instead of pushing the whole page sideways,
+ * media never overflows, and touch targets are at least 44px on a touch screen. */
+img, video, canvas, svg { max-width: 100%; }
+@media (max-width: 760px) {
+  table { display: block; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .modal { max-width: calc(100vw - 24px) !important; }
+}
+@media (pointer: coarse) {
+  button, .btn, [role="button"], a.btn, select { min-height: 44px; }
+  input[type="checkbox"], input[type="radio"] { min-width: 20px; min-height: 20px; }
+}

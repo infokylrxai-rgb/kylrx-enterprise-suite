@@ -486,7 +486,9 @@
         if (!record.organizationId) {
             errors.push(`Row ${rowIndex}: Missing mandatory 'Organization ID'`);
         } else if (options.expectedOrgId && record.organizationId !== options.expectedOrgId) {
-            warnings.push(`Row ${rowIndex}: Organization ID '${record.organizationId}' differs from active tenant '${options.expectedOrgId}'`);
+            // An error, as in the PF, ESIC, PT, LWF and NPS parsers. As a warning the row was
+            // saved under this organisation while carrying another organisation's ID.
+            errors.push(`Row ${rowIndex}: Organization ID '${record.organizationId}' does not match current tenant context '${options.expectedOrgId}'.`);
         }
 
         // 3. Date Integrity Validation
@@ -615,7 +617,9 @@
             };
         }
 
-        const orgId = options.orgId || "ORG_KYLRX_01";
+        // No invented default: without the caller's organisation a blank Organization ID
+        // stays blank and is rejected, rather than being filed under a sample org.
+        const orgId = options.orgId || null;
 
         rows.forEach((row, idx) => {
             const rowIndex = idx + 2; // 1-based, account for header row
@@ -641,11 +645,15 @@
                 expectedOrgId: orgId
             });
 
-            if (!val.valid) {
-                allErrors.push(...val.errors);
-            }
             if (val.warnings.length > 0) {
                 allWarnings.push(...val.warnings);
+            }
+            // A row that failed validation is reported, not kept. It used to be added to
+            // firestoreDocs anyway, so Ingest wrote rows with no Employee ID, impossible
+            // dates or another organisation's ID - unlike every other statutory parser.
+            if (!val.valid) {
+                allErrors.push(...val.errors);
+                return;
             }
 
             records.push(record);

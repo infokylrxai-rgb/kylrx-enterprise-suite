@@ -340,7 +340,7 @@ async function initFirebaseConnection() {
         // Update badge UI to show active connection
         if (fbBadge) {
             fbBadge.innerHTML = `
-                <span class="live-pulse-dot" style="width:8px; height:8px; border-radius:50%; background:#10b981; box-shadow:0 0 0 2px rgba(16,185,129,0.3); display:inline-block;"></span>
+                <span class="live-pulse-dot" style="width:8px; height:8px; border-radius:50%; background:var(--k-success); box-shadow:0 0 0 2px rgba(16,185,129,0.3); display:inline-block;"></span>
                 <span>Firebase: Connected • ${isZeroed ? 'Slate Zeroed' : 'Telemetry Live'}</span>
             `;
             fbBadge.style.display = 'inline-flex';
@@ -390,7 +390,7 @@ async function initFirebaseConnection() {
         console.warn('[NotificationCenter] Direct Firebase SDK note, using REST/cached fallback:', err.message);
         if (fbBadge) {
             fbBadge.innerHTML = `
-                <span style="width:8px; height:8px; border-radius:50%; background:#10b981; box-shadow:0 0 0 2px rgba(16,185,129,0.3); display:inline-block;"></span>
+                <span style="width:8px; height:8px; border-radius:50%; background:var(--k-success); box-shadow:0 0 0 2px rgba(16,185,129,0.3); display:inline-block;"></span>
                 <span>Firebase: Connected • ${isZeroed ? 'Slate Zeroed' : 'Synced'}</span>
             `;
             fbBadge.style.display = 'inline-flex';
@@ -653,14 +653,14 @@ function renderFeed() {
 function renderActionableList(container) {
     if (isZeroed || state.actionableItems.length === 0) {
         container.innerHTML = `
-            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:3.5rem 1rem; background:#ffffff; border-radius:16px; border:1px dashed var(--border-card); text-align:center;">
-                <div style="width:52px; height:52px; border-radius:50%; background:#ecfdf5; display:flex; align-items:center; justify-content:center; margin-bottom:12px;">
-                    <i data-lucide="shield-check" style="width:28px; height:28px; color:#059669;"></i>
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:3.5rem 1rem; background:var(--k-surface); border-radius:16px; border:1px dashed var(--border-card); text-align:center;">
+                <div style="width:52px; height:52px; border-radius:50%; background:var(--k-success-soft); display:flex; align-items:center; justify-content:center; margin-bottom:12px;">
+                    <i data-lucide="shield-check" style="width:28px; height:28px; color:var(--k-success-text);"></i>
                 </div>
-                <h3 style="margin:0 0 6px 0; font-weight:800; font-size:1.15rem; color:#0f172a;">
+                <h3 style="margin:0 0 6px 0; font-weight:800; font-size:1.15rem; color:var(--k-text);">
                     ${isZeroed ? '0 Action Items & Operational Tasks Pending' : 'No Action Items Found'}
                 </h3>
-                <p style="margin:0; color:#64748b; font-size:0.85rem; max-width:520px; line-height:1.5;">
+                <p style="margin:0; color:var(--k-muted); font-size:0.85rem; max-width:520px; line-height:1.5;">
                     ${isZeroed 
                         ? 'All attendance breaches, payroll holds, exit clearances, and document sign-offs are cleared across all 11 enterprise facets. Operational slate is 100% clean & synchronized with Firebase!' 
                         : 'No pending items matching the selected facet or search criteria. Try selecting another filter or facet.'}
@@ -763,14 +763,14 @@ function renderActionableList(container) {
 function renderInformationList(container) {
     if (isZeroed || state.informationalNotices.length === 0) {
         container.innerHTML = `
-            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:3.5rem 1rem; background:#ffffff; border-radius:16px; border:1px dashed var(--border-card); text-align:center;">
-                <div style="width:52px; height:52px; border-radius:50%; background:#ecfdf5; display:flex; align-items:center; justify-content:center; margin-bottom:12px;">
-                    <i data-lucide="bell-off" style="width:28px; height:28px; color:#059669;"></i>
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:3.5rem 1rem; background:var(--k-surface); border-radius:16px; border:1px dashed var(--border-card); text-align:center;">
+                <div style="width:52px; height:52px; border-radius:50%; background:var(--k-success-soft); display:flex; align-items:center; justify-content:center; margin-bottom:12px;">
+                    <i data-lucide="bell-off" style="width:28px; height:28px; color:var(--k-success-text);"></i>
                 </div>
-                <h3 style="margin:0 0 6px 0; font-weight:800; font-size:1.15rem; color:#0f172a;">
+                <h3 style="margin:0 0 6px 0; font-weight:800; font-size:1.15rem; color:var(--k-text);">
                     ${isZeroed ? '0 Information Notices & Broadcasts' : 'No Notices Found'}
                 </h3>
-                <p style="margin:0; color:#64748b; font-size:0.85rem; max-width:520px; line-height:1.5;">
+                <p style="margin:0; color:var(--k-muted); font-size:0.85rem; max-width:520px; line-height:1.5;">
                     ${isZeroed
                         ? 'All organizational circulars, statutory alerts, and system notices are up-to-date and acknowledged. Live synced with Firebase.'
                         : 'No informational broadcasts found matching your current filter.'}
@@ -1136,7 +1136,7 @@ async function zeroAllNotices() {
     const fbBadge = document.getElementById('firebase-status-badge');
     if (fbBadge) {
         fbBadge.innerHTML = `
-            <span style="width:8px; height:8px; border-radius:50%; background:#10b981; box-shadow:0 0 0 2px rgba(16,185,129,0.3); display:inline-block;"></span>
+            <span style="width:8px; height:8px; border-radius:50%; background:var(--k-success); box-shadow:0 0 0 2px rgba(16,185,129,0.3); display:inline-block;"></span>
             <span>Firebase: Connected • Slate Zeroed</span>
         `;
     }
@@ -1160,7 +1160,7 @@ async function restoreDefaultFeed() {
     const fbBadge = document.getElementById('firebase-status-badge');
     if (fbBadge) {
         fbBadge.innerHTML = `
-            <span style="width:8px; height:8px; border-radius:50%; background:#10b981; box-shadow:0 0 0 2px rgba(16,185,129,0.3); display:inline-block;"></span>
+            <span style="width:8px; height:8px; border-radius:50%; background:var(--k-success); box-shadow:0 0 0 2px rgba(16,185,129,0.3); display:inline-block;"></span>
             <span>Firebase: Connected • Telemetry Live</span>
         `;
     }

@@ -131,34 +131,17 @@
     function resolveHeadName(headId, employeeLookup) {
         if (!headId) return '';
         const cleanId = String(headId).trim().toUpperCase();
-
-        if (employeeLookup) {
-            if (Array.isArray(employeeLookup)) {
-                const found = employeeLookup.find(e => 
-                    (e.employeeId || e.id || e.uid || '').toUpperCase() === cleanId
-                );
-                if (found) return found.fullName || found.name || `${cleanId} Lead`;
-            } else if (employeeLookup instanceof Map) {
-                const found = employeeLookup.get(cleanId);
-                if (found) return found.fullName || found.name || `${cleanId} Lead`;
-            } else if (typeof employeeLookup === 'object') {
-                const found = employeeLookup[cleanId];
-                if (found) return found.fullName || found.name || `${cleanId} Lead`;
-            }
+        let found = null;
+        if (Array.isArray(employeeLookup)) {
+            found = employeeLookup.find(e => (e.employeeId || e.id || e.uid || '').toUpperCase() === cleanId);
+        } else if (employeeLookup instanceof Map) {
+            found = employeeLookup.get(cleanId);
+        } else if (employeeLookup && typeof employeeLookup === 'object') {
+            found = employeeLookup[cleanId];
         }
-
-        // Standard enterprise executives lookup
-        const knownLeaders = {
-            'EMP0001': 'Devendra Sharma',
-            'EMP0002': 'Vikram Malhotra',
-            'EMP0003': 'Ananya Roy',
-            'EMP0004': 'Rajesh Raman',
-            'EMP0005': 'Sneha Sen',
-            'EMP0006': 'Rohit Verma',
-            'EMP0007': 'Aditya Rao'
-        };
-
-        return knownLeaders[cleanId] || '';
+        // An unknown ID is shown as itself. It used to be named after one of seven
+        // invented people (EMP0002 "Vikram Malhotra"), whatever that ID really was.
+        return (found && (found.fullName || found.name)) || cleanId;
     }
 
     /**
@@ -223,132 +206,26 @@
     function resolveDepartmentForSubDept(subDeptCode, costCenterCode, departmentLookup = null) {
         const cleanSubCode = String(subDeptCode || '').trim().toUpperCase();
         const cleanCc = String(costCenterCode || '').trim().toUpperCase();
-
-        if (departmentLookup) {
-            if (Array.isArray(departmentLookup)) {
-                if (cleanCc) {
-                    const byCc = departmentLookup.find(d => 
-                        String(d.costCenterCode || d['Cost_Center_Code'] || '').toUpperCase() === cleanCc
-                    );
-                    if (byCc) {
-                        return {
-                            departmentCode: (byCc.departmentCode || byCc.code || byCc['Department_Code'] || 'DEPT_ENG').toUpperCase(),
-                            departmentName: byCc.departmentName || byCc.name || byCc['Department_Name'] || 'Engineering',
-                            departmentHeadEmployeeId: byCc.departmentHeadEmployeeId || byCc.headEmployeeId || byCc['Department_Head_Employee_ID'] || 'EMP0002',
-                            departmentHeadName: byCc.departmentHeadName || byCc.headEmployeeName || 'Vikram Malhotra'
-                        };
-                    }
-                }
-                const byCode = departmentLookup.find(d => {
-                    const code = (d.departmentCode || d.code || d['Department_Code'] || '').toUpperCase();
-                    return code && (cleanSubCode === code || cleanSubCode.startsWith(code + '-') || cleanSubCode.startsWith(code + '_') || cleanSubCode.includes(code));
-                });
-                if (byCode) {
-                    return {
-                        departmentCode: (byCode.departmentCode || byCode.code || byCode['Department_Code'] || 'DEPT_ENG').toUpperCase(),
-                        departmentName: byCode.departmentName || byCode.name || byCode['Department_Name'] || 'Engineering',
-                        departmentHeadEmployeeId: byCode.departmentHeadEmployeeId || byCode.headEmployeeId || byCode['Department_Head_Employee_ID'] || 'EMP0002',
-                        departmentHeadName: byCode.departmentHeadName || byCode.headEmployeeName || 'Vikram Malhotra'
-                    };
-                }
-            } else if (departmentLookup instanceof Map) {
-                if (cleanCc && departmentLookup.has(cleanCc)) {
-                    const d = departmentLookup.get(cleanCc);
-                    return typeof d === 'object' ? d : { departmentCode: d, departmentHeadEmployeeId: 'EMP0002', departmentHeadName: 'Vikram Malhotra' };
-                }
-            }
+        const shape = (d) => ({
+            departmentCode: String(d.departmentCode || d.code || d['Department_Code'] || '').toUpperCase(),
+            departmentName: d.departmentName || d.name || d['Department_Name'] || '',
+            departmentHeadEmployeeId: d.departmentHeadEmployeeId || d.headEmployeeId || d['Department_Head_Employee_ID'] || '',
+            departmentHeadName: d.departmentHeadName || d.headEmployeeName || ''
+        });
+        if (Array.isArray(departmentLookup)) {
+            const byCc = cleanCc && departmentLookup.find(d => String(d.costCenterCode || d['Cost_Center_Code'] || '').toUpperCase() === cleanCc);
+            if (byCc) return shape(byCc);
+            const byCode = departmentLookup.find(d => {
+                const code = String(d.departmentCode || d.code || d['Department_Code'] || '').toUpperCase();
+                return code && (cleanSubCode === code || cleanSubCode.startsWith(code + '-') || cleanSubCode.startsWith(code + '_'));
+            });
+            if (byCode) return shape(byCode);
+        } else if (departmentLookup instanceof Map && cleanCc && departmentLookup.has(cleanCc)) {
+            const d = departmentLookup.get(cleanCc);
+            return typeof d === 'object' ? shape(d) : { departmentCode: String(d).toUpperCase(), departmentName: '', departmentHeadEmployeeId: '', departmentHeadName: '' };
         }
-
-        // Canonical enterprise mappings (PRD §§1, 10, & 13)
-        if (cleanCc === 'CC_ENG_01') {
-            return {
-                departmentCode: 'DEPT_ENG',
-                departmentName: 'QA & Engineering',
-                departmentHeadEmployeeId: 'EMP0002',
-                departmentHeadName: 'Vikram Malhotra'
-            };
-        }
-        if (cleanCc === 'CC_ENG_DEV') {
-            return {
-                departmentCode: 'ENG',
-                departmentName: 'Platform & Software Engineering',
-                departmentHeadEmployeeId: 'EMP0002',
-                departmentHeadName: 'Vikram Malhotra'
-            };
-        }
-        if (cleanCc === 'CC-ENG-101') {
-            return {
-                departmentCode: 'ENG',
-                departmentName: 'Engineering & Architecture',
-                departmentHeadEmployeeId: 'EMP0001',
-                departmentHeadName: 'Devendra Sharma'
-            };
-        }
-        if (cleanCc === 'CC-AI-102' || cleanCc === 'CC_AI_LABS') {
-            return {
-                departmentCode: 'AI-LABS',
-                departmentName: 'AI Research & Model Engineering',
-                departmentHeadEmployeeId: 'EMP0007',
-                departmentHeadName: 'Dr. Kumar Mangalam'
-            };
-        }
-        if (cleanCc === 'CC-HR-201' || cleanCc === 'CC_HR_TALENT' || cleanCc === 'CC_HR_OPS') {
-            return {
-                departmentCode: 'HR',
-                departmentName: 'Human Resources & Payroll',
-                departmentHeadEmployeeId: 'EMP0003',
-                departmentHeadName: 'Ananya Roy'
-            };
-        }
-        if (cleanCc === 'CC-FIN-301' || cleanCc === 'CC_FIN_CORP' || cleanCc === 'CC_FIN_TREASURY') {
-            return {
-                departmentCode: 'FIN',
-                departmentName: 'Finance & Accounts',
-                departmentHeadEmployeeId: 'EMP0004',
-                departmentHeadName: 'Rajesh Raman'
-            };
-        }
-        if (cleanCc === 'CC-OPS-401' || cleanCc === 'CC_OPS_SUPP' || cleanCc === 'CC_OPS_GLOBAL') {
-            return {
-                departmentCode: 'OPS',
-                departmentName: 'Global Operations',
-                departmentHeadEmployeeId: 'EMP0005',
-                departmentHeadName: 'Sneha Sen'
-            };
-        }
-
-        // Prefix heuristics
-        if (cleanSubCode.startsWith('ENG') || cleanSubCode.includes('ENG')) {
-            return {
-                departmentCode: 'ENG',
-                departmentName: 'Engineering',
-                departmentHeadEmployeeId: 'EMP0001',
-                departmentHeadName: 'Devendra Sharma'
-            };
-        }
-        if (cleanSubCode.startsWith('HR')) {
-            return {
-                departmentCode: 'HR',
-                departmentName: 'Human Resources',
-                departmentHeadEmployeeId: 'EMP0003',
-                departmentHeadName: 'Ananya Roy'
-            };
-        }
-        if (cleanSubCode.startsWith('FIN')) {
-            return {
-                departmentCode: 'FIN',
-                departmentName: 'Finance',
-                departmentHeadEmployeeId: 'EMP0004',
-                departmentHeadName: 'Rajesh Raman'
-            };
-        }
-
-        return {
-            departmentCode: 'DEPT_ENG',
-            departmentName: 'Core Engineering',
-            departmentHeadEmployeeId: 'EMP0002',
-            departmentHeadName: 'Vikram Malhotra'
-        };
+        // Not one of this organisation's departments: no guess, no invented head.
+        return { departmentCode: '', departmentName: '', departmentHeadEmployeeId: '', departmentHeadName: '', unresolved: true };
     }
 
     /**
@@ -412,7 +289,7 @@
 
         if (sameAsDeptHead) {
             headEmployeeId = parentDept.departmentHeadEmployeeId;
-            headEmployeeName = parentDept.departmentHeadName || resolveHeadName(headEmployeeId, employeeLookup) || 'Vikram Malhotra';
+            headEmployeeName = parentDept.departmentHeadName || (headEmployeeId ? resolveHeadName(headEmployeeId, employeeLookup) : '');
         } else {
             headEmployeeId = String(rawHead).trim().toUpperCase();
             headEmployeeName = resolveHeadName(headEmployeeId, employeeLookup);

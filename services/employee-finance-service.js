@@ -154,11 +154,12 @@
         }
     ];
 
-    // Initialize local ledger with defaults
-    DEFAULT_FINANCE_RECORDS.forEach(rec => {
-        _localLedger.set(`org_kylrx:${rec.employeeId}`, { ...rec });
-        _localLedger.set(`default:${rec.employeeId}`, { ...rec });
-    });
+    // Samples are not loaded on start: they answered real lookups (see loadSamplesForTesting).
+    function loadSamplesForTesting(orgId) {
+        DEFAULT_FINANCE_RECORDS.forEach(rec => _localLedger.set(`${orgId}:${rec.employeeId}`, { ...rec }));
+    }
+    // No organisation for the caller: refuse rather than use another organisation's data.
+    function missingOrg() { throw new Error("No organization found for the signed-in user. Sign in again."); }
 
     /**
      * Masks account number for standard UI views (e.g. ••••••••••7890)
@@ -194,8 +195,8 @@
     /**
      * Returns canonical Cloud Firestore document path
      */
-    function getFirestorePath(orgId = 'org_kylrx', employeeId) {
-        const cleanOrgId = orgId || 'org_kylrx';
+    function getFirestorePath(orgId, employeeId) {
+        const cleanOrgId = orgId || missingOrg();
         const cleanEmpId = String(employeeId || '').trim().toUpperCase();
         return `organizations/${cleanOrgId}/employee_finance/${cleanEmpId}`;
     }
@@ -242,22 +243,27 @@
         const accSuffix = cleanAcc.slice(-4);
         const decentroBeneficiaryId = `ben_${bankPrefix}_${accSuffix}`;
 
-        // Return verified beneficiary payload compliant with PRD Section 4
+        /*
+         * Only the FORMAT has been checked: no bank or payout provider was contacted.
+         * This used to return VERIFIED, a successful penny drop and a matched account
+         * holder, and the profile then announced "Cashfree Penny Drop Successful!" -
+         * telling HR an account was confirmed with the bank when nothing had been sent.
+         */
         return {
             success: true,
-            verificationStatus: 'VERIFIED',
+            formatValid: true,
+            verificationStatus: 'NOT_VERIFIED',
             decentroBeneficiaryId: decentroBeneficiaryId,
-            pennyDropStatus: 'SUCCESS',
-            beneficiaryNameMatch: true,
-            accountHolderMatch: true,
+            pennyDropStatus: 'NOT_PERFORMED',
+            beneficiaryNameMatch: null,
+            accountHolderMatch: null,
             accountHolderName: cleanHolder,
             maskedAccountNumber: maskAccountNumber(cleanAcc),
             accountNumber: cleanAcc,
             ifsc: cleanIfsc,
             bankName: bankName || `${cleanIfsc.slice(0, 4)} Bank`,
-            gateway: 'Decentro Fabric (Staging)',
-            decentroBaseUrl: 'https://staging.dashboard.decentro.tech/fabric',
-            verifiedAt: new Date().toISOString()
+            gateway: 'none (format check only)',
+            checkedAt: new Date().toISOString()
         };
     }
 
@@ -289,8 +295,8 @@
             decentro_beneficiary_id: benId,
             decentroBeneficiaryId: benId,
             beneficiaryId: benId,
-            verification_status: b.verificationStatus || 'VERIFIED',
-            verificationStatus: b.verificationStatus || 'VERIFIED',
+            verification_status: b.verificationStatus || 'NOT_VERIFIED',
+            verificationStatus: b.verificationStatus || 'NOT_VERIFIED',
             transferType: 'NEFT_IMPS_RTGS'
         };
     }
@@ -299,7 +305,7 @@
      * Saves or updates an Employee Finance & Statutory Record in Cloud Firestore
      */
     async function saveEmployeeFinance(orgId, employeeId, financeData = {}, options = {}) {
-        const cleanOrgId = orgId || 'org_kylrx';
+        const cleanOrgId = orgId || missingOrg();
         const cleanEmpId = String(employeeId || financeData.employeeId || '').trim().toUpperCase();
 
         if (!cleanEmpId) {
@@ -408,7 +414,8 @@
         const bankPrefix = rawIfsc.slice(0, 4).toLowerCase();
         const accSuffix = rawAccNumber.slice(-4);
         const decentroBeneficiaryId = bankingInput.decentroBeneficiaryId || `ben_${bankPrefix}_${accSuffix}`;
-        const verificationStatus = bankingInput.verificationStatus || 'VERIFIED';
+        // A saved account is not a verified one; only a real check may say otherwise.
+        const verificationStatus = bankingInput.verificationStatus || 'NOT_VERIFIED';
         const maskedAccountNumber = maskAccountNumber(rawAccNumber);
 
         // Document Construction
@@ -452,7 +459,6 @@
 
         // Save to local cache / ledger
         _localLedger.set(`${cleanOrgId}:${cleanEmpId}`, firestoreDoc);
-        _localLedger.set(`default:${cleanEmpId}`, firestoreDoc);
 
         // Persist to Cloud Firestore if available
         try {
@@ -494,7 +500,7 @@
      * Retrieves an Employee Finance & Statutory Record
      */
     async function getEmployeeFinance(orgId, employeeId) {
-        const cleanOrgId = orgId || 'org_kylrx';
+        const cleanOrgId = orgId || missingOrg();
         const cleanEmpId = String(employeeId || '').trim().toUpperCase();
         if (!cleanEmpId) return null;
 
@@ -522,7 +528,7 @@
         } catch (_) {}
 
         // Fallback to local ledger
-        const cached = _localLedger.get(`${cleanOrgId}:${cleanEmpId}`) || _localLedger.get(`default:${cleanEmpId}`);
+        const cached = _localLedger.get(`${cleanOrgId}:${cleanEmpId}`);
         return cached ? JSON.parse(JSON.stringify(cached)) : null;
     }
 
@@ -530,12 +536,12 @@
      * Lists all Employee Finance Records for an organization
      */
     async function getAllEmployeeFinances(orgId, activeOnly = false) {
-        const cleanOrgId = orgId || 'org_kylrx';
+        const cleanOrgId = orgId || missingOrg();
         const list = [];
 
         // Collect from local ledger
         for (const [key, val] of _localLedger.entries()) {
-            if (key.startsWith(`${cleanOrgId}:`) || key.startsWith('default:')) {
+            if (key.startsWith(`${cleanOrgId}:`)) {
                 if (!list.some(item => item.employeeId === val.employeeId)) {
                     list.push(JSON.parse(JSON.stringify(val)));
                 }
@@ -549,11 +555,10 @@
      * Deletes an Employee Finance Record
      */
     async function deleteEmployeeFinance(orgId, employeeId) {
-        const cleanOrgId = orgId || 'org_kylrx';
+        const cleanOrgId = orgId || missingOrg();
         const cleanEmpId = String(employeeId || '').trim().toUpperCase();
 
         _localLedger.delete(`${cleanOrgId}:${cleanEmpId}`);
-        _localLedger.delete(`default:${cleanEmpId}`);
 
         try {
             if (typeof window !== 'undefined' && window.db) {
@@ -660,44 +665,44 @@
         const list = Array.from(_localLedger.values()).filter((v, idx, arr) => arr.findIndex(t => t.employeeId === v.employeeId) === idx);
 
         container.innerHTML = `
-            <div style="background: white; border: 1px solid var(--border); border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+            <div style="background: var(--k-surface); border: 1px solid var(--border); border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1.25rem; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="width: 40px; height: 40px; border-radius: 12px; background: #ecfdf5; color: #059669; display: flex; align-items: center; justify-content: center;">
+                            <div style="width: 40px; height: 40px; border-radius: 12px; background: var(--k-success-soft); color: var(--k-success-text); display: flex; align-items: center; justify-content: center;">
                                 <i data-lucide="credit-card" style="width: 22px; height: 22px;"></i>
                             </div>
                             <div>
-                                <h2 style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin: 0;">Employee Finance &amp; Statutory Console</h2>
+                                <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--k-text); margin: 0;">Employee Finance &amp; Statutory Console</h2>
                                 <p style="font-size: 0.82rem; color: var(--text-muted); margin: 2px 0 0 0;">
-                                    Cloud Firestore: <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #059669; font-weight: 700;">organizations/{orgId}/employee_finance/{employeeId}</code>
+                                    Cloud Firestore: <code style="background: var(--k-subtle); padding: 2px 6px; border-radius: 4px; color: var(--k-success-text); font-weight: 700;">organizations/{orgId}/employee_finance/{employeeId}</code>
                                 </p>
                             </div>
                         </div>
                     </div>
                     <div style="display: flex; gap: 10px;">
-                        <button type="button" class="btn btn-primary" id="btnOpenFinanceModal" style="font-size: 0.85rem; padding: 10px 16px; border-radius: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; background: #059669; border-color: #047857; color: white; cursor: pointer;">
+                        <button type="button" class="btn btn-primary" id="btnOpenFinanceModal" style="font-size: 0.85rem; padding: 10px 16px; border-radius: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; background: var(--k-success); border-color: #047857; color: var(--k-on-success); cursor: pointer;">
                             <i data-lucide="plus-circle"></i> Add Banking &amp; Statutory Record
                         </button>
                     </div>
                 </div>
 
                 <!-- Decentro Gateway & Specification Banner -->
-                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+                <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 16px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
                     <div>
-                        <span style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Decentro Gateway</span>
-                        <p style="font-size: 0.82rem; font-weight: 700; color: #0f172a; margin-top: 2px;">Fabric Staging API</p>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Decentro Gateway</span>
+                        <p style="font-size: 0.82rem; font-weight: 700; color: var(--k-text); margin-top: 2px;">Fabric Staging API</p>
                     </div>
                     <div>
-                        <span style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Bank Account Masking</span>
-                        <p style="font-size: 0.82rem; font-weight: 700; color: #059669; margin-top: 2px;">Auto-Masked (••••XXXX)</p>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Bank Account Masking</span>
+                        <p style="font-size: 0.82rem; font-weight: 700; color: var(--k-success-text); margin-top: 2px;">Auto-Masked (••••XXXX)</p>
                     </div>
                     <div>
-                        <span style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Penny Drop Verification</span>
-                        <p style="font-size: 0.82rem; font-weight: 700; color: #2563eb; margin-top: 2px;">Name Match &amp; IFSC Gate</p>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Penny Drop Verification</span>
+                        <p style="font-size: 0.82rem; font-weight: 700; color: var(--k-accent-text); margin-top: 2px;">Name Match &amp; IFSC Gate</p>
                     </div>
                     <div>
-                        <span style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Statutory Profiles</span>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Statutory Profiles</span>
                         <p style="font-size: 0.82rem; font-weight: 700; color: #7c3aed; margin-top: 2px;">UAN, ESIC, NPS, Gratuity</p>
                     </div>
                 </div>
@@ -705,16 +710,16 @@
                 <!-- Records Table -->
                 <div style="max-height: 480px; overflow-y: auto; border: 1px solid var(--border); border-radius: 14px;">
                     <table class="preview-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.82rem;">
-                        <thead style="background: #f8fafc; position: sticky; top: 0; z-index: 2;">
+                        <thead style="background: var(--k-subtle); position: sticky; top: 0; z-index: 2;">
                             <tr style="border-bottom: 1px solid var(--border);">
-                                <th style="padding: 12px 14px; font-weight: 800; color: #475569;">Employee</th>
-                                <th style="padding: 12px 14px; font-weight: 800; color: #475569;">Bank &amp; Branch</th>
-                                <th style="padding: 12px 14px; font-weight: 800; color: #475569;">Account Number</th>
-                                <th style="padding: 12px 14px; font-weight: 800; color: #475569;">IFSC</th>
-                                <th style="padding: 12px 14px; font-weight: 800; color: #475569;">Type</th>
-                                <th style="padding: 12px 14px; font-weight: 800; color: #475569;">Decentro Status</th>
-                                <th style="padding: 12px 14px; font-weight: 800; color: #475569;">Statutory Identifiers</th>
-                                <th style="padding: 12px 14px; font-weight: 800; color: #475569; text-align: center;">Actions</th>
+                                <th style="padding: 12px 14px; font-weight: 800; color: var(--k-text-2);">Employee</th>
+                                <th style="padding: 12px 14px; font-weight: 800; color: var(--k-text-2);">Bank &amp; Branch</th>
+                                <th style="padding: 12px 14px; font-weight: 800; color: var(--k-text-2);">Account Number</th>
+                                <th style="padding: 12px 14px; font-weight: 800; color: var(--k-text-2);">IFSC</th>
+                                <th style="padding: 12px 14px; font-weight: 800; color: var(--k-text-2);">Type</th>
+                                <th style="padding: 12px 14px; font-weight: 800; color: var(--k-text-2);">Decentro Status</th>
+                                <th style="padding: 12px 14px; font-weight: 800; color: var(--k-text-2);">Statutory Identifiers</th>
+                                <th style="padding: 12px 14px; font-weight: 800; color: var(--k-text-2); text-align: center;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -722,22 +727,22 @@
                                 const b = item.banking || {};
                                 const s = item.statutory || {};
                                 return `
-                                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                                    <tr style="border-bottom: 1px solid var(--k-border);">
                                         <td style="padding: 12px 14px;">
-                                            <div style="font-weight: 800; color: #0f172a;">${item.employeeId}</div>
-                                            <div style="font-size: 0.72rem; color: #64748b;">${b.accountHolderName || 'N/A'}</div>
+                                            <div style="font-weight: 800; color: var(--k-text);">${item.employeeId}</div>
+                                            <div style="font-size: 0.72rem; color: var(--k-muted);">${b.accountHolderName || 'N/A'}</div>
                                         </td>
                                         <td style="padding: 12px 14px;">
-                                            <div style="font-weight: 700; color: #1e293b;">${b.bankName || 'N/A'}</div>
-                                            <div style="font-size: 0.72rem; color: #64748b;">${b.branchName || ''}</div>
+                                            <div style="font-weight: 700; color: var(--k-text);">${b.bankName || 'N/A'}</div>
+                                            <div style="font-size: 0.72rem; color: var(--k-muted);">${b.branchName || ''}</div>
                                         </td>
                                         <td style="padding: 12px 14px; font-family: monospace;">
                                             <span id="maskedAcc_${item.employeeId}">${b.maskedAccountNumber || maskAccountNumber(b.accountNumber)}</span>
-                                            <button type="button" class="btn-toggle-mask" data-emp="${item.employeeId}" style="background: none; border: none; cursor: pointer; color: #64748b; margin-left: 6px;" title="Reveal / Mask">
+                                            <button type="button" class="btn-toggle-mask" data-emp="${item.employeeId}" style="background: none; border: none; cursor: pointer; color: var(--k-muted); margin-left: 6px;" title="Reveal / Mask">
                                                 <i data-lucide="eye" style="width: 13px; height: 13px;"></i>
                                             </button>
                                         </td>
-                                        <td style="padding: 12px 14px; font-family: monospace; font-weight: 700; color: #2563eb;">
+                                        <td style="padding: 12px 14px; font-family: monospace; font-weight: 700; color: var(--k-accent-text);">
                                             ${b.ifsc || 'N/A'}
                                         </td>
                                         <td style="padding: 12px 14px;">
@@ -747,21 +752,21 @@
                                         </td>
                                         <td style="padding: 12px 14px;">
                                             <div style="display: flex; align-items: center; gap: 5px;">
-                                                <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #10b981;"></span>
-                                                <span style="font-size: 0.75rem; font-weight: 700; color: #047857;">${b.verificationStatus || 'VERIFIED'}</span>
+                                                <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--k-success);"></span>
+                                                <span style="font-size: 0.75rem; font-weight: 700; color: ${b.verificationStatus === 'VERIFIED' ? 'var(--k-success-text)' : 'var(--k-warning-text)'};">${b.verificationStatus === 'VERIFIED' ? 'VERIFIED' : 'NOT VERIFIED'}</span>
                                             </div>
-                                            <div style="font-size: 0.68rem; color: #64748b; font-family: monospace;">${b.decentroBeneficiaryId || ''}</div>
+                                            <div style="font-size: 0.68rem; color: var(--k-muted); font-family: monospace;">${b.decentroBeneficiaryId || ''}</div>
                                         </td>
                                         <td style="padding: 12px 14px;">
                                             <div style="display: flex; flex-wrap: wrap; gap: 4px;">
                                                 ${s.uanApplicable ? `<span style="padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; background: #f3e8ff; color: #7e22ce; font-weight: 700;">UAN: ${s.uanNumber || 'Yes'}</span>` : ''}
-                                                ${s.esicApplicable ? `<span style="padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; background: #fef3c7; color: #b45309; font-weight: 700;">ESIC: ${s.esicNumber || 'Yes'}</span>` : ''}
-                                                ${s.npsApplicable ? `<span style="padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; background: #ecfdf5; color: #047857; font-weight: 700;">NPS: ${s.npsNumber || 'Yes'}</span>` : ''}
-                                                ${s.gratuityApplicable ? `<span style="padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; background: #f1f5f9; color: #475569; font-weight: 700;">Gratuity: ${s.gratuityNumber || 'Yes'}</span>` : ''}
+                                                ${s.esicApplicable ? `<span style="padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; background: var(--k-warning-soft); color: var(--k-warning-text); font-weight: 700;">ESIC: ${s.esicNumber || 'Yes'}</span>` : ''}
+                                                ${s.npsApplicable ? `<span style="padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; background: var(--k-success-soft); color: var(--k-success-text); font-weight: 700;">NPS: ${s.npsNumber || 'Yes'}</span>` : ''}
+                                                ${s.gratuityApplicable ? `<span style="padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; background: var(--k-subtle); color: var(--k-text-2); font-weight: 700;">Gratuity: ${s.gratuityNumber || 'Yes'}</span>` : ''}
                                             </div>
                                         </td>
                                         <td style="padding: 12px 14px; text-align: center;">
-                                            <button type="button" class="btn-verify-decentro" data-emp="${item.employeeId}" style="padding: 5px 10px; border-radius: 8px; font-size: 0.72rem; font-weight: 700; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; cursor: pointer; margin-right: 4px;" title="Penny Drop Verification">
+                                            <button type="button" class="btn-verify-decentro" data-emp="${item.employeeId}" style="padding: 5px 10px; border-radius: 8px; font-size: 0.72rem; font-weight: 700; background: var(--k-accent-soft); color: var(--k-accent-text); border: 1px solid var(--k-accent-border); cursor: pointer; margin-right: 4px;" title="Penny Drop Verification">
                                                 Verify
                                             </button>
                                         </td>
@@ -803,7 +808,9 @@
                 btn.disabled = true;
                 btn.innerHTML = 'Verifying...';
                 const res = await validateBankAccountWithDecentro(rec.banking);
-                alert(`Decentro Fabric Verification:\nStatus: ${res.verificationStatus}\nBeneficiary ID: ${res.decentroBeneficiaryId}\nPenny Drop: ${res.pennyDropStatus}\nGateway: ${res.gateway}`);
+                alert(res.success
+                    ? 'The account number and IFSC are in a valid format.\n\nThe account has NOT been checked with the bank: no penny drop is run from here.'
+                    : 'This account cannot be used:\n' + res.error);
                 btn.disabled = false;
                 btn.innerHTML = 'Verify';
             };
@@ -811,6 +818,7 @@
     }
 
     return {
+        loadSamplesForTesting,
         saveEmployeeFinance,
         getEmployeeFinance,
         getAllEmployeeFinances,

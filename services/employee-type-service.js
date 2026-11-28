@@ -820,36 +820,36 @@
         const existing = isEdit ? findTypeInCache(categoryCode) : null;
 
         drawer.innerHTML = `
-            <div style="background: white; border-radius: 20px; width: 100%; max-width: 580px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); overflow: hidden; animation: fadeIn 0.2s ease-out;">
-                <div style="background: #f8fafc; padding: 1.25rem 1.75rem; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
+            <div style="background: var(--k-surface); border-radius: 20px; width: 100%; max-width: 580px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); overflow: hidden; animation: fadeIn 0.2s ease-out;">
+                <div style="background: var(--k-subtle); padding: 1.25rem 1.75rem; border-bottom: 1px solid var(--k-border); display: flex; align-items: center; justify-content: space-between;">
                     <div style="display: flex; align-items: center; gap: 12px;">
                         <div style="width: 38px; height: 38px; border-radius: 10px; background: #e0e7ff; color: #4338ca; display: flex; align-items: center; justify-content: center; font-weight: 800;">
                             🏷️
                         </div>
                         <div>
-                            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: #0f172a;">${isEdit ? 'Edit Employee Category' : 'Create Employee Category'}</h3>
-                            <p style="margin: 0; font-size: 0.8rem; color: #64748b;">PRD §§ 1, 10, &amp; 13: Schema, Tenure Days &amp; BU Gating</p>
+                            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--k-text);">${isEdit ? 'Edit Employee Category' : 'Create Employee Category'}</h3>
+                            <p style="margin: 0; font-size: 0.8rem; color: var(--k-muted);">PRD §§ 1, 10, &amp; 13: Schema, Tenure Days &amp; BU Gating</p>
                         </div>
                     </div>
-                    <button type="button" id="closeTypeModalBtn" style="background: none; border: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer; padding: 4px;">&times;</button>
+                    <button type="button" id="closeTypeModalBtn" style="background: none; border: none; font-size: 1.5rem; color: var(--k-muted); cursor: pointer; padding: 4px;">&times;</button>
                 </div>
 
                 <form id="employeeTypeConfigForm" style="padding: 1.75rem;">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                         <div>
-                            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 6px; text-transform: uppercase;">Category Code *</label>
-                            <input type="text" id="typeCodeInput" value="${existing ? existing.categoryCode : ''}" placeholder="e.g. CAT_FT_REG" ${isEdit ? 'readonly style="background:#f1f5f9; cursor:not-allowed;"' : ''} required style="width: 100%; padding: 10px 14px; border: 1.5px solid #cbd5e1; border-radius: 10px; font-size: 0.9rem;">
+                            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 6px; text-transform: uppercase;">Category Code *</label>
+                            <input type="text" id="typeCodeInput" value="${existing ? existing.categoryCode : ''}" placeholder="e.g. CAT_FT_REG" ${isEdit ? 'readonly style="background:var(--k-subtle); cursor:not-allowed;"' : ''} required style="width: 100%; padding: 10px 14px; border: 1.5px solid var(--k-border); border-radius: 10px; font-size: 0.9rem;">
                         </div>
                         <div>
-                            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 6px; text-transform: uppercase;">Category Name *</label>
-                            <input type="text" id="typeNameInput" value="${existing ? existing.categoryName : ''}" placeholder="e.g. Full-Time Regular" required style="width: 100%; padding: 10px 14px; border: 1.5px solid #cbd5e1; border-radius: 10px; font-size: 0.9rem;">
+                            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 6px; text-transform: uppercase;">Category Name *</label>
+                            <input type="text" id="typeNameInput" value="${existing ? existing.categoryName : ''}" placeholder="e.g. Full-Time Regular" required style="width: 100%; padding: 10px 14px; border: 1.5px solid var(--k-border); border-radius: 10px; font-size: 0.9rem;">
                         </div>
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                         <div>
-                            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 6px; text-transform: uppercase;">Employment Type *</label>
-                            <select id="typeEmploymentSelect" required style="width: 100%; padding: 10px 14px; border: 1.5px solid #cbd5e1; border-radius: 10px; font-size: 0.9rem; background: white;">
+                            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 6px; text-transform: uppercase;">Employment Type *</label>
+                            <select id="typeEmploymentSelect" required style="width: 100%; padding: 10px 14px; border: 1.5px solid var(--k-border); border-radius: 10px; font-size: 0.9rem; background: var(--k-surface);">
                                 <option value="Permanent" ${existing && existing.employmentType === 'Permanent' ? 'selected' : ''}>Permanent</option>
                                 <option value="Contract" ${existing && existing.employmentType === 'Contract' ? 'selected' : ''}>Contract (TVC / Fixed-Term)</option>
                                 <option value="Intern" ${existing && existing.employmentType === 'Intern' ? 'selected' : ''}>Intern / Apprentice</option>
@@ -858,8 +858,8 @@
                             </select>
                         </div>
                         <div>
-                            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 6px; text-transform: uppercase;">Worker Type *</label>
-                            <select id="typeWorkerSelect" required style="width: 100%; padding: 10px 14px; border: 1.5px solid #cbd5e1; border-radius: 10px; font-size: 0.9rem; background: white;">
+                            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 6px; text-transform: uppercase;">Worker Type *</label>
+                            <select id="typeWorkerSelect" required style="width: 100%; padding: 10px 14px; border: 1.5px solid var(--k-border); border-radius: 10px; font-size: 0.9rem; background: var(--k-surface);">
                                 <option value="White Collar" ${existing && existing.workerType === 'White Collar' ? 'selected' : ''}>White Collar (Corporate / Tech)</option>
                                 <option value="Blue Collar" ${existing && existing.workerType === 'Blue Collar' ? 'selected' : ''}>Blue Collar (Plant / Operations)</option>
                                 <option value="On-Roll" ${existing && existing.workerType === 'On-Roll' ? 'selected' : ''}>On-Roll (Direct)</option>
@@ -870,36 +870,36 @@
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
                         <div>
-                            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 6px; text-transform: uppercase;">Probation Duration</label>
+                            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 6px; text-transform: uppercase;">Probation Duration</label>
                             <div style="position: relative;">
-                                <input type="number" id="typeProbationInput" value="${existing ? existing.probationDays : '180'}" min="0" max="365" required style="width: 100%; padding: 10px 14px; padding-right: 48px; border: 1.5px solid #cbd5e1; border-radius: 10px; font-size: 0.9rem;">
-                                <span style="position: absolute; right: 12px; top: 10px; font-size: 0.8rem; color: #94a3b8; font-weight: 600;">days</span>
+                                <input type="number" id="typeProbationInput" value="${existing ? existing.probationDays : '180'}" min="0" max="365" required style="width: 100%; padding: 10px 14px; padding-right: 48px; border: 1.5px solid var(--k-border); border-radius: 10px; font-size: 0.9rem;">
+                                <span style="position: absolute; right: 12px; top: 10px; font-size: 0.8rem; color: var(--k-muted); font-weight: 600;">days</span>
                             </div>
                         </div>
                         <div>
-                            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 6px; text-transform: uppercase;">Notice Period</label>
+                            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 6px; text-transform: uppercase;">Notice Period</label>
                             <div style="position: relative;">
-                                <input type="number" id="typeNoticeInput" value="${existing ? existing.noticePeriodDays : '60'}" min="0" max="180" required style="width: 100%; padding: 10px 14px; padding-right: 48px; border: 1.5px solid #cbd5e1; border-radius: 10px; font-size: 0.9rem;">
-                                <span style="position: absolute; right: 12px; top: 10px; font-size: 0.8rem; color: #94a3b8; font-weight: 600;">days</span>
+                                <input type="number" id="typeNoticeInput" value="${existing ? existing.noticePeriodDays : '60'}" min="0" max="180" required style="width: 100%; padding: 10px 14px; padding-right: 48px; border: 1.5px solid var(--k-border); border-radius: 10px; font-size: 0.9rem;">
+                                <span style="position: absolute; right: 12px; top: 10px; font-size: 0.8rem; color: var(--k-muted); font-weight: 600;">days</span>
                             </div>
                         </div>
                     </div>
 
-                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 16px; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between;">
+                    <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 12px; padding: 12px 16px; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between;">
                         <div>
-                            <div style="font-size: 0.88rem; font-weight: 700; color: #1e293b;">Active Operational Status</div>
-                            <div style="font-size: 0.75rem; color: #64748b;">Controls visibility in onboarding forms and assignment dropdowns</div>
+                            <div style="font-size: 0.88rem; font-weight: 700; color: var(--k-text);">Active Operational Status</div>
+                            <div style="font-size: 0.75rem; color: var(--k-muted);">Controls visibility in onboarding forms and assignment dropdowns</div>
                         </div>
                         <label style="position: relative; display: inline-block; width: 44px; height: 24px; cursor: pointer;">
                             <input type="checkbox" id="typeActiveToggle" ${(!existing || existing.isActive) ? 'checked' : ''} style="opacity: 0; width: 0; height: 0;">
-                            <span id="activeToggleSlider" style="position: absolute; inset: 0; background: ${(!existing || existing.isActive) ? '#10b981' : '#cbd5e1'}; border-radius: 24px; transition: .3s;"></span>
-                            <span id="activeToggleDot" style="position: absolute; top: 2px; left: ${(!existing || existing.isActive) ? '22px' : '2px'}; width: 20px; height: 20px; background: white; border-radius: 50%; transition: .3s; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></span>
+                            <span id="activeToggleSlider" style="position: absolute; inset: 0; background: ${(!existing || existing.isActive) ? 'var(--k-success)' : '#cbd5e1'}; border-radius: 24px; transition: .3s;"></span>
+                            <span id="activeToggleDot" style="position: absolute; top: 2px; left: ${(!existing || existing.isActive) ? '22px' : '2px'}; width: 20px; height: 20px; background: var(--k-surface); border-radius: 50%; transition: .3s; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></span>
                         </label>
                     </div>
 
                     <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                        <button type="button" id="cancelTypeModalBtn" style="padding: 10px 18px; border: 1px solid #cbd5e1; background: white; color: #475569; border-radius: 10px; font-weight: 600; cursor: pointer;">Cancel</button>
-                        <button type="submit" style="padding: 10px 22px; border: none; background: #3b82f6; color: white; border-radius: 10px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(59,130,246,0.3);">${isEdit ? 'Save Changes' : 'Create Category'}</button>
+                        <button type="button" id="cancelTypeModalBtn" style="padding: 10px 18px; border: 1px solid var(--k-border); background: var(--k-surface); color: var(--k-text-2); border-radius: 10px; font-weight: 600; cursor: pointer;">Cancel</button>
+                        <button type="submit" style="padding: 10px 22px; border: none; background: var(--k-accent); color: var(--k-on-accent); border-radius: 10px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(59,130,246,0.3);">${isEdit ? 'Save Changes' : 'Create Category'}</button>
                     </div>
                 </form>
             </div>
@@ -974,13 +974,13 @@
         const types = _typesCache;
 
         container.innerHTML = `
-            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-                <div style="padding: 1.25rem 1.5rem; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+            <div style="background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                <div style="padding: 1.25rem 1.5rem; background: var(--k-subtle); border-bottom: 1px solid var(--k-border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
                     <div>
-                        <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: #0f172a;">Employee Types &amp; Categories</h3>
-                        <p style="margin: 4px 0 0; font-size: 0.8rem; color: #64748b;">PRD §§ 1, 10, &amp; 13: Configured Categories, Standard Tenure Days &amp; BU Interlocks</p>
+                        <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--k-text);">Employee Types &amp; Categories</h3>
+                        <p style="margin: 4px 0 0; font-size: 0.8rem; color: var(--k-muted);">PRD §§ 1, 10, &amp; 13: Configured Categories, Standard Tenure Days &amp; BU Interlocks</p>
                     </div>
-                    <button type="button" id="btnAddEmployeeCategory" style="padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(59,130,246,0.25);">
+                    <button type="button" id="btnAddEmployeeCategory" style="padding: 8px 16px; background: var(--k-accent); color: var(--k-on-accent); border: none; border-radius: 10px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(59,130,246,0.25);">
                         <span>+ Add Employee Category</span>
                     </button>
                 </div>
@@ -988,7 +988,7 @@
                 <div style="overflow-x: auto;">
                     <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
                         <thead>
-                            <tr style="background: #f1f5f9; color: #475569; border-bottom: 1px solid #e2e8f0; font-weight: 800; text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.05em;">
+                            <tr style="background: var(--k-subtle); color: var(--k-text-2); border-bottom: 1px solid var(--k-border); font-weight: 800; text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.05em;">
                                 <th style="padding: 12px 16px;">Category Code</th>
                                 <th style="padding: 12px 16px;">Category Name</th>
                                 <th style="padding: 12px 16px;">Employment Type</th>
@@ -1001,11 +1001,11 @@
                         </thead>
                         <tbody>
                             ${types.map(t => `
-                                <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
-                                    <td style="padding: 12px 16px; font-weight: 700; color: #1e293b;">
+                                <tr style="border-bottom: 1px solid var(--k-border); transition: background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
+                                    <td style="padding: 12px 16px; font-weight: 700; color: var(--k-text);">
                                         <code>${t.categoryCode}</code>
                                     </td>
-                                    <td style="padding: 12px 16px; font-weight: 600; color: #334155;">
+                                    <td style="padding: 12px 16px; font-weight: 600; color: var(--k-text-2);">
                                         ${t.categoryName}
                                     </td>
                                     <td style="padding: 12px 16px;">
@@ -1014,26 +1014,26 @@
                                         </span>
                                     </td>
                                     <td style="padding: 12px 16px;">
-                                        <span style="display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 0.76rem; font-weight: 700; background: ${t.workerType === 'White Collar' ? '#f3e8ff' : '#fef3c7'}; color: ${t.workerType === 'White Collar' ? '#7e22ce' : '#b45309'};">
+                                        <span style="display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 0.76rem; font-weight: 700; background: ${t.workerType === 'var(--k-surface) Collar' ? '#f3e8ff' : 'var(--k-warning-soft)'}; color: ${t.workerType === 'White Collar' ? '#7e22ce' : 'var(--k-warning-text)'};">
                                             ${t.workerType}
                                         </span>
                                     </td>
-                                    <td style="padding: 12px 16px; font-weight: 600; color: #475569;">
+                                    <td style="padding: 12px 16px; font-weight: 600; color: var(--k-text-2);">
                                         ${t.probationDays} days
                                     </td>
-                                    <td style="padding: 12px 16px; font-weight: 600; color: #475569;">
+                                    <td style="padding: 12px 16px; font-weight: 600; color: var(--k-text-2);">
                                         ${t.noticePeriodDays} days
                                     </td>
                                     <td style="padding: 12px 16px;">
-                                        <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 100px; font-size: 0.75rem; font-weight: 700; background: ${t.isActive ? '#dcfce7' : '#f1f5f9'}; color: ${t.isActive ? '#15803d' : '#64748b'};">
-                                            <span style="width: 6px; height: 6px; border-radius: 50%; background: ${t.isActive ? '#16a34a' : '#94a3b8'};"></span>
+                                        <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 100px; font-size: 0.75rem; font-weight: 700; background: ${t.isActive ? 'var(--k-success-soft)' : 'var(--k-subtle)'}; color: ${t.isActive ? 'var(--k-success-text)' : 'var(--k-muted)'};">
+                                            <span style="width: 6px; height: 6px; border-radius: 50%; background: ${t.isActive ? 'var(--k-success)' : '#94a3b8'};"></span>
                                             ${t.isActive ? 'Active' : 'Inactive'}
                                         </span>
                                     </td>
                                     <td style="padding: 12px 16px; text-align: right;">
                                         <div style="display: inline-flex; gap: 8px;">
-                                            <button type="button" class="btn-edit-type" data-code="${t.categoryCode}" style="padding: 4px 10px; border: 1px solid #cbd5e1; background: white; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; color: #1e293b;">Edit</button>
-                                            <button type="button" class="btn-toggle-type" data-code="${t.categoryCode}" data-active="${t.isActive}" style="padding: 4px 10px; border: 1px solid ${t.isActive ? '#fecaca' : '#bbf7d0'}; background: ${t.isActive ? '#fef2f2' : '#f0fdf4'}; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; color: ${t.isActive ? '#991b1b' : '#166534'};">
+                                            <button type="button" class="btn-edit-type" data-code="${t.categoryCode}" style="padding: 4px 10px; border: 1px solid var(--k-border); background: var(--k-surface); border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; color: var(--k-text);">Edit</button>
+                                            <button type="button" class="btn-toggle-type" data-code="${t.categoryCode}" data-active="${t.isActive}" style="padding: 4px 10px; border: 1px solid ${t.isActive ? 'var(--k-danger-border)' : 'var(--k-success-border)'}; background: ${t.isActive ? 'var(--k-danger-soft)' : 'var(--k-success-soft)'}; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; color: ${t.isActive ? 'var(--k-danger-text)' : 'var(--k-success-text)'};">
                                                 ${t.isActive ? 'Deactivate' : 'Activate'}
                                             </button>
                                         </div>

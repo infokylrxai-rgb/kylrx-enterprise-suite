@@ -95,16 +95,16 @@
         if (l1Select && l1Info) {
             const resolved = resolveManagerInfo(l1Select.value);
             l1Info.innerHTML = `
-                <div style="font-weight: 700; color: #1e293b; font-size: 0.85rem;">${escapeHtml(resolved.name)}</div>
-                <div style="font-size: 0.72rem; color: #64748b;">${escapeHtml(resolved.title)} ${resolved.email ? '• ' + escapeHtml(resolved.email) : ''}</div>
+                <div style="font-weight: 700; color: var(--k-text); font-size: 0.85rem;">${escapeHtml(resolved.name)}</div>
+                <div style="font-size: 0.72rem; color: var(--k-muted);">${escapeHtml(resolved.title)} ${resolved.email ? '• ' + escapeHtml(resolved.email) : ''}</div>
             `;
         }
 
         if (l2Select && l2Info) {
             const resolved = resolveManagerInfo(l2Select.value);
             l2Info.innerHTML = `
-                <div style="font-weight: 700; color: #1e293b; font-size: 0.85rem;">${escapeHtml(resolved.name)}</div>
-                <div style="font-size: 0.72rem; color: #64748b;">${escapeHtml(resolved.title)} ${resolved.email ? '• ' + escapeHtml(resolved.email) : ''}</div>
+                <div style="font-weight: 700; color: var(--k-text); font-size: 0.85rem;">${escapeHtml(resolved.name)}</div>
+                <div style="font-size: 0.72rem; color: var(--k-muted);">${escapeHtml(resolved.title)} ${resolved.email ? '• ' + escapeHtml(resolved.email) : ''}</div>
             `;
         }
     }
@@ -134,10 +134,10 @@
 
         if (state.documents.length === 0) {
             container.innerHTML = `
-                <div style="text-align: center; padding: 2rem; background: #f8fafc; border-radius: 12px; border: 1.5px dashed #cbd5e1;">
-                    <i data-lucide="file-question" style="width: 36px; height: 36px; color: #94a3b8; margin: 0 auto 8px;"></i>
-                    <p style="font-size: 0.85rem; font-weight: 700; color: #475569; margin: 0 0 4px;">No Official Documents Uploaded</p>
-                    <p style="font-size: 0.75rem; color: #94a3b8; margin: 0;">Upload Offer Letter, Signed NDA, Aadhaar, PAN, or Bank Proof above.</p>
+                <div style="text-align: center; padding: 2rem; background: var(--k-subtle); border-radius: 12px; border: 1.5px dashed var(--k-border);">
+                    <i data-lucide="file-question" style="width: 36px; height: 36px; color: var(--k-muted); margin: 0 auto 8px;"></i>
+                    <p style="font-size: 0.85rem; font-weight: 700; color: var(--k-text-2); margin: 0 0 4px;">No Official Documents Uploaded</p>
+                    <p style="font-size: 0.75rem; color: var(--k-muted); margin: 0;">Upload Offer Letter, Signed NDA, Aadhaar, PAN, or Bank Proof above.</p>
                 </div>
             `;
             if (window.lucide) lucide.createIcons();
@@ -161,7 +161,7 @@
             const sizeStr = formatBytes(doc.fileSize);
 
             return `
-                <div class="emp-doc-row" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 8px; transition: all 0.2s ease;">
+                <div class="emp-doc-row" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 10px; margin-bottom: 8px; transition: all 0.2s ease;">
                     <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1;">
                         <div style="width: 36px; height: 36px; border-radius: 8px; background: ${meta.bg}; color: ${meta.color}; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                             <i data-lucide="${doc.mimeType?.includes('pdf') ? 'file-text' : 'file-image'}" style="width: 18px; height: 18px;"></i>
@@ -169,9 +169,9 @@
                         <div style="min-width: 0; flex: 1;">
                             <div style="display: flex; align-items: center; gap: 6px;">
                                 <span style="font-size: 0.72rem; font-weight: 700; color: ${meta.color}; background: ${meta.bg}; padding: 2px 6px; border-radius: 4px; text-transform: uppercase;">${escapeHtml(meta.label)}</span>
-                                <span style="font-size: 0.85rem; font-weight: 600; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(doc.fileName)}</span>
+                                <span style="font-size: 0.85rem; font-weight: 600; color: var(--k-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(doc.fileName)}</span>
                             </div>
-                            <div style="font-size: 0.72rem; color: #64748b; margin-top: 2px;">
+                            <div style="font-size: 0.72rem; color: var(--k-muted); margin-top: 2px;">
                                 Uploaded: ${escapeHtml(formattedDate)} • ${escapeHtml(sizeStr)}
                             </div>
                         </div>
@@ -183,7 +183,7 @@
                         <button type="button" class="btn btn-sm btn-outline" onclick="EmployeeProfileController.downloadDocument('${escapeHtml(doc.docId)}')" style="padding: 6px 10px; font-size: 0.75rem; border-radius: 6px;" title="Download Document">
                             <i data-lucide="download" style="width: 13px; height: 13px;"></i>
                         </button>
-                        <button type="button" class="btn btn-sm" onclick="EmployeeProfileController.deleteDocument('${escapeHtml(doc.docId)}')" style="padding: 6px 10px; font-size: 0.75rem; border-radius: 6px; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;" title="Remove Document">
+                        <button type="button" class="btn btn-sm" onclick="EmployeeProfileController.deleteDocument('${escapeHtml(doc.docId)}')" style="padding: 6px 10px; font-size: 0.75rem; border-radius: 6px; background: var(--k-danger-soft); color: var(--k-danger-text); border: 1px solid var(--k-danger-border);" title="Remove Document">
                             <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
                         </button>
                     </div>
@@ -642,7 +642,7 @@
             if (id && (typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null) && window.KylrxEmployeeFinanceService && typeof window.KylrxEmployeeFinanceService.getEmployeeFinance === 'function') {
                 try {
                     finRec = await window.KylrxEmployeeFinanceService.getEmployeeFinance((typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null), id);
-                } catch (_) {}
+                } catch (err) { console.error('[employee-profile-controller] finRec = await window.KylrxEmployeeFinanceServic failed:', err); }
             }
             const banking = finRec?.banking || emp.banking || {};
             const finStatutory = finRec?.statutory || statutory;
@@ -912,7 +912,7 @@
         if (tableBody) {
             const components = structure.components || [];
             if (components.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="7" style="padding: 16px; text-align: center; color: #94a3b8;">No components defined in this structure revision.</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="7" style="padding: 16px; text-align: center; color: var(--k-muted);">No components defined in this structure revision.</td></tr>';
             } else {
                 // Find basic component for referenced percentage calculation preview
                 const basicComp = components.find(c => (c.componentCode || '').toUpperCase() === 'BASIC');
@@ -932,8 +932,8 @@
 
                     const isDeduction = ['PF_EE', 'PF_ER', 'ESIC_EE', 'ESIC_ER', 'PT', 'TDS'].includes(cCode.toUpperCase());
                     const typeBadge = isDeduction
-                        ? '<span style="font-size: 0.72rem; font-weight: 700; color: #b91c1c; background: #fee2e2; padding: 2px 6px; border-radius: 6px;">Deduction</span>'
-                        : '<span style="font-size: 0.72rem; font-weight: 700; color: #047857; background: #d1fae5; padding: 2px 6px; border-radius: 6px;">Earning</span>';
+                        ? '<span style="font-size: 0.72rem; font-weight: 700; color: var(--k-danger-text); background: var(--k-danger-soft); padding: 2px 6px; border-radius: 6px;">Deduction</span>'
+                        : '<span style="font-size: 0.72rem; font-weight: 700; color: var(--k-success-text); background: var(--k-success-soft); padding: 2px 6px; border-radius: 6px;">Earning</span>';
 
                     const amtStr = (comp.amount !== null && comp.amount !== undefined)
                         ? '₹' + Number(comp.amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -946,17 +946,17 @@
                         <tr style="border-bottom: 1px solid var(--border);">
                             <td style="padding: 8px 12px; font-weight: 700; color: var(--text-muted);">${idx + 1}</td>
                             <td style="padding: 8px 12px;">
-                                <strong style="font-family: monospace; color: #1e293b;">${escapeHtml(cCode)}</strong>
+                                <strong style="font-family: monospace; color: var(--k-text);">${escapeHtml(cCode)}</strong>
                             </td>
                             <td style="padding: 8px 12px;">${typeBadge}</td>
                             <td style="padding: 8px 12px;">
-                                <span style="font-size: 0.72rem; font-weight: 700; background: #f1f5f9; color: #334155; padding: 2px 6px; border-radius: 6px;">
+                                <span style="font-size: 0.72rem; font-weight: 700; background: var(--k-subtle); color: var(--k-text-2); padding: 2px 6px; border-radius: 6px;">
                                     ${escapeHtml(basis)}
                                 </span>
                             </td>
                             <td style="padding: 8px 12px; text-align: right; font-family: monospace; font-weight: 600; color: #0891b2;">${escapeHtml(pctStr)}</td>
                             <td style="padding: 8px 12px; text-align: right; font-family: monospace; font-weight: 600;">${escapeHtml(amtStr)}</td>
-                            <td style="padding: 8px 12px; text-align: right; font-family: monospace; font-weight: 800; color: #0f172a;">
+                            <td style="padding: 8px 12px; text-align: right; font-family: monospace; font-weight: 800; color: var(--k-text);">
                                 ₹${Number(computed).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </td>
                         </tr>
@@ -983,7 +983,7 @@
         if (grossEl) grossEl.textContent = '₹0.00';
         if (ctcEl) ctcEl.textContent = '₹0.00';
         if (revSelect) revSelect.innerHTML = '<option value="latest">Latest Active Revision</option>';
-        if (tableBody) tableBody.innerHTML = '<tr><td colspan="7" style="padding: 16px; text-align: center; color: #94a3b8;">No salary structure assigned for this employee.</td></tr>';
+        if (tableBody) tableBody.innerHTML = '<tr><td colspan="7" style="padding: 16px; text-align: center; color: var(--k-muted);">No salary structure assigned for this employee.</td></tr>';
     }
 
     /**
@@ -1035,7 +1035,7 @@
                 }
 
                 verifyBtn.disabled = true;
-                verifyBtn.innerHTML = '<i data-lucide="loader" class="animate-spin" style="width: 14px; height: 14px;"></i> Verifying...';
+                verifyBtn.innerHTML = '<i data-lucide="loader" class="animate-spin" style="width: 14px; height: 14px;"></i> Checking...';
 
                 if (window.KylrxEmployeeFinanceService && typeof window.KylrxEmployeeFinanceService.validateBankAccountWithDecentro === 'function') {
                     const res = await window.KylrxEmployeeFinanceService.validateBankAccountWithDecentro({
@@ -1048,16 +1048,17 @@
                     if (res.success) {
                         const benIdDisplay = document.getElementById('decentroBenIdDisplay');
                         if (benIdDisplay) benIdDisplay.textContent = res.decentroBeneficiaryId;
+                        // Only the format was checked; nothing was sent to a bank or to Cashfree.
                         const decBadge = document.getElementById('decentroVerificationBadge');
-                        if (decBadge) decBadge.textContent = 'VERIFIED';
-                        alert(`Cashfree Penny Drop Successful!\n\nBeneficiary ID: ${res.decentroBeneficiaryId}\nAccount Holder: ${res.accountHolderName}\nIFSC: ${res.ifsc}\nGateway: ${res.gateway}\nStatus: VERIFIED`);
+                        if (decBadge) decBadge.textContent = 'FORMAT OK - NOT VERIFIED';
+                        alert('The account number and IFSC are in a valid format.\n\nThe account has NOT been checked with the bank: no penny drop is run from here.');
                     } else {
-                        alert(`Cashfree Verification Failed:\n${res.error}`);
+                        alert(`This account cannot be used:\n${res.error}`);
                     }
                 }
 
                 verifyBtn.disabled = false;
-                verifyBtn.innerHTML = '<i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> Run Penny Drop Test';
+                verifyBtn.innerHTML = '<i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> Check Account Format';
                 if (window.lucide) lucide.createIcons();
             });
         }

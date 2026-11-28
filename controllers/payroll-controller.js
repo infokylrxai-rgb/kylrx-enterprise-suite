@@ -137,6 +137,48 @@ async function getVaultDocuments(req, res) {
 // ============================================================================
 
 /**
+ * Where a payout is sent is decided here, from the organisation's own stored record -
+ * organizations/{orgId}/employee_finance/{employeeId} - never from the request.
+ *
+ * The batch used to take each employee's account number and IFSC from the request body.
+ * Whatever the browser sent was what the bank was told to pay: a stale cache, a sample
+ * record, or a deliberately altered account. Maker-checker approval does not catch that,
+ * because the checker approves the batch the maker created. Account fields in the
+ * request are now ignored; an employee with no stored account is passed on with none,
+ * so the batch validation marks that row invalid instead of paying anyone.
+ */
+async function resolveStoredBeneficiaries(orgId, employees, db = webhookDb) {
+  if (!orgId) throw new Error('Your account has no organization, so no payout can be prepared.');
+  if (!db) throw new Error('Bank details could not be read from the database, so no payout was prepared.');
+  const out = [];
+  for (const emp of employees || []) {
+    const employeeId = String(emp.employeeId || emp.id || '').trim();
+    let banking = null;
+    if (employeeId) {
+      const snap = await db.collection('organizations').doc(orgId).collection('employee_finance').doc(employeeId).get();
+      const data = snap.exists ? snap.data() : null;
+      banking = data && (data.banking || null);
+    }
+    // Keep who and how much from the request; replace every bank field.
+    const { financeDetails, bankDetails, accountNumber, Account_Number, ifsc, IFSC, ifscCode,
+            bankName, Bank_Name, accountHolderName, Account_Holder_Name, ...rest } = emp;
+    out.push({
+      ...rest,
+      employeeId,
+      financeDetails: banking ? {
+        Account_Holder_Name: banking.accountHolderName || '',
+        Bank_Name: banking.bankName || '',
+        Account_Number: banking.accountNumber || '',
+        IFSC: banking.ifsc || '',
+        Account_Type: banking.accountType || 'Savings',
+        Is_Primary: banking.isPrimary !== false
+      } : {}
+    });
+  }
+  return out;
+}
+
+/**
  * POST /api/payroll/disburse/create-batch
  * Initiates payout batch in PENDING_APPROVAL state (Maker step).
  */
@@ -152,13 +194,16 @@ async function createDisbursementBatch(req, res) {
       });
     }
 
+    const orgId = req.user?.orgId || null;
+    const payees = await resolveStoredBeneficiaries(orgId, employees || []);
+
     const batch = await disbursementService.createDisbursementBatch({
       batchId,
       period: period || 'September 2026',
       makerId,
-      orgId: req.user?.orgId || null,
+      orgId,
       payoutChannel: payoutChannel || 'IMPS',
-      employees: employees || []
+      employees: payees
     });
 
     return res.status(201).json({
@@ -450,6 +495,7 @@ async function handleCashfreeWebhook(req, res) {
 }
 
 module.exports = {
+  resolveStoredBeneficiaries,
   documentService,
   disbursementService,
   getOutboundIp,

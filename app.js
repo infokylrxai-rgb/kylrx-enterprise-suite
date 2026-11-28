@@ -25,12 +25,12 @@ window.onerror = function (msg, url, lineNo, columnNo, error) {
     fallbackUI.innerHTML = `
         <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); z-index: 99999; display: flex; align-items: center; justify-content: center; color: white; font-family: 'Inter', sans-serif;">
             <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 40px; max-width: 500px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
-                <div style="font-size: 3rem; color: #ef4444; margin-bottom: 20px;">⚠️</div>
+                <div style="font-size: 3rem; color: var(--k-danger-text); margin-bottom: 20px;">⚠️</div>
                 <h2 style="margin: 0 0 10px 0; font-size: 1.5rem; font-weight: 600;">System Recovering</h2>
-                <p style="color: #94a3b8; font-size: 0.95rem; line-height: 1.6; margin-bottom: 25px;">
+                <p style="color: var(--k-muted); font-size: 0.95rem; line-height: 1.6; margin-bottom: 25px;">
                     HRFlow encountered an unexpected issue but our Zero-Crash architecture protected your data. We are resetting the current view.
                 </p>
-                <button onclick="window.location.reload()" style="background: #3b82f6; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 500; cursor: pointer; transition: background 0.2s;">
+                <button onclick="window.location.reload()" style="background: var(--k-accent); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 500; cursor: pointer; transition: background 0.2s;">
                     Reload Dashboard
                 </button>
             </div>
@@ -220,7 +220,7 @@ function updateCharts() {
         { label: 'Late', data: [23, 18, 25, 20, lateCount], backgroundColor: '#fbbf24', borderRadius: 6 },
       ]
     },
-    options: { responsive: true, plugins: { legend: { position: 'top' } }, scales: { x: { grid: { display: false } }, y: { grid: { color: '#f1f5f9' } } } }
+    options: { responsive: true, plugins: { legend: { position: 'top' } }, scales: { x: { grid: { display: false } }, y: { grid: { color: 'rgba(128, 128, 128, 0.18)' } } } }
   });
 
   deptChartInstance = new Chart(deptCtx, {
@@ -894,7 +894,7 @@ window.addEventListener('load', () => {
           fill: true, tension: 0.4, pointBackgroundColor: '#2563eb', pointRadius: 4
         }]
       },
-      options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { color: '#f1f5f9' } } } }
+      options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { color: 'rgba(128, 128, 128, 0.18)' } } } }
     });
   }
 
@@ -909,7 +909,7 @@ window.addEventListener('load', () => {
           backgroundColor: '#10b981', borderRadius: 8
         }]
       },
-      options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { color: '#f1f5f9' } } } }
+      options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { color: 'rgba(128, 128, 128, 0.18)' } } } }
     });
   }
 
@@ -1249,18 +1249,18 @@ document.addEventListener('click', (e) => {
           ${initials}
         </div>
         <h2 style="color:var(--text); margin-bottom:0.5rem;">${name}</h2>
-        <div style="display:inline-block; padding:0.4rem 1rem; background:#eff6ff; color:#3b82f6; border-radius:100px; font-weight:600; font-size:0.85rem; margin-bottom:1.5rem;">
+        <div style="display:inline-block; padding:0.4rem 1rem; background:var(--k-accent-soft); color:var(--k-accent-text); border-radius:100px; font-weight:600; font-size:0.85rem; margin-bottom:1.5rem;">
           ${dept}
         </div>
         
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; text-align:left; background:var(--bg); padding:1.5rem; border-radius:12px; border:1px solid #e2e8f0;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; text-align:left; background:var(--bg); padding:1.5rem; border-radius:12px; border:1px solid var(--k-border);">
           <div>
             <div style="font-size:0.75rem; color:var(--text-2); text-transform:uppercase; letter-spacing:1px; margin-bottom:0.3rem;">Employee ID</div>
             <div style="font-weight:700; color:var(--text);">${id}</div>
           </div>
           <div>
             <div style="font-size:0.75rem; color:var(--text-2); text-transform:uppercase; letter-spacing:1px; margin-bottom:0.3rem;">Status</div>
-            <div style="color:#10b981; font-weight:700;"><i class="fa-solid fa-circle" style="font-size:8px; vertical-align:middle; margin-right:5px;"></i> Active</div>
+            <div style="color:var(--k-success-text); font-weight:700;"><i class="fa-solid fa-circle" style="font-size:8px; vertical-align:middle; margin-right:5px;"></i> Active</div>
           </div>
         </div>
         
@@ -1283,7 +1283,7 @@ document.addEventListener('click', (e) => {
       <div class="settings-form">
         <div class="form-row">
           <label>HR Manager ID</label>
-          <input type="text" id="hrManagerId" value="${hrId}" class="form-input" readonly style="background:var(--bg); color:#10b981; font-weight:700;"/>
+          <input type="text" id="hrManagerId" value="${hrId}" class="form-input" readonly style="background:var(--bg); color:var(--k-success-text); font-weight:700;"/>
         </div>
         <div class="form-row">
           <label>Employee ID (Auto)</label>
@@ -1423,7 +1423,7 @@ document.addEventListener('click', (e) => {
         </div>
         <div class="form-row">
           <label>HR Manager ID</label>
-          <input type="text" id="bankHrId" value="${hrId}" class="form-input" readonly style="background:var(--bg); color:#10b981; font-weight:700;"/>
+          <input type="text" id="bankHrId" value="${hrId}" class="form-input" readonly style="background:var(--bg); color:var(--k-success-text); font-weight:700;"/>
         </div>
         <div class="form-row">
           <label>Bank Name</label>

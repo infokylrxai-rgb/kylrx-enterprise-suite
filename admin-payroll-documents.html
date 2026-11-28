@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="kylrx-theme-init.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payroll Document Center | Kylrx AI</title>
@@ -45,7 +46,7 @@
         }
 
         .doc-card {
-            background: white; border-radius: 24px; padding: 2rem;
+            background: var(--k-surface); border-radius: 24px; padding: 2rem;
             border: 1px solid var(--border); box-shadow: var(--shadow-sm);
             transition: 0.3s; position: relative; overflow: hidden;
         }
@@ -57,12 +58,12 @@
         }
 
         .category-item {
-            padding: 1.5rem; background: #f8fafc; border-radius: 20px;
+            padding: 1.5rem; background: var(--k-subtle); border-radius: 20px;
             text-align: center; border: 1px solid transparent; transition: 0.2s;
             cursor: pointer;
         }
 
-        .category-item:hover { background: white; border-color: var(--primary-soft); box-shadow: var(--shadow-sm); }
+        .category-item:hover { background: var(--k-surface); border-color: var(--primary-soft); box-shadow: var(--shadow-sm); }
         .category-item i { color: var(--primary); margin-bottom: 12px; }
 
         .doc-table {
@@ -73,7 +74,7 @@
         .doc-table td { padding: 1.25rem 1rem; border-top: 1px solid var(--border); font-size: 0.875rem; }
 
         .security-badge {
-            background: #ecfdf5; color: #059669; padding: 4px 10px; border-radius: 100px;
+            background: var(--k-success-soft); color: var(--k-success-text); padding: 4px 10px; border-radius: 100px;
             font-size: 0.7rem; font-weight: 800; display: inline-flex; align-items: center; gap: 4px;
         }
 
@@ -83,60 +84,61 @@
 
         .archive-item {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 1rem; background: #f8fafc; border-radius: 14px; border: 1px solid var(--border);
+            padding: 1rem; background: var(--k-subtle); border-radius: 14px; border: 1px solid var(--border);
         }
 
         /* Toasts */
         .toast-notification {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: white; border-radius: 20px; padding: 1.5rem 2rem;
+            background: var(--k-surface); border-radius: 20px; padding: 1.5rem 2rem;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2);
             display: none; align-items: center; gap: 12px; z-index: 5000;
             border: 1px solid var(--border); animation: toastIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         .toast-notification.active { display: flex; }
-        .toast-notification i { color: #10b981; width: 24px; height: 24px; }
-        .toast-notification span { font-weight: 700; color: #1e293b; font-size: 1rem; }
+        .toast-notification i { color: var(--k-success-text); width: 24px; height: 24px; }
+        .toast-notification span { font-weight: 700; color: var(--k-text); font-size: 1rem; }
         @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -40%) scale(0.9); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
     </style>
+    <link rel="stylesheet" href="kylrx-theme.css">
 </head>
 <body class="admin-dashboard">
     <!-- Confirm Modal -->
     <div id="disburseModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 6000; align-items: center; justify-content: center;">
-        <div style="background: white; padding: 2rem; border-radius: 24px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid var(--border);">
-            <div style="width: 64px; height: 64px; background: #eff6ff; color: #3b82f6; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+        <div style="background: var(--k-surface); padding: 2rem; border-radius: 24px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid var(--border);">
+            <div style="width: 64px; height: 64px; background: var(--k-accent-soft); color: var(--k-accent-text); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
                 <i data-lucide="send" size="32"></i>
             </div>
-            <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; color: #1e293b;" id="disburseModalTitle">Confirm Disbursement</h2>
+            <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--k-text);" id="disburseModalTitle">Confirm Disbursement</h2>
             <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 2rem; line-height: 1.6;" id="disburseModalDesc">...</p>
             <div style="display: flex; gap: 12px;">
                 <button class="btn btn-outline" style="flex: 1; padding: 14px; border-radius: 12px; justify-content: center;" onclick="document.getElementById('disburseModal').style.display='none'">Cancel</button>
-                <button class="btn btn-primary" style="flex: 1; background: #10b981; border: none; padding: 14px; border-radius: 12px; justify-content: center;" id="confirmDisburseBtn">Confirm</button>
+                <button class="btn btn-primary" style="flex: 1; background: var(--k-success); border: none; padding: 14px; border-radius: 12px; justify-content: center;" id="confirmDisburseBtn">Confirm</button>
             </div>
         </div>
     </div>
 
     <!-- Export Confirm Modal -->
     <div id="exportConfirmModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 6000; align-items: center; justify-content: center;">
-        <div style="background: white; padding: 2rem; border-radius: 24px; width: 90%; max-width: 420px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid var(--border);">
-            <div style="width: 64px; height: 64px; background: #fef2f2; color: #ef4444; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+        <div style="background: var(--k-surface); padding: 2rem; border-radius: 24px; width: 90%; max-width: 420px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid var(--border);">
+            <div style="width: 64px; height: 64px; background: var(--k-danger-soft); color: var(--k-danger-text); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
                 <i data-lucide="alert-triangle" size="32"></i>
             </div>
-            <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; color: #1e293b;">Missing Bank Details</h2>
+            <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--k-text);">Missing Bank Details</h2>
             <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 2rem; line-height: 1.6;" id="exportConfirmModalDesc">...</p>
             <div style="display: flex; gap: 12px;">
                 <button class="btn btn-outline" style="flex: 1; padding: 14px; border-radius: 12px; justify-content: center;" onclick="document.getElementById('exportConfirmModal').style.display='none'">Cancel</button>
-                <button class="btn btn-primary" style="flex: 1; background: #ef4444; border: none; padding: 14px; border-radius: 12px; justify-content: center;" id="btnConfirmExportAnyway">Export Anyway</button>
+                <button class="btn btn-primary" style="flex: 1; background: var(--k-danger); border: none; padding: 14px; border-radius: 12px; justify-content: center;" id="btnConfirmExportAnyway">Export Anyway</button>
             </div>
         </div>
     </div>
 
     <!-- Vault Modal -->
     <div id="vaultModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 6000; align-items: center; justify-content: center;">
-        <div style="background: white; padding: 2rem; border-radius: 24px; width: 90%; max-width: 600px; height: 80vh; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid var(--border);">
+        <div style="background: var(--k-surface); padding: 2rem; border-radius: 24px; width: 90%; max-width: 600px; height: 80vh; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid var(--border);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-shrink: 0;">
                 <div>
-                    <h2 style="font-size: 1.5rem; font-weight: 800; color: #1e293b;" id="vaultModalTitle">Secure Document Vault</h2>
+                    <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--k-text);" id="vaultModalTitle">Secure Document Vault</h2>
                     <p style="color: var(--text-muted); font-size: 0.875rem;" id="vaultModalSubtitle">Viewing archived records</p>
                 </div>
                 <button onclick="document.getElementById('vaultModal').style.display='none'" style="background: none; border: none; cursor: pointer; color: var(--text-muted);"><i data-lucide="x" size="24"></i></button>
@@ -147,7 +149,7 @@
                 <i data-lucide="search" size="18" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
             </div>
             
-            <div style="overflow-y: auto; flex: 1; border: 1px solid var(--border); border-radius: 16px; background: #f8fafc; padding: 1rem;" id="vaultItemsContainer">
+            <div style="overflow-y: auto; flex: 1; border: 1px solid var(--border); border-radius: 16px; background: var(--k-subtle); padding: 1rem;" id="vaultItemsContainer">
                 <!-- Vault items list -->
             </div>
             
@@ -163,9 +165,9 @@
         <span>Action completed successfully!</span>
     </div>
 
-    <div class="toast-notification" id="errorToast" style="border-color: #fecaca;">
-        <i data-lucide="alert-circle" style="color: #ef4444;"></i>
-        <span style="color: #b91c1c;">Operation failed.</span>
+    <div class="toast-notification" id="errorToast" style="border-color: var(--k-danger-border);">
+        <i data-lucide="alert-circle" style="color: var(--k-danger-text);"></i>
+        <span style="color: var(--k-danger-text);">Operation failed.</span>
     </div>
 
     <div class="dashboard-container">
@@ -305,8 +307,8 @@
 
                     <div class="doc-card" style="margin-top: 2rem; border-color: #10b981;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                            <h3 style="font-weight: 800; color: #059669;">1-Click Salary Disbursement</h3>
-                            <div class="security-badge" style="background: #eff6ff; color: #3b82f6;"><i data-lucide="lock" size="12"></i> Admin Controlled</div>
+                            <h3 style="font-weight: 800; color: var(--k-success-text);">1-Click Salary Disbursement</h3>
+                            <div class="security-badge" style="background: var(--k-accent-soft); color: var(--k-accent-text);"><i data-lucide="lock" size="12"></i> Admin Controlled</div>
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
                             <label style="display: flex; flex-direction: column; gap: 8px; font-size: 0.875rem; font-weight: 700;">
@@ -323,7 +325,7 @@
                                 </select>
                             </label>
                         </div>
-                        <button class="btn btn-primary" style="width: 100%; justify-content: center; background: #10b981; border: none; font-size: 1rem; padding: 14px;" onclick="triggerDisbursement()">
+                        <button class="btn btn-primary" style="width: 100%; justify-content: center; background: var(--k-success); border: none; font-size: 1rem; padding: 14px;" onclick="triggerDisbursement()">
                             <i data-lucide="send"></i> Pay Salaries Now (1-Click)
                         </button>
                         <button class="btn btn-outline" style="width: 100%; justify-content: center; margin-top: 12px; font-size: 0.875rem; padding: 12px;" onclick="exportBankFileFromDocs()">
@@ -348,14 +350,14 @@
                                     <td style="font-weight: 700;">Arjun Mehta</td>
                                     <td>Payslip (Oct 2026)</td>
                                     <td>PS-2026-1042</td>
-                                    <td><span class="badge" style="background: #ecfdf5; color: #059669; font-size: 0.7rem;">Generated</span></td>
+                                    <td><span class="badge" style="background: var(--k-success-soft); color: var(--k-success-text); font-size: 0.7rem;">Generated</span></td>
                                     <td><i data-lucide="download" size="16" style="cursor: pointer; color: var(--primary);"></i></td>
                                 </tr>
                                 <tr>
                                     <td style="font-weight: 700;">Sarah Jenkins</td>
                                     <td>Invoice (Oct 2026)</td>
                                     <td>INV-2026-882</td>
-                                    <td><span class="badge" style="background: #ecfdf5; color: #059669; font-size: 0.7rem;">Generated</span></td>
+                                    <td><span class="badge" style="background: var(--k-success-soft); color: var(--k-success-text); font-size: 0.7rem;">Generated</span></td>
                                     <td><i data-lucide="download" size="16" style="cursor: pointer; color: var(--primary);"></i></td>
                                 </tr>
                                 <tr>
@@ -371,7 +373,7 @@
                 </div>
 
                 <div class="doc-right">
-                    <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.5rem; cursor: pointer; transition: all 0.2s ease;" onclick="window.location.href='admin-dashboard-builder.html'" onmouseover="this.style.borderColor='var(--primary)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='var(--border)'; this.style.transform='none';">
+                    <div class="ai-glass-card" style="background: var(--k-surface); border: 1px solid var(--border); padding: 1.5rem; cursor: pointer; transition: all 0.2s ease;" onclick="window.location.href='admin-dashboard-builder.html'" onmouseover="this.style.borderColor='var(--primary)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='var(--border)'; this.style.transform='none';">
                         <h3 style="font-weight: 800; margin-bottom: 1.5rem;">Payroll Distribution</h3>
                         <canvas id="payrollChart" height="250"></canvas>
                         <div style="margin-top: 1.5rem; display: grid; gap: 10px;">
@@ -381,12 +383,12 @@
                             </div>
                             <div style="display: flex; justify-content: space-between; font-size: 0.875rem;">
                                 <span style="color: var(--text-muted);">Tax Deductions (TDS)</span>
-                                <span id="totalTDS" style="font-weight: 800; color: #ef4444;">₹0.00</span>
+                                <span id="totalTDS" style="font-weight: 800; color: var(--k-danger-text);">₹0.00</span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.5rem; margin-top: 2rem;">
+                    <div class="ai-glass-card" style="background: var(--k-surface); border: 1px solid var(--border); padding: 1.5rem; margin-top: 2rem;">
                         <h3 style="font-weight: 800; margin-bottom: 1rem;">Automated Archives</h3>
                         <div class="archive-list">
                             <div class="archive-item">
@@ -401,7 +403,7 @@
                         <button class="btn btn-outline" onclick="openVaultModal('')" style="width: 100%; margin-top: 1.5rem; font-size: 0.75rem;">Access Vault</button>
                     </div>
 
-                    <div class="ai-glass-card" style="background: #eff6ff; border: 1px solid #dbeafe; padding: 1rem; margin-top: 2rem; display: flex; gap: 12px; align-items: center;">
+                    <div class="ai-glass-card" style="background: var(--k-accent-soft); border: 1px solid var(--k-accent-border); padding: 1rem; margin-top: 2rem; display: flex; gap: 12px; align-items: center;">
                         <i data-lucide="info" style="color: var(--primary);"></i>
                         <p style="font-size: 0.75rem; color: var(--primary-dark); line-height: 1.4;"><strong>SLA:</strong> Document generation for the current cycle is <strong>98% complete</strong>. 12 invoices pending approval.</p>
                     </div>
@@ -414,7 +416,7 @@
             <div id="tabContentDisbursement" style="display: none;">
                 <!-- KPI Cards -->
                 <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; margin-bottom: 2rem;">
-                    <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
+                    <div class="ai-glass-card" style="background: var(--k-surface); border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <div style="width: 44px; height: 44px; border-radius: 12px; background: #f3e8ff; color: #9333ea; display: flex; align-items: center; justify-content: center;">
                                 <i data-lucide="layers" size="22"></i>
@@ -424,33 +426,33 @@
                                 <div id="kpiTotalOutflow" style="font-size: 1.25rem; font-weight: 800; color: var(--text-main);">₹0.00</div>
                             </div>
                         </div>
-                        <div id="kpiTotalOutflowSub" style="margin-top: 8px; font-size: 0.7rem; color: #10b981; font-weight: 700;">Loading...</div>
+                        <div id="kpiTotalOutflowSub" style="margin-top: 8px; font-size: 0.7rem; color: var(--k-success-text); font-weight: 700;">Loading...</div>
                     </div>
-                    <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
+                    <div class="ai-glass-card" style="background: var(--k-surface); border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
                         <div style="display: flex; align-items: center; gap: 12px;">
-                            <div style="width: 44px; height: 44px; border-radius: 12px; background: #dcfce7; color: #10b981; display: flex; align-items: center; justify-content: center;">
+                            <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--k-success-soft); color: var(--k-success-text); display: flex; align-items: center; justify-content: center;">
                                 <i data-lucide="check-circle" size="22"></i>
                             </div>
                             <div>
                                 <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Disbursed (Settled)</div>
-                                <div id="kpiDisbursed" style="font-size: 1.25rem; font-weight: 800; color: #10b981;">₹0.00</div>
+                                <div id="kpiDisbursed" style="font-size: 1.25rem; font-weight: 800; color: var(--k-success-text);">₹0.00</div>
                             </div>
                         </div>
-                        <div id="kpiDisbursedSub" style="margin-top: 8px; font-size: 0.7rem; color: #10b981; font-weight: 700;">Loading...</div>
+                        <div id="kpiDisbursedSub" style="margin-top: 8px; font-size: 0.7rem; color: var(--k-success-text); font-weight: 700;">Loading...</div>
                     </div>
-                    <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
+                    <div class="ai-glass-card" style="background: var(--k-surface); border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
                         <div style="display: flex; align-items: center; gap: 12px;">
-                            <div style="width: 44px; height: 44px; border-radius: 12px; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center;">
+                            <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--k-warning-soft); color: var(--k-warning-text); display: flex; align-items: center; justify-content: center;">
                                 <i data-lucide="clock" size="22"></i>
                             </div>
                             <div>
                                 <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Pending Authorization</div>
-                                <div id="kpiPending" style="font-size: 1.25rem; font-weight: 800; color: #d97706;">₹0.00</div>
+                                <div id="kpiPending" style="font-size: 1.25rem; font-weight: 800; color: var(--k-warning-text);">₹0.00</div>
                             </div>
                         </div>
-                        <div id="kpiPendingSub" style="margin-top: 8px; font-size: 0.7rem; color: #d97706; font-weight: 700;">Loading...</div>
+                        <div id="kpiPendingSub" style="margin-top: 8px; font-size: 0.7rem; color: var(--k-warning-text); font-weight: 700;">Loading...</div>
                     </div>
-                    <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
+                    <div class="ai-glass-card" style="background: var(--k-surface); border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <div style="width: 44px; height: 44px; border-radius: 12px; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center;">
                                 <i data-lucide="shield-check" size="22"></i>
@@ -469,32 +471,32 @@
                     <div class="doc-card" style="border-color: #10b981;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
                             <div>
-                                <h3 style="font-weight: 800; color: #059669; font-size: 1.125rem;">Super Admin 1-Click Salary Disbursement Hub</h3>
+                                <h3 style="font-weight: 800; color: var(--k-success-text); font-size: 1.125rem;">Super Admin 1-Click Salary Disbursement Hub</h3>
                                 <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">Direct automated bank transfer execution without third-party redirects.</p>
                             </div>
-                            <span class="badge" style="background: #ecfdf5; color: #059669; font-weight: 700; padding: 6px 12px; border-radius: 8px;">
+                            <span class="badge" style="background: var(--k-success-soft); color: var(--k-success-text); font-weight: 700; padding: 6px 12px; border-radius: 8px;">
                                 <i data-lucide="zap" size="14" style="display:inline; margin-right:4px;"></i> Live Gateway Active
                             </span>
                         </div>
                         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
-                            <div style="padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border);">
+                            <div style="padding: 12px; background: var(--k-subtle); border-radius: 12px; border: 1px solid var(--border);">
                                 <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">PAYMENT GATEWAY</div>
                                 <div style="font-size: 1rem; font-weight: 800; color: var(--text-main); margin-top: 4px;">HDFC Direct Host-to-Host</div>
-                                <div style="font-size: 0.7rem; color: #10b981; font-weight: 600;">API Ping: 18ms (Online)</div>
+                                <div style="font-size: 0.7rem; color: var(--k-success-text); font-weight: 600;">API Ping: 18ms (Online)</div>
                             </div>
-                            <div style="padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border);">
+                            <div style="padding: 12px; background: var(--k-subtle); border-radius: 12px; border: 1px solid var(--border);">
                                 <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">TRANSFER RAILS</div>
                                 <div style="font-size: 1rem; font-weight: 800; color: var(--text-main); margin-top: 4px;">NEFT / RTGS / IMPS</div>
-                                <div style="font-size: 0.7rem; color: #10b981; font-weight: 600;">Bank Format: RBI-Standard</div>
+                                <div style="font-size: 0.7rem; color: var(--k-success-text); font-weight: 600;">Bank Format: RBI-Standard</div>
                             </div>
-                            <div style="padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border);">
+                            <div style="padding: 12px; background: var(--k-subtle); border-radius: 12px; border: 1px solid var(--border);">
                                 <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">AUDIT &amp; ENCRYPTION</div>
                                 <div style="font-size: 1rem; font-weight: 800; color: var(--text-main); margin-top: 4px;">AES-256 + HMAC-SHA</div>
-                                <div style="font-size: 0.7rem; color: #10b981; font-weight: 600;">Multi-Sig Verified</div>
+                                <div style="font-size: 0.7rem; color: var(--k-success-text); font-weight: 600;">Multi-Sig Verified</div>
                             </div>
                         </div>
                         <div style="display: flex; gap: 12px;">
-                            <button class="btn btn-primary" style="flex: 2; justify-content: center; background: #10b981; border: none; font-size: 1rem; padding: 12px;" onclick="triggerDisbursement()">
+                            <button class="btn btn-primary" style="flex: 2; justify-content: center; background: var(--k-success); border: none; font-size: 1rem; padding: 12px;" onclick="triggerDisbursement()">
                                 <i data-lucide="send"></i> Execute Salary Disbursement Now (1-Click)
                             </button>
                             <button class="btn btn-outline" style="flex: 1; justify-content: center; font-size: 0.875rem;" onclick="exportBankFileFromDocs()">
@@ -507,30 +509,30 @@
                         <h3 style="font-weight: 800; margin-bottom: 1rem; font-size: 1rem;">Batch Stepper &amp; Signoff</h3>
                         <div style="display: flex; flex-direction: column; gap: 12px;">
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 28px; height: 28px; border-radius: 50%; background: #10b981; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem;">✓</div>
+                                <div style="width: 28px; height: 28px; border-radius: 50%; background: var(--k-success); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem;">✓</div>
                                 <div>
                                     <div style="font-size: 0.875rem; font-weight: 700;">1. Biometric Attendance Sync</div>
                                     <div style="font-size: 0.7rem; color: var(--text-muted);">92 of 92 Timesheets Approved</div>
                                 </div>
                             </div>
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 28px; height: 28px; border-radius: 50%; background: #10b981; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem;">✓</div>
+                                <div style="width: 28px; height: 28px; border-radius: 50%; background: var(--k-success); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem;">✓</div>
                                 <div>
                                     <div style="font-size: 0.875rem; font-weight: 700;">2. Bank Verification Check</div>
                                     <div style="font-size: 0.7rem; color: var(--text-muted);">Penny Drop &amp; IFSC Validated</div>
                                 </div>
                             </div>
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 28px; height: 28px; border-radius: 50%; background: #2563eb; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem;">3</div>
+                                <div style="width: 28px; height: 28px; border-radius: 50%; background: var(--k-accent); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem;">3</div>
                                 <div>
-                                    <div style="font-size: 0.875rem; font-weight: 700; color: #2563eb;">3. Super Admin Signoff</div>
+                                    <div style="font-size: 0.875rem; font-weight: 700; color: var(--k-accent-text);">3. Super Admin Signoff</div>
                                     <div style="font-size: 0.7rem; color: var(--text-muted);">Ready for Batch Trigger</div>
                                 </div>
                             </div>
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 28px; height: 28px; border-radius: 50%; background: #e2e8f0; color: #64748b; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem;">4</div>
+                                <div style="width: 28px; height: 28px; border-radius: 50%; background: var(--k-border); color: var(--k-muted); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem;">4</div>
                                 <div>
-                                    <div style="font-size: 0.875rem; font-weight: 700; color: #64748b;">4. Gateway Dispatch &amp; UTR</div>
+                                    <div style="font-size: 0.875rem; font-weight: 700; color: var(--k-muted);">4. Gateway Dispatch &amp; UTR</div>
                                     <div style="font-size: 0.7rem; color: var(--text-muted);">Instant UTR Settlement</div>
                                 </div>
                             </div>
@@ -576,43 +578,43 @@
             <div id="tabContentCompliance" style="display: none;">
                 <!-- Statutory Regulatory KPI Banner -->
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
-                    <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
+                    <div class="ai-glass-card" style="background: var(--k-surface); border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
                         <div style="display: flex; align-items: center; gap: 12px;">
-                            <div style="width: 44px; height: 44px; border-radius: 12px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                            <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center;">
                                 <i data-lucide="landmark" size="22"></i>
                             </div>
                             <div>
                                 <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">PF &amp; ECR Challan</div>
-                                <div id="kpiPF" style="font-size: 1.25rem; font-weight: 800; color: #2563eb;">—</div>
+                                <div id="kpiPF" style="font-size: 1.25rem; font-weight: 800; color: var(--k-accent-text);">—</div>
                             </div>
                         </div>
                         <div id="kpiPFSub" style="margin-top: 8px; font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">Loading...</div>
                     </div>
-                    <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
+                    <div class="ai-glass-card" style="background: var(--k-surface); border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
                         <div style="display: flex; align-items: center; gap: 12px;">
-                            <div style="width: 44px; height: 44px; border-radius: 12px; background: #ecfdf5; color: #059669; display: flex; align-items: center; justify-content: center;">
+                            <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--k-success-soft); color: var(--k-success-text); display: flex; align-items: center; justify-content: center;">
                                 <i data-lucide="shield-check" size="22"></i>
                             </div>
                             <div>
                                 <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">ESIC Contribution</div>
-                                <div id="kpiESIC" style="font-size: 1.25rem; font-weight: 800; color: #059669;">—</div>
+                                <div id="kpiESIC" style="font-size: 1.25rem; font-weight: 800; color: var(--k-success-text);">—</div>
                             </div>
                         </div>
                         <div id="kpiESICSub" style="margin-top: 8px; font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">Loading...</div>
                     </div>
-                    <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
+                    <div class="ai-glass-card" style="background: var(--k-surface); border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
                         <div style="display: flex; align-items: center; gap: 12px;">
-                            <div style="width: 44px; height: 44px; border-radius: 12px; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center;">
+                            <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--k-warning-soft); color: var(--k-warning-text); display: flex; align-items: center; justify-content: center;">
                                 <i data-lucide="file-check" size="22"></i>
                             </div>
                             <div>
                                 <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">PT &amp; TDS (24Q)</div>
-                                <div id="kpiPT" style="font-size: 1.25rem; font-weight: 800; color: #d97706;">—</div>
+                                <div id="kpiPT" style="font-size: 1.25rem; font-weight: 800; color: var(--k-warning-text);">—</div>
                             </div>
                         </div>
                         <div id="kpiPTSub" style="margin-top: 8px; font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">Loading...</div>
                     </div>
-                    <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
+                    <div class="ai-glass-card" style="background: var(--k-surface); border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <div style="width: 44px; height: 44px; border-radius: 12px; background: #f3e8ff; color: #9333ea; display: flex; align-items: center; justify-content: center;">
                                 <i data-lucide="scale" size="22"></i>
@@ -638,7 +640,7 @@
                                 <select id="compliancePeriod" onchange="loadComplianceStats(this.value)" style="margin-left: 6px; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.8rem; font-family: inherit;"></select>
                             </label>
                             <button class="btn btn-outline" id="btnRescanIdentifiers" style="padding: 8px 12px; font-size: 0.8rem;" onclick="rescanStatutoryIdentifiers()"><i data-lucide="rotate-cw" size="14"></i> Re-scan Identifiers</button>
-                            <button class="btn btn-primary" id="btnExportFilingPack" style="padding: 8px 14px; font-size: 0.8rem; background: #2563eb;" onclick="exportFilingPack()"><i data-lucide="file-archive" size="14"></i> Export Filing Pack</button>
+                            <button class="btn btn-primary" id="btnExportFilingPack" style="padding: 8px 14px; font-size: 0.8rem; background: var(--k-accent);" onclick="exportFilingPack()"><i data-lucide="file-archive" size="14"></i> Export Filing Pack</button>
                         </div>
                     </div>
                     <div style="overflow-x: auto;">
@@ -850,7 +852,7 @@
                     <td style="font-weight: 700;">${data.employeeName || 'Unknown'}</td>
                     <td>${data.docType} (${data.period || 'N/A'})</td>
                     <td>${data.docId || data.id}</td>
-                    <td><span class="badge" style="background: #ecfdf5; color: #059669; font-size: 0.7rem;">${data.status}</span></td>
+                    <td><span class="badge" style="background: var(--k-success-soft); color: var(--k-success-text); font-size: 0.7rem;">${data.status}</span></td>
                     <td><i data-lucide="download" size="16" style="cursor: pointer; color: var(--primary);" onclick="downloadPayrollDoc('${data.id}')"></i></td>
                 `;
                 tbody.appendChild(row);
@@ -870,7 +872,7 @@
                 loadArchives();
             } catch (err) {
                 console.error("Failed to load documents:", err);
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem; color: #ef4444;">Failed to load logs.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem; color: var(--k-danger-text);">Failed to load logs.</td></tr>';
             }
         }
 
@@ -963,13 +965,13 @@
                 }
                 
                 container.innerHTML = filtered.map(d => `
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: white; margin-bottom: 8px; border-radius: 10px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--k-surface); margin-bottom: 8px; border-radius: 10px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
                         <div>
-                            <p style="font-weight: 700; font-size: 0.875rem; color: #1e293b;">${d.employeeName || 'Unknown'}</p>
+                            <p style="font-weight: 700; font-size: 0.875rem; color: var(--k-text);">${d.employeeName || 'Unknown'}</p>
                             <p style="font-size: 0.75rem; color: var(--text-muted);">${d.docType} • ${d.docId || d.id}</p>
                         </div>
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <span style="font-size: 0.7rem; font-weight: 800; background: #ecfdf5; color: #059669; padding: 2px 8px; border-radius: 100px;">${d.status}</span>
+                            <span style="font-size: 0.7rem; font-weight: 800; background: var(--k-success-soft); color: var(--k-success-text); padding: 2px 8px; border-radius: 100px;">${d.status}</span>
                             <button onclick="downloadPayrollDoc('${d.id}')" style="background: none; border: none; cursor: pointer; color: var(--primary); display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; transition: 0.2s;" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='none'">
                                 <i data-lucide="download" size="16"></i>
                             </button>
@@ -1127,8 +1129,8 @@
                                 <div style="font-size: 0.7rem; color: var(--text-muted);">${r.ifsc}</div>
                             </td>
                             <td style="font-weight: 600;">${fmtRs(r.gross)}</td>
-                            <td style="color: #ef4444; font-weight: 600;">-${fmtRs(r.deductions)}</td>
-                            <td style="font-weight: 800; color: #10b981;">${fmtRs(r.net)}</td>
+                            <td style="color: var(--k-danger-text); font-weight: 600;">-${fmtRs(r.deductions)}</td>
+                            <td style="font-weight: 800; color: var(--k-success-text);">${fmtRs(r.net)}</td>
                             <td><span class="badge" style="background: ${statusColor.bg}; color: ${statusColor.color};">${statusColor.label}</span></td>
                             <td>${actionBtn}</td>
                         </tr>`;
@@ -1177,15 +1179,15 @@
             const good = /PROCESSED|COMPLETED|VALIDATED|DEDUCTED|APPROVED|FILED/.test(s);
             const bad = h.blocking > 0 || /BLOCK|FAIL|REJECT/.test(s);
             const style = bad ? 'background:#fef2f2;color:#b91c1c' : good ? 'background:#ecfdf5;color:#059669' : 'background:#fef3c7;color:#b45309';
-            return `<span class="badge" style="${style};">${escC(s)}</span>${h.blocking ? `<div style="font-size: 0.7rem;color:#b91c1c;margin-top:3px;">${h.blocking} blocking exception(s)</div>` : ''}`;
+            return `<span class="badge" style="${style};">${escC(s)}</span>${h.blocking ? `<div style="font-size: 0.7rem;color:var(--k-danger-text);margin-top:3px;">${h.blocking} blocking exception(s)</div>` : ''}`;
         }
 
         function reconciliationCell(h) {
             if (!h.reconciliation) return '<span style="font-size: 0.75rem;color:var(--text-muted);">—</span>';
             const r = h.reconciliation;
             return r.matches
-                ? `<span style="font-size: 0.75rem;color:#059669;font-weight:700;">✓ Matches payroll run</span>`
-                : `<span style="font-size: 0.75rem;color:#b91c1c;font-weight:700;" title="Payroll run total ${inrExact(r.payrollRunTotal)}">Differs by ${inrExact(Math.abs(r.difference))}</span>`;
+                ? `<span style="font-size: 0.75rem;color:var(--k-success-text);font-weight:700;">✓ Matches payroll run</span>`
+                : `<span style="font-size: 0.75rem;color:var(--k-danger-text);font-weight:700;" title="Payroll run total ${inrExact(r.payrollRunTotal)}">Differs by ${inrExact(Math.abs(r.difference))}</span>`;
         }
 
         window.loadComplianceStats = async function (period) {
@@ -1236,9 +1238,9 @@
                         <td>${escC(x.members)}</td>
                         <td style="font-weight: 600;">${inrExact(x.employerShare)}</td>
                         <td style="font-weight: 600;">${inrExact(x.employeeShare)}</td>
-                        <td style="font-weight: 800; color: #2563eb;">${inrExact(x.total)}</td>
+                        <td style="font-weight: 800; color: var(--k-accent-text);">${inrExact(x.total)}</td>
                         <td>${x.file || x.reference
-                            ? `<code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem;">${escC(x.reference || x.file)}</code>${x.batchId ? `<div style="font-size: 0.7rem;color:var(--text-muted);margin-top:2px;">${escC(x.batchId)}</div>` : ''}`
+                            ? `<code style="background: var(--k-subtle); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem;">${escC(x.reference || x.file)}</code>${x.batchId ? `<div style="font-size: 0.7rem;color:var(--text-muted);margin-top:2px;">${escC(x.batchId)}</div>` : ''}`
                             : `<span style="font-size: 0.75rem;color:var(--text-muted);">${x.batchId ? escC(x.batchId) : 'Not generated'}</span>`}</td>
                         <td>${statusBadge(x)}</td>
                         <td>${reconciliationCell(x)}</td>
@@ -1247,7 +1249,7 @@
                 else if (window.lucide) lucide.createIcons();
             } catch (err) {
                 console.error('loadComplianceStats error:', err);
-                if (tbody) tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 2rem; color: #b91c1c;">Could not load statutory data: ${escC(err.message)}</td></tr>`;
+                if (tbody) tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 2rem; color: var(--k-danger-text);">Could not load statutory data: ${escC(err.message)}</td></tr>`;
                 showToast('Failed to load compliance data: ' + err.message, true);
             }
         };
@@ -1275,13 +1277,13 @@
                     <div style="font-size: 0.8rem; font-weight: 800; color: var(--text-main); margin-bottom: 6px;">Employees (${d.summary.employeesChecked - d.summary.employeesWithIssues}/${d.summary.employeesChecked} complete)</div>
                     <table class="doc-table"><thead><tr><th>EMPLOYEE</th><th>DEPARTMENT</th><th>IDENTIFIERS</th></tr></thead><tbody>
                         ${d.employees.map(e => `<tr><td style="font-weight: 700;">${escC(e.name)}</td><td>${escC(e.department || '—')}</td><td>${e.issues.length
-                            ? e.issues.map(i => `<span class="badge" style="background:#fef2f2;color:#b91c1c;margin:0 4px 4px 0;display:inline-block;">${escC(i)}</span>`).join('')
-                            : '<span class="badge" style="background:#ecfdf5;color:#059669;">✓ PAN & UAN on record</span>'}</td></tr>`).join('')}
+                            ? e.issues.map(i => `<span class="badge" style="background:var(--k-danger-soft);color:var(--k-danger-text);margin:0 4px 4px 0;display:inline-block;">${escC(i)}</span>`).join('')
+                            : '<span class="badge" style="background:var(--k-success-soft);color:var(--k-success-text);">✓ PAN & UAN on record</span>'}</td></tr>`).join('')}
                     </tbody></table>
                     <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 8px;">PF ECR needs each member's UAN; TDS (24Q) needs PAN. Add missing values in the employee records before filing.</p>`;
                 showToast(`Identifiers checked: ${d.summary.employeesWithIssues} employee(s) need attention.`);
             } catch (err) {
-                body.innerHTML = `<p style="color: #b91c1c; font-size: 0.875rem;">Re-scan failed: ${escC(err.message)}</p>`;
+                body.innerHTML = `<p style="color: var(--k-danger-text); font-size: 0.875rem;">Re-scan failed: ${escC(err.message)}</p>`;
             } finally {
                 btn.disabled = false;
             }
@@ -1367,27 +1369,27 @@
                 justify-content: center;
             }
             #customAppsModal .modal {
-                background: #ffffff !important;
-                color: #0f172a !important;
+                background: var(--k-surface) !important;
+                color: var(--k-text) !important;
                 padding: 2rem;
                 border-radius: 24px;
                 width: 90%;
                 max-width: 500px;
                 box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-                border: 1px solid #e2e8f0;
+                border: 1px solid var(--k-border);
                 position: relative;
                 text-align: left;
             }
             #customAppsModal .modal h2 {
                 font-weight: 800;
                 font-size: 1.25rem;
-                color: #0f172a !important;
+                color: var(--k-text) !important;
                 margin-bottom: 4px;
                 margin-top: 0;
             }
             #customAppsModal .modal p {
                 font-size: 0.75rem;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 margin: 0;
             }
             #customAppsModal .modal .form-group {
@@ -1399,7 +1401,7 @@
             #customAppsModal .modal label {
                 font-size: 0.7rem;
                 font-weight: 800;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 text-transform: uppercase;
                 display: block;
                 margin-bottom: 4px;
@@ -1408,9 +1410,9 @@
                 width: 100%;
                 padding: 12px 16px;
                 border-radius: 12px;
-                border: 1px solid #cbd5e1 !important;
-                background: #ffffff !important;
-                color: #0f172a !important;
+                border: 1px solid var(--k-border) !important;
+                background: var(--k-surface) !important;
+                color: var(--k-text) !important;
                 outline: none;
                 margin-top: 4px;
                 font-family: inherit;
@@ -1418,15 +1420,15 @@
                 transition: border-color 0.2s, box-shadow 0.2s;
             }
             #customAppsModal .modal input:focus {
-                border-color: #3b82f6 !important;
+                border-color: var(--k-accent) !important;
                 box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
             }
             #customAppsModal .modal input::placeholder {
-                color: #94a3b8 !important;
+                color: var(--k-muted) !important;
                 opacity: 0.8;
             }
             #customAppsModal .modal button.map-btn {
-                background: #3b82f6;
+                background: var(--k-accent);
                 color: white !important;
                 border: none;
                 border-radius: 12px;
@@ -1440,13 +1442,13 @@
                 margin-top: 0.5rem;
             }
             #customAppsModal .modal button.map-btn:hover {
-                background: #2563eb;
+                background: var(--k-accent);
                 transform: translateY(-1px);
             }
             #customAppsModal .modal h3 {
                 font-size: 0.7rem;
                 font-weight: 800;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 text-transform: uppercase;
                 margin-bottom: 10px;
                 margin-top: 0;
@@ -1458,8 +1460,8 @@
                 width: 36px;
                 height: 36px;
                 border-radius: 10px;
-                background: #f8fafc;
-                color: #64748b !important;
+                background: var(--k-subtle);
+                color: var(--k-muted) !important;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -1468,8 +1470,8 @@
                 border: none;
             }
             #customAppsModal .close-modal:hover {
-                color: #ef4444 !important;
-                background: #fee2e2;
+                color: var(--k-danger-text) !important;
+                background: var(--k-danger-soft);
             }
         </style>
         <div class="modal">
@@ -1493,7 +1495,7 @@
                 <button class="map-btn" onclick="addCustomApp()">Map Tool Link</button>
             </div>
 
-            <div style="border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
+            <div style="border-top: 1px solid var(--k-border); padding-top: 1.25rem;">
                 <h3>Mapped Connections</h3>
                 <div id="registryAppsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;">
                     <!-- Mapped apps inside the registry panel -->

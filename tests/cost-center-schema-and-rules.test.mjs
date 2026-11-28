@@ -25,6 +25,9 @@ const serviceModule = { exports: {} };
 const serviceFn = new Function('module', 'exports', 'require', serviceContent);
 serviceFn(serviceModule, serviceModule.exports, () => ({}));
 const ccService = serviceModule.exports;
+// The service no longer loads its sample cost centres on start (every organisation saw
+// them as its own); these tests load them as fixtures.
+ccService.loadSamplesForTesting();
 
 test('1. Exact Schema & Field Mapping (Strict 4 Attributes)', async (t) => {
     await t.test('Parse raw rows with exact 4 attributes: Cost_Center_Code, Cost_Center_Name, Owner_Employee_ID, Active', () => {
@@ -404,7 +407,9 @@ test('5. UI Ingestion & Management Console Integration Deliverables', async (t) 
 
     await t.test('admin-app.js maps sub-departments to costCenterCode and dynamically updates dropdown', () => {
         const adminAppJs = fs.readFileSync(path.join(rootDir, 'admin-app.js'), 'utf8');
-        assert.match(adminAppJs, /costCenterCode:\s*['"]CC-ENG-101['"]/);
+        // The built-in sub-department catalogue (each entry mapped to CC-ENG-101 and the like)
+        // is gone: cost centres come from the organisation, not from a list in the page.
+        assert.ok(!/costCenterCode:\s*['"]CC-ENG-101['"]/.test(adminAppJs), 'the sample catalogue is back');
         assert.match(adminAppJs, /KylrxCostCenterService\.populateCostCenterDropdown/);
         assert.match(adminAppJs, /KylrxCostCenterService\.getCostCenterForSubDepartment/);
     });

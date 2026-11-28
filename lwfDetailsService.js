@@ -239,7 +239,9 @@
     }
 
     // Auto-seed default ledger
-    seedDefaultRecords();
+    // Not run on load. Sample employees (EMP0001...) seeded here answered lookups as
+
+    // if they were real records; seedDefaultRecords() stays exported for tests.
 
     /**
      * Normalizes Frequency string.

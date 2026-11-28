@@ -151,16 +151,83 @@ describe('charts say what is going on', () => {
   });
 });
 
-describe('the theme layer is gone', () => {
-  it('no page loads it', () => {
+/*
+ * The first theme attempt (kylrx-theme.js) was a stylesheet layered over thousands of
+ * hard-coded colours it could not override, so it only partly applied and was removed.
+ * The overhaul brief then asked for a full dark/light system, which now exists in a
+ * different form: kylrx-theme-init.js plus token-based colours throughout (see
+ * tests/theme-system.test.mjs). What must stay gone is the old partial layer.
+ */
+describe('the old partial theme layer is gone', () => {
+  it('no page loads kylrx-theme.js', () => {
     const left = fs.readdirSync(ROOT)
       .filter(f => /\.html$/.test(f))
-      .filter(f => fs.readFileSync(path.join(ROOT, f), 'utf8').includes('kylrx-theme'));
-    assert.deepEqual(left, [], 'these pages still reference the removed theme');
+      .filter(f => /src="kylrx-theme\.js"/.test(fs.readFileSync(path.join(ROOT, f), 'utf8')));
+    assert.deepEqual(left, [], 'these pages still load the removed partial theme');
+    assert.ok(!fs.existsSync(path.join(ROOT, 'kylrx-theme.js')));
   });
 
   it('but the greeting fix it carried is kept', () => {
     assert.ok(fs.existsSync(path.join(ROOT, 'kylrx-greeting.js')),
       'the pre-paint greeting is not about appearance and should outlive the theme');
+  });
+});
+
+describe('adding or editing an employee invents nothing', () => {
+  /*
+   * An employee saved without a value got an invented one - designation DES-SE, business
+   * unit BU-TECH, location LOC-BLR, shift SHIFT-GEN, an EPFO establishment, an ESIC
+   * employer code, a dispensary, a cost centre - and the edit form showed the same
+   * values for anyone missing them, so a plain re-save wrote them in. Worse, a missing
+   * bank account became account 50100234567890 at HDFC0000053, which payroll would pay.
+   */
+  const dash = fs.readFileSync(path.join(ROOT, 'admin-dashboard.html'), 'utf8');
+  // code only: the comments explaining what was removed name it
+  const code = app.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/[^\n]*/gm, '');
+
+  it('fills no job field with a sample value', () => {
+    for (const sample of ["'DES-SE'", "'BU-TECH'", "'LOC-BLR'", "'SHIFT-GEN'", "'KN/BNG/0012345'",
+                          "'31001234560000001'", "'Indiranagar Branch'", "'CC-ENG-101'", 'SUB_DEPARTMENTS_CATALOG']) {
+      assert.ok(!app.includes(sample), sample + ' is still used as a default');
+    }
+  });
+
+  it('saves no bank account or statutory number that was not entered', () => {
+    for (const sample of ["'50100234567890'", "'HDFC0000053'", "'HDFC Bank'", "'100904829102'", "'3100482910'", "'110012345678'"]) {
+      assert.ok(!app.includes(sample), sample + ' would be saved as this employee\'s');
+    }
+    assert.match(app, /if \(accNumber && ifsc && window\.KylrxEmployeeFinanceService/);
+  });
+
+  it('keeps no password in the browser or on the record', () => {
+    assert.ok(!code.includes('TempPass123!'));
+    assert.ok(!/tempPassword: /.test(app), 'a password is still written to the employee record');
+    assert.ok(!/emp\.tempPassword/.test(app.replace(/<!--[\s\S]*?-->/g, '')), 'a stored password is still read back');
+    assert.ok(!dash.includes('name="password"') && !dash.includes('id="displayPassword"'), 'the form still shows a password');
+  });
+
+  it('asks the server for the login and invite', () => {
+    assert.match(app, /\/admin\/employees\/provision-logins`/);
+    assert.ok(!app.includes("fetch('${API_BASE_URL}"), 'a single-quoted URL never interpolates');
+  });
+
+  it('reports a failed save instead of calling it saved', () => {
+    assert.ok(!/console\.warn\('Firestore direct write notice:/.test(app));
+    assert.ok(!/console\.warn\('Firestore update write notice:/.test(app));
+  });
+
+  it('has no unreachable CSV dialog posting to a route that does not exist', () => {
+    assert.ok(!dash.includes('id="csvModal"'));
+    assert.ok(!code.includes('/employees/bulk-upload'));
+  });
+});
+
+describe('a bank format check is not called a verification', () => {
+  const finance = fs.readFileSync(path.join(ROOT, 'services', 'employee-finance-service.js'), 'utf8');
+  const profile = fs.readFileSync(path.join(ROOT, 'employee-profile-controller.js'), 'utf8');
+  it('announces no penny drop that was never run', () => {
+    assert.ok(!profile.includes('Cashfree Penny Drop Successful'));
+    assert.ok(!/verificationStatus: 'VERIFIED'/.test(finance));
+    assert.ok(!/\|\| 'VERIFIED'/.test(finance), 'a saved account must not default to verified');
   });
 });

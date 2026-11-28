@@ -1,6 +1,16 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import controlsAcceptanceService from '../services/controls-acceptance-service.js';
+import employeeGoalsEngine from '../services/employee-goals-engine.js';
+import managerGoalsEngine from '../services/manager-goals-engine.js';
+import payrollService from '../services/payroll-email-account-service.js';
+
+// The goal engines and payroll email service no longer start with sample goals and
+// people (the API served them as every organisation's). This suite verifies controls
+// over such records, so it loads the samples as fixtures.
+employeeGoalsEngine.initializeDefaultGoals();
+managerGoalsEngine.initializeDefaultGoals();
+payrollService._seedSampleEmployees();
 
 describe('4. Controls, Acceptance and Client Confirmation Suite (PRD §4)', () => {
 

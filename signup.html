@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="kylrx-theme-init.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Customer & CEO Registration | Kylrx AI</title>
@@ -36,7 +37,7 @@
       left: 30px;
       right: 30px;
       height: 2px;
-      background: #e2e8f0;
+      background: var(--k-border);
       z-index: 1;
     }
 
@@ -64,9 +65,9 @@
       width: 36px;
       height: 36px;
       border-radius: 50%;
-      background: #ffffff;
-      border: 2px solid #cbd5e1;
-      color: #64748b;
+      background: var(--k-surface);
+      border: 2px solid var(--k-border);
+      color: var(--k-muted);
       font-weight: 700;
       font-size: 0.875rem;
       display: flex;
@@ -91,7 +92,7 @@
     .step-label {
       font-size: 0.7rem;
       font-weight: 700;
-      color: #64748b;
+      color: var(--k-muted);
       margin-top: 6px;
       text-transform: uppercase;
       letter-spacing: 0.04em;
@@ -144,7 +145,7 @@
 
     .field-hint {
       font-size: 0.7rem;
-      color: #94a3b8;
+      color: var(--k-muted);
       margin-top: 4px;
       display: block;
     }
@@ -180,7 +181,7 @@
       padding: 0.75rem 1rem;
       border: 1.5px solid var(--border);
       border-radius: 12px;
-      background: #fff;
+      background: var(--k-surface);
       font-family: inherit;
       font-size: 0.875rem;
       outline: none;
@@ -204,7 +205,7 @@
       font-size: 0.875rem;
       border: 1.5px solid var(--border);
       border-radius: 12px;
-      background: #fff;
+      background: var(--k-surface);
       outline: none;
       color: var(--text-main);
       font-family: inherit;
@@ -222,7 +223,7 @@
       top: 50%;
       transform: translateY(-50%);
       pointer-events: none;
-      color: #94a3b8;
+      color: var(--k-muted);
       width: 1rem;
       height: 1rem;
     }
@@ -239,9 +240,9 @@
     }
 
     .btn-secondary {
-      background: #f1f5f9;
-      color: #475569;
-      border: 1px solid #cbd5e1;
+      background: var(--k-subtle);
+      color: var(--k-text-2);
+      border: 1px solid var(--k-border);
       padding: 0.75rem 1.5rem;
       border-radius: 12px;
       font-weight: 700;
@@ -253,35 +254,24 @@
       transition: 0.2s;
     }
     .btn-secondary:hover {
-      background: #e2e8f0;
-      color: #0f172a;
+      background: var(--k-border);
+      color: var(--k-text);
     }
 
     .badge-superadmin {
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      background: #eff6ff;
-      color: #1d4ed8;
-      border: 1px solid #bfdbfe;
+      background: var(--k-accent-soft);
+      color: var(--k-accent-text);
+      border: 1px solid var(--k-accent-border);
       padding: 3px 10px;
       border-radius: 9999px;
       font-size: 0.7rem;
       font-weight: 700;
     }
-
-    /* Demo Data Bar */
-    .demo-data-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #f8fafc;
-      border: 1px dashed #cbd5e1;
-      border-radius: 10px;
-      padding: 6px 12px;
-      margin-bottom: 1.25rem;
-    }
   </style>
+    <link rel="stylesheet" href="kylrx-theme.css">
 </head>
 <body>
   <div class="split-layout">
@@ -347,14 +337,6 @@
             <span class="badge-superadmin"><i data-lucide="shield"></i> CEO / Super Admin</span>
           </div>
           <p>Register your corporate identity and provision your master organization instance.</p>
-        </div>
-
-        <!-- 1-Click QA Quick-Fill Bar -->
-        <div class="demo-data-bar">
-          <span style="font-size: 0.75rem; color: #64748b; font-weight: 600;">Testing setup?</span>
-          <button type="button" id="btnFillDemoSignup" style="background: none; border: none; color: var(--primary); font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
-            <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i> Fill Kylrx Demo Setup
-          </button>
         </div>
 
         <!-- Stepper Navigation Header -->
@@ -506,7 +488,7 @@
               <div class="form-group">
                 <label for="orgType">3. Organization Type *</label>
                 <div class="select-wrapper">
-                  <i data-lucide="git-branch" class="icon-left" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #94a3b8; width: 1.15rem; height: 1.15rem;"></i>
+                  <i data-lucide="git-branch" class="icon-left" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--k-muted); width: 1.15rem; height: 1.15rem;"></i>
                   <select id="orgType" name="Organization_Type" required>
                     <option value="Private Limited" selected>Private Limited</option>
                     <option value="Public Limited">Public Limited</option>
@@ -638,7 +620,7 @@
               <div class="form-group">
                 <label for="timeZone">14. Time Zone *</label>
                 <div class="select-wrapper">
-                  <i data-lucide="clock" class="icon-left" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #94a3b8; width: 1.15rem; height: 1.15rem;"></i>
+                  <i data-lucide="clock" class="icon-left" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--k-muted); width: 1.15rem; height: 1.15rem;"></i>
                   <select id="timeZone" name="Time_Zone" required>
                     <option value="Asia/Kolkata" selected>Asia/Kolkata (IST)</option>
                     <option value="UTC">UTC</option>
@@ -654,7 +636,7 @@
               <div class="form-group">
                 <label for="currency">15. Currency *</label>
                 <div class="select-wrapper">
-                  <i data-lucide="coins" class="icon-left" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #94a3b8; width: 1.15rem; height: 1.15rem;"></i>
+                  <i data-lucide="coins" class="icon-left" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--k-muted); width: 1.15rem; height: 1.15rem;"></i>
                   <select id="currency" name="Currency" required>
                     <option value="INR" selected>INR (₹)</option>
                     <option value="USD">USD ($)</option>
@@ -670,7 +652,7 @@
               <div class="form-group">
                 <label for="fyStart">16. Financial Year Start *</label>
                 <div class="select-wrapper">
-                  <i data-lucide="calendar" class="icon-left" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #94a3b8; width: 1.15rem; height: 1.15rem;"></i>
+                  <i data-lucide="calendar" class="icon-left" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--k-muted); width: 1.15rem; height: 1.15rem;"></i>
                   <select id="fyStart" name="Financial_Year_Start" required>
                     <option value="04-01" selected>04-01 (April)</option>
                     <option value="01-01">01-01 (January)</option>
@@ -740,9 +722,9 @@
               </div>
             </div>
 
-            <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 12px; padding: 12px 16px; margin: 1.25rem 0; display: flex; align-items: center; gap: 12px;">
-              <div style="color: #166534;"><i data-lucide="check-circle" style="width: 22px; height: 22px;"></i></div>
-              <div style="font-size: 0.8rem; color: #166534; line-height: 1.45;">
+            <div style="background: var(--k-success-soft); border: 1.5px solid var(--k-success-border); border-radius: 12px; padding: 12px 16px; margin: 1.25rem 0; display: flex; align-items: center; gap: 12px;">
+              <div style="color: var(--k-success-text);"><i data-lucide="check-circle" style="width: 22px; height: 22px;"></i></div>
+              <div style="font-size: 0.8rem; color: var(--k-success-text); line-height: 1.45;">
                 <strong>Ready for Automated Onboarding:</strong> Upon submitting, your CEO profile will be provisioned with Super Admin custom claims, your organization marked <code>orgConfigured: true</code>, and your continuous sequential employee ID counter (EMP0001) initialized.
               </div>
             </div>
@@ -769,57 +751,57 @@
 
   <!-- Custom Alert Overlay -->
   <div id="customOverlay" style="position:fixed; inset:0; background:rgba(15,23,42,0.4); backdrop-filter:blur(8px); display:none; align-items:center; justify-content:center; z-index:9999;">
-    <div style="background:white; padding: 2rem; border-radius:24px; width:90%; max-width:440px; text-align:center; border:1px solid #dbeafe; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1);">
-      <div id="alertIcon" style="color:#2563eb; margin-bottom: 1.5rem; display:flex; justify-content:center;"><i data-lucide="info" style="width:40px; height:40px;"></i></div>
+    <div style="background:var(--k-surface); padding: 2rem; border-radius:24px; width:90%; max-width:440px; text-align:center; border:1px solid var(--k-accent-border); box-shadow:0 20px 25px -5px rgba(0,0,0,0.1);">
+      <div id="alertIcon" style="color:var(--k-accent-text); margin-bottom: 1.5rem; display:flex; justify-content:center;"><i data-lucide="info" style="width:40px; height:40px;"></i></div>
       <h2 id="alertTitle" style="font-size: 1.5rem; font-weight:700; margin-bottom: 0.5rem;">Notification</h2>
-      <p id="alertMsg" style="color:#64748b; margin-bottom: 2rem; line-height:1.6; font-size: 1rem;"></p>
-      <button id="closeAlertBtn" style="background:#2563eb; color:white; width:100%; padding: 1rem; border:none; border-radius:12px; font-weight:700; cursor:pointer;">Understood</button>
+      <p id="alertMsg" style="color:var(--k-muted); margin-bottom: 2rem; line-height:1.6; font-size: 1rem;"></p>
+      <button id="closeAlertBtn" style="background:var(--k-accent); color:white; width:100%; padding: 1rem; border:none; border-radius:12px; font-weight:700; cursor:pointer;">Understood</button>
     </div>
   </div>
 
   <!-- Terms & Conditions Modal -->
   <div id="termsModal" style="position:fixed; inset:0; background:rgba(15,23,42,0.4); backdrop-filter:blur(8px); display:none; align-items:center; justify-content:center; z-index:9999; padding: 1.5rem;">
-    <div style="background:white; padding: 2rem; border-radius:24px; width:100%; max-width:600px; max-height:85vh; overflow-y:auto; border:1px solid #dbeafe; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); position:relative; text-align:left;">
-      <button onclick="closeModal('termsModal')" style="position:absolute; top:1.5rem; right:1.5rem; background:transparent; border:none; font-size: 1.25rem; cursor:pointer; color:#64748b;"><i data-lucide="x"></i></button>
-      <h2 style="font-size: 1.875rem; font-weight:800; margin-bottom: 0.5rem; color:#0f172a;">Terms of Service</h2>
-      <p style="font-size: 0.875rem; color:#64748b; margin-bottom: 1.5rem;">Effective Date: May 27, 2026</p>
-      <div style="font-size: 1rem; color:#475569; line-height:1.7; display:flex; flex-direction:column; gap:1.25rem;">
+    <div style="background:var(--k-surface); padding: 2rem; border-radius:24px; width:100%; max-width:600px; max-height:85vh; overflow-y:auto; border:1px solid var(--k-accent-border); box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); position:relative; text-align:left;">
+      <button onclick="closeModal('termsModal')" style="position:absolute; top:1.5rem; right:1.5rem; background:transparent; border:none; font-size: 1.25rem; cursor:pointer; color:var(--k-muted);"><i data-lucide="x"></i></button>
+      <h2 style="font-size: 1.875rem; font-weight:800; margin-bottom: 0.5rem; color:var(--k-text);">Terms of Service</h2>
+      <p style="font-size: 0.875rem; color:var(--k-muted); margin-bottom: 1.5rem;">Effective Date: May 27, 2026</p>
+      <div style="font-size: 1rem; color:var(--k-text-2); line-height:1.7; display:flex; flex-direction:column; gap:1.25rem;">
         <p>Welcome to Kylrx AI. By subscribing to our SaaS platform, your organization agrees to be bound by these Terms of Service.</p>
         <div>
-          <h4 style="font-weight:700; color:#0f172a; margin-bottom: 0.25rem;">1. Platform License & Access</h4>
+          <h4 style="font-weight:700; color:var(--k-text); margin-bottom: 0.25rem;">1. Platform License & Access</h4>
           <p>Kylrx AI grants a non-exclusive, non-transferable, revocable license to access our platform in accordance with the features detailed in your subscribed plan.</p>
         </div>
         <div>
-          <h4 style="font-weight:700; color:#0f172a; margin-bottom: 0.25rem;">2. Data Security & Ownership</h4>
+          <h4 style="font-weight:700; color:var(--k-text); margin-bottom: 0.25rem;">2. Data Security & Ownership</h4>
           <p>Your organization retains complete ownership of all data submitted to the platform. Kylrx AI commits to maintaining robust backup regimes and SOC 2 security standards.</p>
         </div>
         <div>
-          <h4 style="font-weight:700; color:#0f172a; margin-bottom: 0.25rem;">3. Service Levels & Compliance</h4>
+          <h4 style="font-weight:700; color:var(--k-text); margin-bottom: 0.25rem;">3. Service Levels & Compliance</h4>
           <p>We provide enterprise-grade availability SLAs and statutory calculation accuracy for Indian and global employment jurisdictions.</p>
         </div>
       </div>
-      <button onclick="closeModal('termsModal')" style="background:#2563eb; color:white; width:100%; padding: 1rem; border:none; border-radius:12px; font-weight:700; cursor:pointer; margin-top: 2rem;">Close</button>
+      <button onclick="closeModal('termsModal')" style="background:var(--k-accent); color:white; width:100%; padding: 1rem; border:none; border-radius:12px; font-weight:700; cursor:pointer; margin-top: 2rem;">Close</button>
     </div>
   </div>
 
   <!-- Privacy Policy Modal -->
   <div id="privacyModal" style="position:fixed; inset:0; background:rgba(15,23,42,0.4); backdrop-filter:blur(8px); display:none; align-items:center; justify-content:center; z-index:9999; padding: 1.5rem;">
-    <div style="background:white; padding: 2rem; border-radius:24px; width:100%; max-width:600px; max-height:85vh; overflow-y:auto; border:1px solid #dbeafe; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); position:relative; text-align:left;">
-      <button onclick="closeModal('privacyModal')" style="position:absolute; top:1.5rem; right:1.5rem; background:transparent; border:none; font-size: 1.25rem; cursor:pointer; color:#64748b;"><i data-lucide="x"></i></button>
-      <h2 style="font-size: 1.875rem; font-weight:800; margin-bottom: 0.5rem; color:#0f172a;">Privacy Policy</h2>
-      <p style="font-size: 0.875rem; color:#64748b; margin-bottom: 1.5rem;">Last Updated: May 27, 2026</p>
-      <div style="font-size: 1rem; color:#475569; line-height:1.7; display:flex; flex-direction:column; gap:1.25rem;">
+    <div style="background:var(--k-surface); padding: 2rem; border-radius:24px; width:100%; max-width:600px; max-height:85vh; overflow-y:auto; border:1px solid var(--k-accent-border); box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); position:relative; text-align:left;">
+      <button onclick="closeModal('privacyModal')" style="position:absolute; top:1.5rem; right:1.5rem; background:transparent; border:none; font-size: 1.25rem; cursor:pointer; color:var(--k-muted);"><i data-lucide="x"></i></button>
+      <h2 style="font-size: 1.875rem; font-weight:800; margin-bottom: 0.5rem; color:var(--k-text);">Privacy Policy</h2>
+      <p style="font-size: 0.875rem; color:var(--k-muted); margin-bottom: 1.5rem;">Last Updated: May 27, 2026</p>
+      <div style="font-size: 1rem; color:var(--k-text-2); line-height:1.7; display:flex; flex-direction:column; gap:1.25rem;">
         <p>At Kylrx AI, we prioritize the confidentiality and safety of your organizational and statutory tax data.</p>
         <div>
-          <h4 style="font-weight:700; color:#0f172a; margin-bottom: 0.25rem;">1. Information We Collect</h4>
+          <h4 style="font-weight:700; color:var(--k-text); margin-bottom: 0.25rem;">1. Information We Collect</h4>
           <p>To deliver AI-powered HR, tax compliance, and payroll services, we process: employer registration details (PAN, TAN, GSTIN, CIN), employee rosters, biometric attendance, and compensation parameters.</p>
         </div>
         <div>
-          <h4 style="font-weight:700; color:#0f172a; margin-bottom: 0.25rem;">2. Security Framework</h4>
+          <h4 style="font-weight:700; color:var(--k-text); margin-bottom: 0.25rem;">2. Security Framework</h4>
           <p>We leverage advanced serverless infrastructure and high-fidelity encryption systems (AES-256 and TLS 1.3) to protect data at rest and in transit.</p>
         </div>
       </div>
-      <button onclick="closeModal('privacyModal')" style="background:#2563eb; color:white; width:100%; padding: 1rem; border:none; border-radius:12px; font-weight:700; cursor:pointer; margin-top: 2rem;">Close</button>
+      <button onclick="closeModal('privacyModal')" style="background:var(--k-accent); color:white; width:100%; padding: 1rem; border:none; border-radius:12px; font-weight:700; cursor:pointer; margin-top: 2rem;">Close</button>
     </div>
   </div>
 
@@ -830,11 +812,11 @@
       document.getElementById('alertMsg').textContent = msg;
       const iconBox = document.getElementById('alertIcon');
       if (icon === 'check' || icon === 'circle-check') {
-        iconBox.innerHTML = '<i data-lucide="check-circle" style="width:40px; height:40px; color:#16a34a;"></i>';
+        iconBox.innerHTML = '<i data-lucide="check-circle" style="width:40px; height:40px; color:var(--k-success-text);"></i>';
       } else if (icon === 'triangle-alert' || icon === 'alert-circle') {
-        iconBox.innerHTML = '<i data-lucide="alert-triangle" style="width:40px; height:40px; color:#dc2626;"></i>';
+        iconBox.innerHTML = '<i data-lucide="alert-triangle" style="width:40px; height:40px; color:var(--k-danger-text);"></i>';
       } else {
-        iconBox.innerHTML = '<i data-lucide="info" style="width:40px; height:40px; color:#2563eb;"></i>';
+        iconBox.innerHTML = '<i data-lucide="info" style="width:40px; height:40px; color:var(--k-accent-text);"></i>';
       }
       if (window.lucide) lucide.createIcons();
       document.getElementById('customOverlay').style.display = 'flex';

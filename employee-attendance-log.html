@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="kylrx-theme-init.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Attendance Log | HRFlow</title>
@@ -151,7 +152,7 @@
             border-bottom: 1px solid var(--border);
             font-size: 0.875rem;
             font-weight: 600;
-            color: #334155;
+            color: var(--k-text-2);
         }
         tbody tr:last-child td { border-bottom: none; }
         tbody tr:hover { background: #fafbfc; }
@@ -167,9 +168,9 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        .status-present { background: #dcfce7; color: #166534; }
-        .status-short { background: #fef3c7; color: #92400e; }
-        .status-absent { background: #fee2e2; color: #991b1b; }
+        .status-present { background: var(--k-success-soft); color: var(--k-success-text); }
+        .status-short { background: var(--k-warning-soft); color: var(--k-warning-text); }
+        .status-absent { background: var(--k-danger-soft); color: var(--k-danger-text); }
         .status-holiday { background: var(--primary-light); color: var(--primary); }
         .status-leave { background: #f3e8ff; color: #6b21a8; }
 
@@ -206,7 +207,7 @@
         }
     
         .layout { display: grid; grid-template-columns: 280px 1fr; height: 100vh; overflow: hidden; }
-        .sidebar { background: #ffffff; border-right: 1px solid var(--border); padding: 2rem 1.5rem; display: flex; flex-direction: column; z-index: 100; overflow-y: auto; scrollbar-width: thin; }
+        .sidebar { background: var(--k-surface); border-right: 1px solid var(--border); padding: 2rem 1.5rem; display: flex; flex-direction: column; z-index: 100; overflow-y: auto; scrollbar-width: thin; }
         .sidebar::-webkit-scrollbar { width: 5px; }
         .sidebar::-webkit-scrollbar-track { background: transparent; }
         .sidebar::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.1); border-radius: 10px; }
@@ -215,14 +216,18 @@
         .logo-text { font-size: 1.5rem; font-weight: 800; color: var(--text); letter-spacing: -1px; }
         .nav-label { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin: 1.5rem 0 0.75rem 0.5rem; }
         .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 1rem; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.875rem; border-radius: 14px; transition: 0.2s; margin-bottom: 4px; }
-        .nav-link:hover, .nav-link.active { background: #eff6ff; color: var(--primary); }
-        .profile-mini { margin-top: auto; background: #eff6ff; padding: 1rem; border-radius: 16px; display: flex; align-items: center; gap: 12px; }
+        .nav-link:hover, .nav-link.active { background: var(--k-accent-soft); color: var(--primary); }
+        .profile-mini { margin-top: auto; background: var(--k-accent-soft); padding: 1rem; border-radius: 16px; display: flex; align-items: center; gap: 12px; }
         .avatar { width: 40px; height: 40px; border-radius: 10px; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; }
         .profile-info { flex: 1; min-width: 0; }
         .profile-name { font-size: 0.875rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
         .profile-role { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; }
     </style>
     <link rel="stylesheet" href="sidebar-lock.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="kylrx-theme.css">
 </head>
 <body>
         <script>
@@ -282,7 +287,7 @@
                 <h1 class="page-title">Attendance Log</h1>
                 <p class="page-subtitle" id="empSubtitle">Your complete attendance history</p>
             </div>
-            <select id="monthFilter" onchange="applyFilter()" style="padding:10px 16px;border:1px solid var(--border);border-radius:12px;background:white;font-family:inherit;font-weight:600;font-size: 0.875rem;outline:none;">
+            <select id="monthFilter" onchange="applyFilter()" style="padding:10px 16px;border:1px solid var(--border);border-radius:12px;background:var(--k-surface);font-family:inherit;font-weight:600;font-size: 0.875rem;outline:none;">
                 <option value="">All Records</option>
             </select>
         </header>
@@ -351,7 +356,7 @@
 
         <!-- Employee Regularization Modal -->
         <div id="empRegModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); backdrop-filter:blur(4px); z-index:9999; justify-content:center; align-items:center; opacity:0; transition:opacity 0.25s;">
-            <div style="background:white; padding: 2rem; border-radius:20px; width: 100%; max-width: min(440px, 92%); box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
+            <div style="background:var(--k-surface); padding: 2rem; border-radius:20px; width: 100%; max-width: min(440px, 92%); box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1.25rem;">
                     <div>
                         <h3 style="font-weight:800; font-size: 1.25rem; margin:0;">Request Regularization</h3>
@@ -362,11 +367,11 @@
                 <form id="empRegForm" style="display:flex; flex-direction:column; gap:12px;">
                     <div>
                         <label style="font-size: 0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Date</label>
-                        <input type="text" id="empRegDate" readonly style="width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:8px; font-size: 0.875rem; font-family:inherit; background:#f8fafc; color:var(--text); font-weight:700;">
+                        <input type="text" id="empRegDate" readonly style="width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:8px; font-size: 0.875rem; font-family:inherit; background:var(--k-subtle); color:var(--text); font-weight:700;">
                     </div>
                     <div>
                         <label style="font-size: 0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Correction Type</label>
-                        <select id="empRegType" required style="width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:8px; font-size: 0.875rem; font-family:inherit; background:white;">
+                        <select id="empRegType" required style="width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:8px; font-size: 0.875rem; font-family:inherit; background:var(--k-surface);">
                             <option value="Missing Punch Regularization">Missing Punch Regularization</option>
                             <option value="Late Login Regularization">Late Login Regularization</option>
                             <option value="Short Hours Correction">Short Hours Correction</option>
@@ -505,7 +510,7 @@
                 const dayLabel = !isNaN(dt.getTime()) ? dt.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' }) : '—';
                 let actionHtml = '<span style="color:var(--text-muted); font-size: 0.75rem;">—</span>';
                 if (r.regularized) {
-                    actionHtml = `<span style="font-size: 0.7rem; font-weight:800; color:#059669; background:#ecfdf5; padding:3px 8px; border-radius:6px; border:1px solid #a7f3d0;">Regularized</span>`;
+                    actionHtml = `<span style="font-size: 0.7rem; font-weight:800; color:var(--k-success-text); background:var(--k-success-soft); padding:3px 8px; border-radius:6px; border:1px solid var(--k-success-border);">Regularized</span>`;
                 } else if (r.status !== 'Present') {
                     actionHtml = `<button class="btn-regularize" data-date="${r.date}" data-status="${r.status}" style="background:var(--primary); color:white; border:none; padding:5px 12px; border-radius:8px; font-size: 0.75rem; font-weight:700; cursor:pointer; transition:0.2s;">Regularize</button>`;
                 }

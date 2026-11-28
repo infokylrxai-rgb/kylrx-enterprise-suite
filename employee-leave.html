@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="kylrx-theme-init.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leave Management | HRFlow</title>
@@ -49,18 +50,18 @@
         .form-group input, .form-group select, .form-group textarea {
             width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px 1rem; color: var(--text); font-family: inherit; outline: none; font-weight: 500;
         }
-        .form-group input:focus { border-color: var(--primary); background: white; }
+        .form-group input:focus { border-color: var(--primary); background: var(--k-surface); }
 
         .btn { width: 100%; padding: 14px; border-radius: 14px; background: var(--primary); color: white; font-weight: 800; border: none; cursor: pointer; transition: 0.3s; font-size: 1rem; }
-        .btn:hover { transform: translateY(-2px); background: #1d4ed8; box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3); }
+        .btn:hover { transform: translateY(-2px); background: var(--k-accent); box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3); }
 
         table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
         th { text-align: left; color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; padding: 1rem; letter-spacing: 0.5px; }
         td { padding: 1rem; border-top: 1px solid var(--border); font-size: 0.875rem; font-weight: 500; }
         .status-pill { padding: 4px 12px; border-radius: 100px; font-size: 0.7rem; font-weight: 800; }
-        .status-approved { background: #dcfce7; color: #15803d; }
-        .status-pending { background: #fef3c7; color: #92400e; }
-        .status-rejected { background: #fee2e2; color: #991b1b; }
+        .status-approved { background: var(--k-success-soft); color: var(--k-success-text); }
+        .status-pending { background: var(--k-warning-soft); color: var(--k-warning-text); }
+        .status-rejected { background: var(--k-danger-soft); color: var(--k-danger-text); }
 
         /* Centered Status Modal */
         .modal-overlay-status {
@@ -71,7 +72,7 @@
         }
         .modal-overlay-status.active { display: flex; }
         .status-modal {
-            background: white; padding: 2rem; border-radius: 32px;
+            background: var(--k-surface); padding: 2rem; border-radius: 32px;
             width: 90%; max-width: 400px; text-align: center;
             box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
             border: 1px solid var(--border); transform: scale(0.9);
@@ -83,8 +84,8 @@
             display: flex; align-items: center; justify-content: center;
             margin: 0 auto 1.5rem; font-size: 1.5rem;
         }
-        .modal-icon-status.success { background: #dcfce7; color: #10b981; }
-        .modal-icon-status.info { background: #dbeafe; color: #3b82f6; }
+        .modal-icon-status.success { background: var(--k-success-soft); color: var(--k-success-text); }
+        .modal-icon-status.info { background: var(--k-accent-soft); color: var(--k-accent-text); }
         
         .modal-title { font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; }
         .modal-desc { color: var(--text-muted); font-size: 0.875rem; margin-bottom: 2rem; line-height: 1.6; }
@@ -94,7 +95,7 @@
         @keyframes modalFadeIn { from { opacity: 0; } to { opacity: 1; } }
     
         .layout { display: grid; grid-template-columns: 280px 1fr; height: 100vh; overflow: hidden; }
-        .sidebar { background: #ffffff; border-right: 1px solid var(--border); padding: 2rem 1.5rem; display: flex; flex-direction: column; z-index: 100; overflow-y: auto; scrollbar-width: thin; }
+        .sidebar { background: var(--k-surface); border-right: 1px solid var(--border); padding: 2rem 1.5rem; display: flex; flex-direction: column; z-index: 100; overflow-y: auto; scrollbar-width: thin; }
         .sidebar::-webkit-scrollbar { width: 5px; }
         .sidebar::-webkit-scrollbar-track { background: transparent; }
         .sidebar::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.1); border-radius: 10px; }
@@ -103,14 +104,18 @@
         .logo-text { font-size: 1.5rem; font-weight: 800; color: var(--text); letter-spacing: -1px; }
         .nav-label { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin: 1.5rem 0 0.75rem 0.5rem; }
         .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 1rem; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.875rem; border-radius: 14px; transition: 0.2s; margin-bottom: 4px; }
-        .nav-link:hover, .nav-link.active { background: #eff6ff; color: var(--primary); }
-        .profile-mini { margin-top: auto; background: #eff6ff; padding: 1rem; border-radius: 16px; display: flex; align-items: center; gap: 12px; }
+        .nav-link:hover, .nav-link.active { background: var(--k-accent-soft); color: var(--primary); }
+        .profile-mini { margin-top: auto; background: var(--k-accent-soft); padding: 1rem; border-radius: 16px; display: flex; align-items: center; gap: 12px; }
         .avatar { width: 40px; height: 40px; border-radius: 10px; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; }
         .profile-info { flex: 1; min-width: 0; }
         .profile-name { font-size: 0.875rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
         .profile-role { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; }
     </style>
     <link rel="stylesheet" href="sidebar-lock.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="kylrx-theme.css">
 </head>
 <body>
 
@@ -170,17 +175,17 @@
                 <h1 style="font-size: 2.25rem; font-weight: 800; letter-spacing: -1px;">Leave & Time Off</h1>
             </div>
             <div style="text-align: right; display: flex; gap: 8px; justify-content: flex-end; align-items: center;">
-                <div id="backendStatusPill" style="display: flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); transition: 0.3s;">
-                    <span id="backendStatusDot" style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block; box-shadow: 0 0 8px #10b981;"></span>
+                <div id="backendStatusPill" style="display: flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; background: var(--k-success-soft); color: var(--k-success-text); border: 1px solid var(--k-success-border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); transition: 0.3s;">
+                    <span id="backendStatusDot" style="width: 8px; height: 8px; border-radius: 50%; background: var(--k-success); display: inline-block; box-shadow: 0 0 8px #10b981;"></span>
                     <span id="backendStatusText">Firebase Backend Online</span>
                 </div>
-                <button class="btn btn-outline" style="width: auto; padding: 6px 14px; font-size: 0.75rem; border-radius: 100px; display: flex; align-items: center; gap: 6px; font-weight: 800; border: 1px solid var(--border); background: white; cursor: pointer; color: var(--text-muted);" onclick="const id=new URLSearchParams(window.location.search).get('id'); window.location.href=id ? 'employee-calendar.html?id='+id : 'employee-calendar.html';">
+                <button class="btn btn-outline" style="width: auto; padding: 6px 14px; font-size: 0.75rem; border-radius: 100px; display: flex; align-items: center; gap: 6px; font-weight: 800; border: 1px solid var(--border); background: var(--k-surface); cursor: pointer; color: var(--text-muted);" onclick="const id=new URLSearchParams(window.location.search).get('id'); window.location.href=id ? 'employee-calendar.html?id='+id : 'employee-calendar.html';">
                     <i data-lucide="calendar" size="14"></i> Holiday Calendar
                 </button>
                 <button class="btn btn-primary" id="btnOpenOptionalHolidayDrawer" type="button" style="width: auto; padding: 6px 14px; font-size: 0.75rem; border-radius: 100px; display: flex; align-items: center; gap: 6px; font-weight: 800; background: #ec4899; color: white; border: none; cursor: pointer;">
                     <i data-lucide="sparkles" size="14"></i> Floating Holidays (<span id="optQuotaBadge">2/2</span>)
                 </button>
-                <div style="font-size: 0.8rem; font-weight: 800; color: var(--success); background: #dcfce7; padding: 6px 12px; border-radius: 100px;">ANNUAL QUOTA: 24 DAYS</div>
+                <div style="font-size: 0.8rem; font-weight: 800; color: var(--success); background: var(--k-success-soft); padding: 6px 12px; border-radius: 100px;">ANNUAL QUOTA: 24 DAYS</div>
             </div>
         </header>
 
@@ -266,7 +271,7 @@
 
     <!-- ESS Optional / Floating Holiday Drawer Modal (PRD §§ 15 & 16) -->
     <div class="modal-overlay-status" id="optionalHolidayDrawerOverlay" style="align-items: center; justify-content: center;">
-        <div style="background: white; border-radius: 28px; width: 90%; max-width: 540px; padding: 2rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15); border: 1px solid var(--border); font-family: inherit;">
+        <div style="background: var(--k-surface); border-radius: 28px; width: 90%; max-width: 540px; padding: 2rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15); border: 1px solid var(--border); font-family: inherit;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <div style="width: 40px; height: 40px; border-radius: 12px; background: #fdf2f8; color: #ec4899; display: flex; align-items: center; justify-content: center;">
@@ -289,7 +294,7 @@
                 <!-- Populated dynamically -->
             </div>
 
-            <button type="button" class="btn" onclick="closeOptionalHolidayDrawer()" style="background: #f1f5f9; color: #475569;">Close Drawer</button>
+            <button type="button" class="btn" onclick="closeOptionalHolidayDrawer()" style="background: var(--k-subtle); color: var(--k-text-2);">Close Drawer</button>
         </div>
     </div>
 
@@ -518,14 +523,14 @@
                 }
 
                 container.innerHTML = holidays.map(h => `
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--border); background: ${h.isClaimed ? '#f0fdf4' : 'var(--bg)'};">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--border); background: ${h.isClaimed ? 'var(--k-success-soft)' : 'var(--bg)'};">
                         <div>
                             <div style="font-weight: 800; font-size: 0.875rem; color: var(--text);">${h.holidayName}</div>
                             <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600;">${h.holidayDate} • ${h.holidayType || 'Restricted'}</div>
                         </div>
                         <div>
                             ${h.isClaimed ? `
-                                <span style="display: inline-block; padding: 4px 10px; border-radius: 100px; font-size: 0.7rem; font-weight: 800; background: #dcfce7; color: #166534;">
+                                <span style="display: inline-block; padding: 4px 10px; border-radius: 100px; font-size: 0.7rem; font-weight: 800; background: var(--k-success-soft); color: var(--k-success-text);">
                                     CLAIMED
                                 </span>
                             ` : `

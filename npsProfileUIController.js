@@ -84,7 +84,7 @@
             : { label: craAgency, bg: '#eff6ff', color: '#1e40af', border: '#bfdbfe' };
 
         return `
-        <div id="npsStatutoryMasterCard" class="modal-section-card" style="margin-bottom: 1.25rem; border: 1.5px solid #0284c7; border-radius: 16px; background: #ffffff; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.08); overflow: hidden;">
+        <div id="npsStatutoryMasterCard" class="modal-section-card" style="margin-bottom: 1.25rem; border: 1.5px solid #0284c7; border-radius: 16px; background: var(--k-surface); box-shadow: 0 4px 12px rgba(2, 132, 199, 0.08); overflow: hidden;">
             <!-- Header Section -->
             <div style="background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%); padding: 1.1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; color: white;">
                 <div style="display: flex; align-items: center; gap: 12px;">
@@ -101,7 +101,7 @@
                         <i data-lucide="${statusBadge.icon || 'check-circle'}" style="width: 12px; height: 12px;"></i>
                         <span id="npsStatusHeaderText">${statusBadge.label}</span>
                     </span>
-                    <button type="button" id="btnCalculateNps" class="btn" style="background: #ffffff; color: #0369a1; font-size: 0.76rem; font-weight: 800; padding: 6px 14px; border-radius: 8px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.2s ease;">
+                    <button type="button" id="btnCalculateNps" class="btn" style="background: var(--k-surface); color: #0369a1; font-size: 0.76rem; font-weight: 800; padding: 6px 14px; border-radius: 8px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.2s ease;">
                         <i data-lucide="calculator" id="npsCalcIcon" style="width: 13px; height: 13px;"></i>
                         <span id="npsCalcBtnText">Calculate 80CCD</span>
                     </button>
@@ -112,22 +112,22 @@
             <div style="padding: 1.25rem;">
                 <!-- Live Status & PRAN Matrix (4 Summary Pills) -->
                 <div style="margin-bottom: 1.25rem;">
-                    <div style="font-size: 0.72rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                    <div style="font-size: 0.72rem; font-weight: 800; color: var(--k-text-2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
                         <i data-lucide="shield" style="width: 14px; height: 14px; color: #0284c7;"></i>
                         Permanent Retirement Account Number (PRAN) &amp; CRA Details
                     </div>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px;">
                         <!-- PRAN Pill -->
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
-                            <span style="font-size: 0.68rem; color: #64748b; font-weight: 700;">12-Digit PRAN</span>
+                        <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
+                            <span style="font-size: 0.68rem; color: var(--k-muted); font-weight: 700;">12-Digit PRAN</span>
                             <span id="pillNpsPran" style="font-family: monospace; font-size: 0.76rem; font-weight: 800; color: #0369a1; background: #e0f2fe; border: 1px solid #bae6fd; padding: 2px 8px; border-radius: 6px; width: fit-content;">
                                 ${escapeHtml(pran)}
                             </span>
                         </div>
 
                         <!-- CRA Recordkeeping Agency Pill -->
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
-                            <span style="font-size: 0.68rem; color: #64748b; font-weight: 700;">CRA Agency</span>
+                        <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
+                            <span style="font-size: 0.68rem; color: var(--k-muted); font-weight: 700;">CRA Agency</span>
                             <span id="pillNpsCra" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.74rem; font-weight: 800; color: ${craBadge.color}; background: ${craBadge.bg}; border: 1px solid ${craBadge.border}; padding: 2px 8px; border-radius: 6px; width: fit-content;">
                                 <i data-lucide="building" style="width: 11px; height: 11px;"></i>
                                 <span id="textNpsCra">${escapeHtml(craAgency)}</span>
@@ -135,22 +135,22 @@
                         </div>
 
                         <!-- Tier Accounts Pill -->
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
-                            <span style="font-size: 0.68rem; color: #64748b; font-weight: 700;">Tier Accounts</span>
+                        <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
+                            <span style="font-size: 0.68rem; color: var(--k-muted); font-weight: 700;">Tier Accounts</span>
                             <div style="display: flex; gap: 4px; align-items: center;">
-                                <span id="pillTier1Badge" style="font-size: 0.7rem; font-weight: 800; padding: 1px 6px; border-radius: 4px; ${tier1Active ? 'background: #dcfce7; color: #166534; border: 1px solid #bbf7d0;' : 'background: #f1f5f9; color: #64748b;'}">
+                                <span id="pillTier1Badge" style="font-size: 0.7rem; font-weight: 800; padding: 1px 6px; border-radius: 4px; ${tier1Active ? 'background: #dcfce7; color: var(--k-success-text); border: 1px solid var(--k-success-border);' : 'background: #f1f5f9; color: var(--k-muted);'}">
                                     Tier I: ${tier1Active ? 'ACTIVE' : 'OFF'}
                                 </span>
-                                <span id="pillTier2Badge" style="font-size: 0.7rem; font-weight: 800; padding: 1px 6px; border-radius: 4px; ${tier2Active ? 'background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe;' : 'background: #f1f5f9; color: #64748b;'}">
+                                <span id="pillTier2Badge" style="font-size: 0.7rem; font-weight: 800; padding: 1px 6px; border-radius: 4px; ${tier2Active ? 'background: #dbeafe; color: var(--k-accent-text); border: 1px solid var(--k-accent-border);' : 'background: #f1f5f9; color: var(--k-muted);'}">
                                     Tier II: ${tier2Active ? 'ACTIVE' : 'OFF'}
                                 </span>
                             </div>
                         </div>
 
                         <!-- Total YTD Contribution Pill -->
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
-                            <span style="font-size: 0.68rem; color: #64748b; font-weight: 700;">Total YTD Contribution</span>
-                            <span id="pillNpsYtd" style="font-family: monospace; font-size: 0.82rem; font-weight: 800; color: #047857; width: fit-content;">
+                        <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px;">
+                            <span style="font-size: 0.68rem; color: var(--k-muted); font-weight: 700;">Total YTD Contribution</span>
+                            <span id="pillNpsYtd" style="font-family: monospace; font-size: 0.82rem; font-weight: 800; color: var(--k-success-text); width: fit-content;">
                                 ₹<span id="textNpsYtd">${ytd.toFixed(2)}</span>
                             </span>
                         </div>
@@ -164,36 +164,36 @@
                         KYC Seeding &amp; CRA Verification:
                     </div>
                     <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
-                        <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: #ffffff; border: 1px solid #cbd5e1; color: #334155;">
-                            Overall KYC: <strong style="color: ${overallKyc === 'VERIFIED' ? '#047857' : '#b45309'};">${escapeHtml(overallKyc)}</strong>
+                        <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: var(--k-surface); border: 1px solid var(--k-border); color: var(--k-text-2);">
+                            Overall KYC: <strong style="color: ${overallKyc === 'VERIFIED' ? 'var(--k-success-text)' : 'var(--k-warning-text)'};">${escapeHtml(overallKyc)}</strong>
                         </span>
-                        <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: #ffffff; border: 1px solid #cbd5e1; color: #334155;">
-                            PAN KYC: <strong style="color: ${panKyc === 'VERIFIED' ? '#047857' : '#b45309'};">${escapeHtml(panKyc)}</strong>
+                        <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: var(--k-surface); border: 1px solid var(--k-border); color: var(--k-text-2);">
+                            PAN KYC: <strong style="color: ${panKyc === 'VERIFIED' ? 'var(--k-success-text)' : 'var(--k-warning-text)'};">${escapeHtml(panKyc)}</strong>
                         </span>
-                        <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: #ffffff; border: 1px solid #cbd5e1; color: #334155;">
-                            Aadhaar KYC: <strong style="color: ${aadhaarKyc === 'VERIFIED' ? '#047857' : '#b45309'};">${escapeHtml(aadhaarKyc)}</strong>
+                        <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: var(--k-surface); border: 1px solid var(--k-border); color: var(--k-text-2);">
+                            Aadhaar KYC: <strong style="color: ${aadhaarKyc === 'VERIFIED' ? 'var(--k-success-text)' : 'var(--k-warning-text)'};">${escapeHtml(aadhaarKyc)}</strong>
                         </span>
-                        <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: #ffffff; border: 1px solid #cbd5e1; color: #334155;">
-                            Bank KYC: <strong style="color: ${bankKyc === 'VERIFIED' ? '#047857' : '#b45309'};">${escapeHtml(bankKyc)}</strong>
+                        <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: var(--k-surface); border: 1px solid var(--k-border); color: var(--k-text-2);">
+                            Bank KYC: <strong style="color: ${bankKyc === 'VERIFIED' ? 'var(--k-success-text)' : 'var(--k-warning-text)'};">${escapeHtml(bankKyc)}</strong>
                         </span>
-                        <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: #ffffff; border: 1px solid #cbd5e1; color: #334155;">
-                            Nominee: <strong style="color: #1e40af;">${escapeHtml(nomineeStatus)}</strong>
+                        <span style="font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: var(--k-surface); border: 1px solid var(--k-border); color: var(--k-text-2);">
+                            Nominee: <strong style="color: var(--k-accent-text);">${escapeHtml(nomineeStatus)}</strong>
                         </span>
                     </div>
                 </div>
 
                 <!-- Interactive Statutory Edit & Contribution Settings Form -->
-                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.1rem; margin-bottom: 1.25rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
-                        <span style="font-size: 0.76rem; font-weight: 800; color: #1e293b; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px;">
+                <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 14px; padding: 1.1rem; margin-bottom: 1.25rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--k-border); padding-bottom: 8px;">
+                        <span style="font-size: 0.76rem; font-weight: 800; color: var(--k-text); text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px;">
                             <i data-lucide="edit-3" style="width: 14px; height: 14px; color: #0284c7;"></i>
                             Statutory Master Parameters (22 Attributes)
                         </span>
                         <!-- Inline Toggle for NPS Applicable -->
-                        <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.76rem; font-weight: 800; color: #1e293b;">
+                        <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.76rem; font-weight: 800; color: var(--k-text);">
                             <span>NPS Applicable:</span>
                             <input type="checkbox" id="inputNpsApplicable" ${isNpsApplicable ? 'checked' : ''} style="width: 16px; height: 16px; accent-color: #0284c7; cursor: pointer;">
-                            <span id="textNpsApplicableBadge" style="font-size: 0.7rem; padding: 1px 8px; border-radius: 9999px; ${isNpsApplicable ? 'background: #dcfce7; color: #166534;' : 'background: #fee2e2; color: #991b1b;'}">
+                            <span id="textNpsApplicableBadge" style="font-size: 0.7rem; padding: 1px 8px; border-radius: 9999px; ${isNpsApplicable ? 'background: #dcfce7; color: var(--k-success-text);' : 'background: #fee2e2; color: var(--k-danger-text);'}">
                                 ${isNpsApplicable ? 'YES' : 'NO'}
                             </span>
                         </label>
@@ -202,14 +202,14 @@
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px;">
                         <!-- PRAN Input -->
                         <div>
-                            <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Permanent Retirement Account Number (PRAN)</label>
-                            <input type="text" id="inputNpsPran" value="${escapeHtml(pran)}" maxlength="12" placeholder="12-digit PRAN e.g. 110023456789" style="width: 100%; font-family: monospace; font-size: 0.78rem; font-weight: 700; padding: 6px 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff;">
+                            <label style="display: block; font-size: 0.7rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 4px;">Permanent Retirement Account Number (PRAN)</label>
+                            <input type="text" id="inputNpsPran" value="${escapeHtml(pran)}" maxlength="12" placeholder="12-digit PRAN e.g. 110023456789" style="width: 100%; font-family: monospace; font-size: 0.78rem; font-weight: 700; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--k-border); background: var(--k-surface);">
                         </div>
 
                         <!-- CRA Recordkeeping Agency -->
                         <div>
-                            <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #475569; margin-bottom: 4px;">CRA / Recordkeeping Agency</label>
-                            <select id="selectNpsCra" class="form-control" style="width: 100%; font-size: 0.78rem; padding: 6px 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff;">
+                            <label style="display: block; font-size: 0.7rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 4px;">CRA / Recordkeeping Agency</label>
+                            <select id="selectNpsCra" class="form-control" style="width: 100%; font-size: 0.78rem; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--k-border); background: var(--k-surface);">
                                 <option value="Protean (NSDL)" ${craAgency === 'Protean (NSDL)' ? 'selected' : ''}>Protean (NSDL)</option>
                                 <option value="KFintech" ${craAgency === 'KFintech' ? 'selected' : ''}>KFintech</option>
                                 <option value="CAMS" ${craAgency === 'CAMS' ? 'selected' : ''}>CAMS</option>
@@ -219,23 +219,23 @@
 
                         <!-- POP Intermediary -->
                         <div>
-                            <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Point of Presence (POP) Intermediary</label>
-                            <input type="text" id="inputNpsPop" value="${escapeHtml(popIntermediary)}" placeholder="e.g. HDFC Pension Management Co." style="width: 100%; font-size: 0.78rem; padding: 6px 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff;">
+                            <label style="display: block; font-size: 0.7rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 4px;">Point of Presence (POP) Intermediary</label>
+                            <input type="text" id="inputNpsPop" value="${escapeHtml(popIntermediary)}" placeholder="e.g. HDFC Pension Management Co." style="width: 100%; font-size: 0.78rem; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--k-border); background: var(--k-surface);">
                         </div>
 
                         <!-- NPS Model & Account Status -->
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                             <div>
-                                <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #475569; margin-bottom: 4px;">NPS Model</label>
-                                <select id="selectNpsModel" style="width: 100%; font-size: 0.74rem; padding: 6px 6px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff;">
+                                <label style="display: block; font-size: 0.7rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 4px;">NPS Model</label>
+                                <select id="selectNpsModel" style="width: 100%; font-size: 0.74rem; padding: 6px 6px; border-radius: 8px; border: 1px solid var(--k-border); background: var(--k-surface);">
                                     <option value="Corporate Model" ${npsModel === 'Corporate Model' ? 'selected' : ''}>Corporate</option>
                                     <option value="All Citizen Model" ${npsModel === 'All Citizen Model' ? 'selected' : ''}>All Citizen</option>
                                     <option value="Government" ${npsModel === 'Government' ? 'selected' : ''}>Government</option>
                                 </select>
                             </div>
                             <div>
-                                <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Account Status</label>
-                                <select id="selectNpsAccountStatus" style="width: 100%; font-size: 0.74rem; padding: 6px 6px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff;">
+                                <label style="display: block; font-size: 0.7rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 4px;">Account Status</label>
+                                <select id="selectNpsAccountStatus" style="width: 100%; font-size: 0.74rem; padding: 6px 6px; border-radius: 8px; border: 1px solid var(--k-border); background: var(--k-surface);">
                                     <option value="ACTIVE" ${accountStatus === 'ACTIVE' ? 'selected' : ''}>ACTIVE</option>
                                     <option value="INACTIVE" ${accountStatus === 'INACTIVE' ? 'selected' : ''}>INACTIVE</option>
                                     <option value="FROZEN" ${accountStatus === 'FROZEN' ? 'selected' : ''}>FROZEN</option>
@@ -247,12 +247,12 @@
                         <!-- Employee Contribution: % and Fixed Amount -->
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                             <div>
-                                <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #047857; margin-bottom: 4px;">Employee % (80CCD1)</label>
-                                <input type="number" step="0.5" min="0" max="100" id="inputNpsEePct" value="${eePct !== null && eePct !== undefined ? eePct : ''}" placeholder="e.g. 10.0" style="width: 100%; font-size: 0.78rem; font-weight: 700; padding: 6px 8px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; color: #047857;">
+                                <label style="display: block; font-size: 0.7rem; font-weight: 700; color: var(--k-success-text); margin-bottom: 4px;">Employee % (80CCD1)</label>
+                                <input type="number" step="0.5" min="0" max="100" id="inputNpsEePct" value="${eePct !== null && eePct !== undefined ? eePct : ''}" placeholder="e.g. 10.0" style="width: 100%; font-size: 0.78rem; font-weight: 700; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--k-border); background: var(--k-surface); color: var(--k-success-text);">
                             </div>
                             <div>
-                                <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #047857; margin-bottom: 4px;">Employee Fixed (₹)</label>
-                                <input type="number" step="100" min="0" id="inputNpsEeAmt" value="${eeAmt !== null && eeAmt !== undefined ? eeAmt : ''}" placeholder="Optional" style="width: 100%; font-size: 0.78rem; padding: 6px 8px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff;">
+                                <label style="display: block; font-size: 0.7rem; font-weight: 700; color: var(--k-success-text); margin-bottom: 4px;">Employee Fixed (₹)</label>
+                                <input type="number" step="100" min="0" id="inputNpsEeAmt" value="${eeAmt !== null && eeAmt !== undefined ? eeAmt : ''}" placeholder="Optional" style="width: 100%; font-size: 0.78rem; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--k-border); background: var(--k-surface);">
                             </div>
                         </div>
 
@@ -260,37 +260,37 @@
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                             <div>
                                 <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #0369a1; margin-bottom: 4px;">Employer % (80CCD2)</label>
-                                <input type="number" step="0.5" min="0" max="100" id="inputNpsErPct" value="${erPct !== null && erPct !== undefined ? erPct : ''}" placeholder="e.g. 10.0" style="width: 100%; font-size: 0.78rem; font-weight: 700; padding: 6px 8px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; color: #0369a1;">
+                                <input type="number" step="0.5" min="0" max="100" id="inputNpsErPct" value="${erPct !== null && erPct !== undefined ? erPct : ''}" placeholder="e.g. 10.0" style="width: 100%; font-size: 0.78rem; font-weight: 700; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--k-border); background: var(--k-surface); color: #0369a1;">
                             </div>
                             <div>
                                 <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #0369a1; margin-bottom: 4px;">Employer Fixed (₹)</label>
-                                <input type="number" step="100" min="0" id="inputNpsErAmt" value="${erAmt !== null && erAmt !== undefined ? erAmt : ''}" placeholder="Optional" style="width: 100%; font-size: 0.78rem; padding: 6px 8px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff;">
+                                <input type="number" step="100" min="0" id="inputNpsErAmt" value="${erAmt !== null && erAmt !== undefined ? erAmt : ''}" placeholder="Optional" style="width: 100%; font-size: 0.78rem; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--k-border); background: var(--k-surface);">
                             </div>
                         </div>
 
                         <!-- Tier Toggles & Date Windows -->
                         <div style="display: flex; flex-direction: column; justify-content: center; gap: 6px;">
                             <div style="display: flex; gap: 14px; align-items: center;">
-                                <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.74rem; font-weight: 700; color: #334155; cursor: pointer;">
+                                <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.74rem; font-weight: 700; color: var(--k-text-2); cursor: pointer;">
                                     <input type="checkbox" id="checkTier1Active" ${tier1Active ? 'checked' : ''} style="width: 15px; height: 15px; accent-color: #0284c7;">
                                     Tier I Active
                                 </label>
-                                <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.74rem; font-weight: 700; color: #334155; cursor: pointer;">
+                                <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.74rem; font-weight: 700; color: var(--k-text-2); cursor: pointer;">
                                     <input type="checkbox" id="checkTier2Active" ${tier2Active ? 'checked' : ''} style="width: 15px; height: 15px; accent-color: #0284c7;">
                                     Tier II Active
                                 </label>
                             </div>
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                                <input type="date" id="inputNpsDoj" value="${escapeHtml(joiningDate)}" title="Date of NPS Joining" style="font-size: 0.72rem; padding: 4px 6px; border-radius: 6px; border: 1px solid #cbd5e1;">
-                                <input type="date" id="inputNpsDoe" value="${npsDetails.dateOfNpsExit ? escapeHtml(npsDetails.dateOfNpsExit) : ''}" placeholder="Open" title="Date of NPS Exit" style="font-size: 0.72rem; padding: 4px 6px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                                <input type="date" id="inputNpsDoj" value="${escapeHtml(joiningDate)}" title="Date of NPS Joining" style="font-size: 0.72rem; padding: 4px 6px; border-radius: 6px; border: 1px solid var(--k-border);">
+                                <input type="date" id="inputNpsDoe" value="${npsDetails.dateOfNpsExit ? escapeHtml(npsDetails.dateOfNpsExit) : ''}" placeholder="Open" title="Date of NPS Exit" style="font-size: 0.72rem; padding: 4px 6px; border-radius: 6px; border: 1px solid var(--k-border);">
                             </div>
                         </div>
                     </div>
 
                     <!-- Action Bar -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 12px; border-top: 1px dashed #cbd5e1;">
-                        <span style="font-size: 0.74rem; color: #64748b;">
-                            Rates: Employee <strong id="lblDisplayEeRate" style="color: #047857;">${eePct !== null ? `${eePct}%` : `₹${eeAmt}`}</strong> • Employer <strong id="lblDisplayErRate" style="color: #0369a1;">${erPct !== null ? `${erPct}%` : `₹${erAmt}`}</strong>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--k-border);">
+                        <span style="font-size: 0.74rem; color: var(--k-muted);">
+                            Rates: Employee <strong id="lblDisplayEeRate" style="color: var(--k-success-text);">${eePct !== null ? `${eePct}%` : `₹${eeAmt}`}</strong> • Employer <strong id="lblDisplayErRate" style="color: #0369a1;">${erPct !== null ? `${erPct}%` : `₹${erAmt}`}</strong>
                         </span>
                         <button type="button" id="btnSaveNpsDetails" class="btn btn-primary" style="background: #0284c7; color: #ffffff; font-size: 0.76rem; font-weight: 800; padding: 6px 16px; border-radius: 8px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
                             <i data-lucide="save" id="npsSaveIcon" style="width: 14px; height: 14px;"></i>
@@ -300,13 +300,13 @@
                 </div>
 
                 <!-- Section 80CCD Tax Relief Callout (PRD §4 & §11) -->
-                <div style="background: #f0fdf4; border: 1px dashed #86efac; border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;">
+                <div style="background: var(--k-success-soft); border: 1px dashed var(--k-success-border); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 0.74rem; font-weight: 800; color: #166534; display: flex; align-items: center; gap: 6px;">
-                            <i data-lucide="info" style="width: 14px; height: 14px; color: #16a34a;"></i>
+                        <span style="font-size: 0.74rem; font-weight: 800; color: var(--k-success-text); display: flex; align-items: center; gap: 6px;">
+                            <i data-lucide="info" style="width: 14px; height: 14px; color: var(--k-success-text);"></i>
                             Statutory Section 80CCD Tax Exemption Matrix • Old vs New Regime Projection
                         </span>
-                        <span style="font-size: 0.7rem; font-weight: 700; color: #15803d; background: #dcfce7; padding: 2px 8px; border-radius: 6px;">
+                        <span style="font-size: 0.7rem; font-weight: 700; color: var(--k-success-text); background: var(--k-success-soft); padding: 2px 8px; border-radius: 6px;">
                             Dual Regime Compliant
                         </span>
                     </div>
@@ -331,9 +331,9 @@
                 </div>
 
                 <!-- Footer Meta -->
-                <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem; color: #94a3b8;">
-                    <span>CRA Agency: <strong style="color: #64748b;">${escapeHtml(craAgency)}</strong></span>
-                    <span>Point of Presence: <strong style="color: #64748b;">${escapeHtml(popIntermediary)}</strong></span>
+                <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem; color: var(--k-muted);">
+                    <span>CRA Agency: <strong style="color: var(--k-muted);">${escapeHtml(craAgency)}</strong></span>
+                    <span>Point of Presence: <strong style="color: var(--k-muted);">${escapeHtml(popIntermediary)}</strong></span>
                 </div>
             </div>
         </div>
@@ -517,7 +517,7 @@
         if (!container) return;
 
         const orgId = options.orgId || (typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null);
-        if (!orgId) { container.innerHTML = '<div style="padding: 1rem; color: #ef4444;">No organization found for the signed-in user. Sign in again.</div>'; return; }
+        if (!orgId) { container.innerHTML = '<div style="padding: 1rem; color: var(--k-danger-text);">No organization found for the signed-in user. Sign in again.</div>'; return; }
         let npsDetails = null;
 
         let service = (typeof window !== 'undefined' && window.KylrxNpsDetailsService) ? window.KylrxNpsDetailsService : null;
@@ -530,11 +530,11 @@
         if (service && typeof service.getEmployeeNpsDetails === 'function') {
             try {
                 npsDetails = await service.getEmployeeNpsDetails(orgId, employeeId);
-            } catch (e) {}
+            } catch (err) { console.error('[npsProfileUIController] npsDetails = await service.getEmployeeNpsDetails failed:', err); }
         }
 
         if (!npsDetails) {
-            container.innerHTML = '<div style="padding: 1rem; color: #64748b;">No details added yet</div>';
+            container.innerHTML = '<div style="padding: 1rem; color: var(--k-muted);">No details added yet</div>';
             return;
         }
 

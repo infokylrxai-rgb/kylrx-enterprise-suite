@@ -47,7 +47,7 @@
 
         const svc = getService();
         if (!svc) {
-            container.innerHTML = `<div style="padding: 2rem; color: #ef4444; font-weight: 600;">Payroll Component Service not loaded.</div>`;
+            container.innerHTML = `<div style="padding: 2rem; color: var(--k-danger-text); font-weight: 600;">Payroll Component Service not loaded.</div>`;
             return;
         }
 
@@ -85,21 +85,21 @@
                 <!-- Action Bar & Header -->
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
                     <div>
-                        <h2 style="font-size: 1.5rem; font-weight: 800; color: #0f172a; margin: 0 0 6px 0; display: flex; align-items: center; gap: 10px;">
-                            <span style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: #eff6ff; color: #2563eb; border-radius: 8px;">
+                        <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--k-text); margin: 0 0 6px 0; display: flex; align-items: center; gap: 10px;">
+                            <span style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: var(--k-accent-soft); color: var(--k-accent-text); border-radius: 8px;">
                                 <i data-lucide="layers" style="width: 20px; height: 20px;"></i>
                             </span>
                             Payroll Components Catalog
                         </h2>
-                        <p style="color: #64748b; font-size: 0.9rem; margin: 0;">
+                        <p style="color: var(--k-muted); font-size: 0.9rem; margin: 0;">
                             Configure earnings, statutory deductions, LOP proration flags, and wage bases (PRD Sections 1 &amp; 4).
                         </p>
                     </div>
                     <div style="display: flex; gap: 10px; align-items: center;">
-                        <button type="button" class="btn" onclick="window.KylrxPayrollComponentsUIController.openSimulatorModal()" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 10px; font-weight: 700; cursor: pointer; border: 1.5px solid #cbd5e1; background: white; color: #334155; transition: all 0.2s;">
-                            <i data-lucide="calculator" style="width: 16px; height: 16px; color: #2563eb;"></i> Live Formula Simulator
+                        <button type="button" class="btn" onclick="window.KylrxPayrollComponentsUIController.openSimulatorModal()" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 10px; font-weight: 700; cursor: pointer; border: 1.5px solid var(--k-border); background: var(--k-surface); color: var(--k-text-2); transition: all 0.2s;">
+                            <i data-lucide="calculator" style="width: 16px; height: 16px; color: var(--k-accent-text);"></i> Live Formula Simulator
                         </button>
-                        <button type="button" class="btn" onclick="window.KylrxPayrollComponentsUIController.openAddComponentModal()" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 10px; font-weight: 700; cursor: pointer; border: none; background: #2563eb; color: white; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.25); transition: all 0.2s;">
+                        <button type="button" class="btn" onclick="window.KylrxPayrollComponentsUIController.openAddComponentModal()" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 10px; font-weight: 700; cursor: pointer; border: none; background: var(--k-accent); color: var(--k-on-accent); box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.25); transition: all 0.2s;">
                             <i data-lucide="plus" style="width: 16px; height: 16px;"></i> Add Component
                         </button>
                     </div>
@@ -107,72 +107,72 @@
 
                 <!-- KPI Metric Cards -->
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
-                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+                    <div style="background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 14px; padding: 1.2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Total Components</span>
-                            <span style="background: #f1f5f9; color: #475569; width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;"><i data-lucide="list"></i></span>
+                            <span style="font-size: 0.72rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Total Components</span>
+                            <span style="background: var(--k-subtle); color: var(--k-text-2); width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;"><i data-lucide="list"></i></span>
                         </div>
-                        <h3 style="font-size: 1.75rem; font-weight: 800; color: #0f172a; margin: 8px 0 0 0;">${totalCount}</h3>
-                        <p style="font-size: 0.75rem; color: #94a3b8; margin: 4px 0 0 0;">Configured for Organization</p>
+                        <h3 style="font-size: 1.75rem; font-weight: 800; color: var(--k-text); margin: 8px 0 0 0;">${totalCount}</h3>
+                        <p style="font-size: 0.75rem; color: var(--k-muted); margin: 4px 0 0 0;">Configured for Organization</p>
                     </div>
 
-                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+                    <div style="background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 14px; padding: 1.2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-size: 0.72rem; font-weight: 800; color: #16a34a; text-transform: uppercase;">Earnings</span>
-                            <span style="background: #f0fdf4; color: #16a34a; width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;"><i data-lucide="arrow-down-left"></i></span>
+                            <span style="font-size: 0.72rem; font-weight: 800; color: var(--k-success-text); text-transform: uppercase;">Earnings</span>
+                            <span style="background: var(--k-success-soft); color: var(--k-success-text); width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;"><i data-lucide="arrow-down-left"></i></span>
                         </div>
-                        <h3 style="font-size: 1.75rem; font-weight: 800; color: #16a34a; margin: 8px 0 0 0;">${earningsCount}</h3>
-                        <p style="font-size: 0.75rem; color: #94a3b8; margin: 4px 0 0 0;">Salary Allowances &amp; Basic</p>
+                        <h3 style="font-size: 1.75rem; font-weight: 800; color: var(--k-success-text); margin: 8px 0 0 0;">${earningsCount}</h3>
+                        <p style="font-size: 0.75rem; color: var(--k-muted); margin: 4px 0 0 0;">Salary Allowances &amp; Basic</p>
                     </div>
 
-                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+                    <div style="background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 14px; padding: 1.2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-size: 0.72rem; font-weight: 800; color: #d97706; text-transform: uppercase;">Deductions</span>
-                            <span style="background: #fffbeb; color: #d97706; width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;"><i data-lucide="arrow-up-right"></i></span>
+                            <span style="font-size: 0.72rem; font-weight: 800; color: var(--k-warning-text); text-transform: uppercase;">Deductions</span>
+                            <span style="background: var(--k-warning-soft); color: var(--k-warning-text); width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;"><i data-lucide="arrow-up-right"></i></span>
                         </div>
-                        <h3 style="font-size: 1.75rem; font-weight: 800; color: #d97706; margin: 8px 0 0 0;">${deductionsCount}</h3>
-                        <p style="font-size: 0.75rem; color: #94a3b8; margin: 4px 0 0 0;">PF, ESI, PT &amp; TDS</p>
+                        <h3 style="font-size: 1.75rem; font-weight: 800; color: var(--k-warning-text); margin: 8px 0 0 0;">${deductionsCount}</h3>
+                        <p style="font-size: 0.75rem; color: var(--k-muted); margin: 4px 0 0 0;">PF, ESI, PT &amp; TDS</p>
                     </div>
 
-                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+                    <div style="background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 14px; padding: 1.2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <span style="font-size: 0.72rem; font-weight: 800; color: #7c3aed; text-transform: uppercase;">Statutory Linked</span>
                             <span style="background: #faf5ff; color: #7c3aed; width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;"><i data-lucide="shield-check"></i></span>
                         </div>
                         <h3 style="font-size: 1.75rem; font-weight: 800; color: #7c3aed; margin: 8px 0 0 0;">${statutoryCount}</h3>
-                        <p style="font-size: 0.75rem; color: #94a3b8; margin: 4px 0 0 0;">Affects PF/ESI/PT/TDS Bases</p>
+                        <p style="font-size: 0.75rem; color: var(--k-muted); margin: 4px 0 0 0;">Affects PF/ESI/PT/TDS Bases</p>
                     </div>
                 </div>
 
                 <!-- Navigation Tabs & Search Filter -->
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border-bottom: 1.5px solid #e2e8f0; padding-bottom: 0.75rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border-bottom: 1.5px solid var(--k-border); padding-bottom: 0.75rem;">
                     <div style="display: flex; gap: 8px;">
-                        <button type="button" onclick="window.KylrxPayrollComponentsUIController.setTab('ALL')" style="padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; cursor: pointer; border: none; background: ${_activeTab === 'ALL' ? '#2563eb' : '#f1f5f9'}; color: ${_activeTab === 'ALL' ? 'white' : '#475569'}; transition: all 0.2s;">
+                        <button type="button" onclick="window.KylrxPayrollComponentsUIController.setTab('ALL')" style="padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; cursor: pointer; border: none; background: ${_activeTab === 'ALL' ? 'var(--k-accent)' : 'var(--k-subtle)'}; color: ${_activeTab === 'ALL' ? 'white' : 'var(--k-text-2)'}; transition: all 0.2s;">
                             All Components (${totalCount})
                         </button>
-                        <button type="button" onclick="window.KylrxPayrollComponentsUIController.setTab('EARNINGS')" style="padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; cursor: pointer; border: none; background: ${_activeTab === 'EARNINGS' ? '#16a34a' : '#f1f5f9'}; color: ${_activeTab === 'EARNINGS' ? 'white' : '#475569'}; transition: all 0.2s;">
+                        <button type="button" onclick="window.KylrxPayrollComponentsUIController.setTab('EARNINGS')" style="padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; cursor: pointer; border: none; background: ${_activeTab === 'EARNINGS' ? 'var(--k-success)' : 'var(--k-subtle)'}; color: ${_activeTab === 'EARNINGS' ? 'white' : 'var(--k-text-2)'}; transition: all 0.2s;">
                             Earnings (${earningsCount})
                         </button>
-                        <button type="button" onclick="window.KylrxPayrollComponentsUIController.setTab('DEDUCTIONS')" style="padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; cursor: pointer; border: none; background: ${_activeTab === 'DEDUCTIONS' ? '#d97706' : '#f1f5f9'}; color: ${_activeTab === 'DEDUCTIONS' ? 'white' : '#475569'}; transition: all 0.2s;">
+                        <button type="button" onclick="window.KylrxPayrollComponentsUIController.setTab('DEDUCTIONS')" style="padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; cursor: pointer; border: none; background: ${_activeTab === 'DEDUCTIONS' ? 'var(--k-warning)' : 'var(--k-subtle)'}; color: ${_activeTab === 'DEDUCTIONS' ? 'white' : 'var(--k-text-2)'}; transition: all 0.2s;">
                             Deductions (${deductionsCount})
                         </button>
-                        <button type="button" onclick="window.KylrxPayrollComponentsUIController.setTab('OTHERS')" style="padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; cursor: pointer; border: none; background: ${_activeTab === 'OTHERS' ? '#7c3aed' : '#f1f5f9'}; color: ${_activeTab === 'OTHERS' ? 'white' : '#475569'}; transition: all 0.2s;">
+                        <button type="button" onclick="window.KylrxPayrollComponentsUIController.setTab('OTHERS')" style="padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; cursor: pointer; border: none; background: ${_activeTab === 'OTHERS' ? '#7c3aed' : 'var(--k-subtle)'}; color: ${_activeTab === 'OTHERS' ? 'white' : '#475569'}; transition: all 0.2s;">
                             Employer &amp; Reimb. (${totalCount - (earningsCount + deductionsCount)})
                         </button>
                     </div>
 
                     <div style="position: relative; width: 280px;">
-                        <input type="text" placeholder="Search by code or title..." value="${_searchQuery}" oninput="window.KylrxPayrollComponentsUIController.onSearchChange(this.value)" style="width: 100%; box-sizing: border-box; padding: 8px 12px 8px 34px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.85rem; outline: none;">
-                        <span style="position: absolute; left: 10px; top: 9px; color: #94a3b8;"><i data-lucide="search" style="width: 16px; height: 16px;"></i></span>
+                        <input type="text" placeholder="Search by code or title..." value="${_searchQuery}" oninput="window.KylrxPayrollComponentsUIController.onSearchChange(this.value)" style="width: 100%; box-sizing: border-box; padding: 8px 12px 8px 34px; border: 1.5px solid var(--k-border); border-radius: 8px; font-size: 0.85rem; outline: none;">
+                        <span style="position: absolute; left: 10px; top: 9px; color: var(--k-muted);"><i data-lucide="search" style="width: 16px; height: 16px;"></i></span>
                     </div>
                 </div>
 
                 <!-- Grouped Components Table -->
-                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 14px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+                <div style="background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 14px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
                     <div style="overflow-x: auto;">
                         <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
                             <thead>
-                                <tr style="background: #f8fafc; border-bottom: 1.5px solid #e2e8f0; color: #475569; font-weight: 700; text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.05em;">
+                                <tr style="background: var(--k-subtle); border-bottom: 1.5px solid var(--k-border); color: var(--k-text-2); font-weight: 700; text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.05em;">
                                     <th style="padding: 12px 16px;">Component</th>
                                     <th style="padding: 12px 12px;">Type</th>
                                     <th style="padding: 12px 12px;">Calculation</th>
@@ -190,7 +190,7 @@
                             <tbody>
                                 ${filtered.length === 0 ? `
                                     <tr>
-                                        <td colspan="12" style="text-align: center; padding: 2.5rem; color: #94a3b8;">
+                                        <td colspan="12" style="text-align: center; padding: 2.5rem; color: var(--k-muted);">
                                             No payroll components match your filter criteria.
                                         </td>
                                     </tr>
@@ -221,21 +221,21 @@
         }[c.componentType] || 'background: #f1f5f9; color: #475569;';
 
         const basisDisplay = c.calculationMethod === 'Percentage'
-            ? `<span style="font-weight: 700; color: #0f172a;">${c.defaultValueOrPercentage}%</span> <span style="font-size: 0.72rem; color: #64748b; background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">of ${c.percentageBasis || 'BASIC'}</span>`
+            ? `<span style="font-weight: 700; color: var(--k-text);">${c.defaultValueOrPercentage}%</span> <span style="font-size: 0.72rem; color: var(--k-muted); background: var(--k-subtle); padding: 2px 6px; border-radius: 4px;">of ${c.percentageBasis || 'BASIC'}</span>`
             : (c.defaultValueOrPercentage ? `₹${Number(c.defaultValueOrPercentage).toLocaleString('en-IN')}` : '-');
 
         return `
-            <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+            <tr style="border-bottom: 1px solid var(--k-border); transition: background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
                 <td style="padding: 12px 16px;">
-                    <div style="font-weight: 700; color: #0f172a;">${c.componentName}</div>
-                    <div style="font-size: 0.72rem; color: #64748b; font-family: monospace;">${c.componentCode}</div>
+                    <div style="font-weight: 700; color: var(--k-text);">${c.componentName}</div>
+                    <div style="font-size: 0.72rem; color: var(--k-muted); font-family: monospace;">${c.componentCode}</div>
                 </td>
                 <td style="padding: 12px 12px;">
                     <span style="display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; ${typeBadge}">
                         ${c.componentType}
                     </span>
                 </td>
-                <td style="padding: 12px 12px; color: #334155; font-size: 0.8rem;">
+                <td style="padding: 12px 12px; color: var(--k-text-2); font-size: 0.8rem;">
                     ${c.calculationMethod}
                 </td>
                 <td style="padding: 12px 12px;">
@@ -266,13 +266,13 @@
                 </td>
 
                 <td style="padding: 12px 16px; text-align: right; white-space: nowrap;">
-                    <button type="button" onclick="window.KylrxPayrollComponentsUIController.openSimulatorModal('${c.componentCode}')" title="Test Live Formula" style="background: none; border: none; cursor: pointer; color: #2563eb; padding: 4px 6px; border-radius: 6px;">
+                    <button type="button" onclick="window.KylrxPayrollComponentsUIController.openSimulatorModal('${c.componentCode}')" title="Test Live Formula" style="background: none; border: none; cursor: pointer; color: var(--k-accent-text); padding: 4px 6px; border-radius: 6px;">
                         <i data-lucide="play-circle" style="width: 16px; height: 16px;"></i>
                     </button>
-                    <button type="button" onclick="window.KylrxPayrollComponentsUIController.openEditComponentModal('${c.componentCode}')" title="Edit Component" style="background: none; border: none; cursor: pointer; color: #475569; padding: 4px 6px; border-radius: 6px;">
+                    <button type="button" onclick="window.KylrxPayrollComponentsUIController.openEditComponentModal('${c.componentCode}')" title="Edit Component" style="background: none; border: none; cursor: pointer; color: var(--k-text-2); padding: 4px 6px; border-radius: 6px;">
                         <i data-lucide="edit-3" style="width: 16px; height: 16px;"></i>
                     </button>
-                    <button type="button" onclick="window.KylrxPayrollComponentsUIController.deleteComponentPrompt('${c.componentCode}')" title="Delete Component" style="background: none; border: none; cursor: pointer; color: #dc2626; padding: 4px 6px; border-radius: 6px;">
+                    <button type="button" onclick="window.KylrxPayrollComponentsUIController.deleteComponentPrompt('${c.componentCode}')" title="Delete Component" style="background: none; border: none; cursor: pointer; color: var(--k-danger-text); padding: 4px 6px; border-radius: 6px;">
                         <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
                     </button>
                 </td>
@@ -341,48 +341,48 @@
 
         modal.innerHTML = `
             <div style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 1rem; backdrop-filter: blur(4px);">
-                <div style="background: white; border-radius: 18px; max-width: 600px; width: 100%; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column;">
+                <div style="background: var(--k-surface); border-radius: 18px; max-width: 600px; width: 100%; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column;">
                     
-                    <div style="padding: 1.25rem 1.5rem; border-bottom: 1.5px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
-                        <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px;">
-                            <i data-lucide="calculator" style="color: #2563eb;"></i> Live Formula &amp; LOP Simulator
+                    <div style="padding: 1.25rem 1.5rem; border-bottom: 1.5px solid var(--k-border); display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: var(--k-text); display: flex; align-items: center; gap: 8px;">
+                            <i data-lucide="calculator" style="color: var(--k-accent-text);"></i> Live Formula &amp; LOP Simulator
                         </h3>
-                        <button type="button" onclick="document.getElementById('payrollSimulatorModal').innerHTML=''" style="background: none; border: none; font-size: 1.25rem; cursor: pointer; color: #94a3b8;">&times;</button>
+                        <button type="button" onclick="document.getElementById('payrollSimulatorModal').innerHTML=''" style="background: none; border: none; font-size: 1.25rem; cursor: pointer; color: var(--k-muted);">&times;</button>
                     </div>
 
                     <div style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                             <div>
-                                <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Target Component</label>
-                                <select id="simTargetComp" onchange="window.KylrxPayrollComponentsUIController.evaluateSimulator()" style="width: 100%; padding: 8px 10px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.85rem;">
+                                <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 4px;">Target Component</label>
+                                <select id="simTargetComp" onchange="window.KylrxPayrollComponentsUIController.evaluateSimulator()" style="width: 100%; padding: 8px 10px; border: 1.5px solid var(--k-border); border-radius: 8px; font-size: 0.85rem;">
                                     ${allComps.map(c => `<option value="${c.componentCode}" ${c.componentCode === targetCode ? 'selected' : ''}>${c.componentName} (${c.componentCode})</option>`).join('')}
                                 </select>
                             </div>
                             <div>
-                                <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Base Amount (BASIC)</label>
-                                <input type="number" id="simBaseAmt" value="50000" oninput="window.KylrxPayrollComponentsUIController.evaluateSimulator()" style="width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.85rem;">
+                                <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 4px;">Base Amount (BASIC)</label>
+                                <input type="number" id="simBaseAmt" value="50000" oninput="window.KylrxPayrollComponentsUIController.evaluateSimulator()" style="width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1.5px solid var(--k-border); border-radius: 8px; font-size: 0.85rem;">
                             </div>
                         </div>
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                             <div>
-                                <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Calendar Days</label>
-                                <input type="number" id="simCalendarDays" value="30" oninput="window.KylrxPayrollComponentsUIController.evaluateSimulator()" style="width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.85rem;">
+                                <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 4px;">Calendar Days</label>
+                                <input type="number" id="simCalendarDays" value="30" oninput="window.KylrxPayrollComponentsUIController.evaluateSimulator()" style="width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1.5px solid var(--k-border); border-radius: 8px; font-size: 0.85rem;">
                             </div>
                             <div>
-                                <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Loss of Pay (LOP) Days</label>
-                                <input type="number" id="simLopDays" value="3" oninput="window.KylrxPayrollComponentsUIController.evaluateSimulator()" style="width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.85rem;">
+                                <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 4px;">Loss of Pay (LOP) Days</label>
+                                <input type="number" id="simLopDays" value="3" oninput="window.KylrxPayrollComponentsUIController.evaluateSimulator()" style="width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1.5px solid var(--k-border); border-radius: 8px; font-size: 0.85rem;">
                             </div>
                         </div>
 
                         <!-- Live Evaluation Card -->
-                        <div id="simResultsCard" style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 1.25rem;">
+                        <div id="simResultsCard" style="background: var(--k-subtle); border: 1.5px solid var(--k-border); border-radius: 12px; padding: 1.25rem;">
                             <!-- Populated dynamically by evaluateSimulator() -->
                         </div>
                     </div>
 
-                    <div style="padding: 1rem 1.5rem; background: #f8fafc; border-top: 1.5px solid #e2e8f0; display: flex; justify-content: flex-end;">
-                        <button type="button" onclick="document.getElementById('payrollSimulatorModal').innerHTML=''" style="padding: 8px 18px; border-radius: 8px; border: 1.5px solid #cbd5e1; background: white; color: #475569; font-weight: 700; cursor: pointer;">Close</button>
+                    <div style="padding: 1rem 1.5rem; background: var(--k-subtle); border-top: 1.5px solid var(--k-border); display: flex; justify-content: flex-end;">
+                        <button type="button" onclick="document.getElementById('payrollSimulatorModal').innerHTML=''" style="padding: 8px 18px; border-radius: 8px; border: 1.5px solid var(--k-border); background: var(--k-surface); color: var(--k-text-2); font-weight: 700; cursor: pointer;">Close</button>
                     </div>
 
                 </div>
@@ -427,29 +427,29 @@
 
         resultsEl.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-                <span style="font-size: 0.85rem; font-weight: 800; color: #0f172a;">${comp.componentName} (${comp.componentCode})</span>
-                <span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 6px; background: ${comp.prorateOnLop ? '#eff6ff' : '#f1f5f9'}; color: ${comp.prorateOnLop ? '#2563eb' : '#64748b'}; font-weight: 700;">
+                <span style="font-size: 0.85rem; font-weight: 800; color: var(--k-text);">${comp.componentName} (${comp.componentCode})</span>
+                <span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 6px; background: ${comp.prorateOnLop ? 'var(--k-accent-soft)' : 'var(--k-subtle)'}; color: ${comp.prorateOnLop ? 'var(--k-accent-text)' : 'var(--k-muted)'}; font-weight: 700;">
                     ${comp.prorateOnLop ? 'LOP Prorated' : 'Fixed Component'}
                 </span>
             </div>
 
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; text-align: center; margin-bottom: 0.75rem;">
-                <div style="background: white; padding: 8px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    <div style="font-size: 0.7rem; color: #64748b; font-weight: 700;">Scheduled Full Value</div>
-                    <div style="font-size: 1.1rem; font-weight: 800; color: #0f172a;">₹${scheduledAmount.toLocaleString('en-IN')}</div>
+                <div style="background: var(--k-surface); padding: 8px; border-radius: 8px; border: 1px solid var(--k-border);">
+                    <div style="font-size: 0.7rem; color: var(--k-muted); font-weight: 700;">Scheduled Full Value</div>
+                    <div style="font-size: 1.1rem; font-weight: 800; color: var(--k-text);">₹${scheduledAmount.toLocaleString('en-IN')}</div>
                 </div>
-                <div style="background: white; padding: 8px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    <div style="font-size: 0.7rem; color: #64748b; font-weight: 700;">Proration Factor</div>
-                    <div style="font-size: 1.1rem; font-weight: 800; color: #2563eb;">${Math.round(prorationFactor * 10000) / 10000}</div>
-                    <div style="font-size: 0.65rem; color: #94a3b8;">${paidDays}/${calendarDays} Days</div>
+                <div style="background: var(--k-surface); padding: 8px; border-radius: 8px; border: 1px solid var(--k-border);">
+                    <div style="font-size: 0.7rem; color: var(--k-muted); font-weight: 700;">Proration Factor</div>
+                    <div style="font-size: 1.1rem; font-weight: 800; color: var(--k-accent-text);">${Math.round(prorationFactor * 10000) / 10000}</div>
+                    <div style="font-size: 0.65rem; color: var(--k-muted);">${paidDays}/${calendarDays} Days</div>
                 </div>
-                <div style="background: white; padding: 8px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    <div style="font-size: 0.7rem; color: #16a34a; font-weight: 700;">Earned Pay Amount</div>
-                    <div style="font-size: 1.1rem; font-weight: 800; color: #16a34a;">₹${earnedAmount.toLocaleString('en-IN')}</div>
+                <div style="background: var(--k-surface); padding: 8px; border-radius: 8px; border: 1px solid var(--k-border);">
+                    <div style="font-size: 0.7rem; color: var(--k-success-text); font-weight: 700;">Earned Pay Amount</div>
+                    <div style="font-size: 1.1rem; font-weight: 800; color: var(--k-success-text);">₹${earnedAmount.toLocaleString('en-IN')}</div>
                 </div>
             </div>
 
-            <div style="font-size: 0.72rem; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 8px; display: flex; justify-content: space-between;">
+            <div style="font-size: 0.72rem; color: var(--k-muted); border-top: 1px solid var(--k-border); padding-top: 8px; display: flex; justify-content: space-between;">
                 <span>Statutory Impact:</span>
                 <span>
                     PF: <b>${comp.isPfApplicable ? 'Included' : 'Excluded'}</b> |
@@ -501,31 +501,31 @@
 
         modal.innerHTML = `
             <div style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 1rem; backdrop-filter: blur(4px);">
-                <div style="background: white; border-radius: 18px; max-width: 650px; width: 100%; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; max-height: 90vh;">
+                <div style="background: var(--k-surface); border-radius: 18px; max-width: 650px; width: 100%; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; max-height: 90vh;">
                     
-                    <div style="padding: 1.25rem 1.5rem; border-bottom: 1.5px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
-                        <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #0f172a;">
+                    <div style="padding: 1.25rem 1.5rem; border-bottom: 1.5px solid var(--k-border); display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: var(--k-text);">
                             ${isEdit ? `Edit Component: ${data.componentName}` : 'Add New Payroll Component'}
                         </h3>
-                        <button type="button" onclick="document.getElementById('payrollEditModal').innerHTML=''" style="background: none; border: none; font-size: 1.25rem; cursor: pointer; color: #94a3b8;">&times;</button>
+                        <button type="button" onclick="document.getElementById('payrollEditModal').innerHTML=''" style="background: none; border: none; font-size: 1.25rem; cursor: pointer; color: var(--k-muted);">&times;</button>
                     </div>
 
                     <form id="payrollComponentForm" onsubmit="window.KylrxPayrollComponentsUIController.saveComponentFromForm(event, ${isEdit})" style="padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem;">
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                             <div>
-                                <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Component Code *</label>
-                                <input type="text" id="formCompCode" value="${data.componentCode}" ${isEdit ? 'readonly style="background: #f1f5f9;"' : ''} required placeholder="e.g. HRA, BASIC, MED_ALLOW" style="width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.85rem; text-transform: uppercase;">
+                                <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 4px;">Component Code *</label>
+                                <input type="text" id="formCompCode" value="${data.componentCode}" ${isEdit ? 'readonly style="background: var(--k-subtle);"' : ''} required placeholder="e.g. HRA, BASIC, MED_ALLOW" style="width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1.5px solid var(--k-border); border-radius: 8px; font-size: 0.85rem; text-transform: uppercase;">
                             </div>
                             <div>
-                                <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Component Title *</label>
-                                <input type="text" id="formCompName" value="${data.componentName}" required placeholder="e.g. House Rent Allowance" style="width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.85rem;">
+                                <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 4px;">Component Title *</label>
+                                <input type="text" id="formCompName" value="${data.componentName}" required placeholder="e.g. House Rent Allowance" style="width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1.5px solid var(--k-border); border-radius: 8px; font-size: 0.85rem;">
                             </div>
                         </div>
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                             <div>
-                                <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Component Type *</label>
-                                <select id="formCompType" style="width: 100%; padding: 8px 10px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.85rem;">
+                                <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 4px;">Component Type *</label>
+                                <select id="formCompType" style="width: 100%; padding: 8px 10px; border: 1.5px solid var(--k-border); border-radius: 8px; font-size: 0.85rem;">
                                     <option value="Earning" ${data.componentType === 'Earning' ? 'selected' : ''}>Earning</option>
                                     <option value="Deduction" ${data.componentType === 'Deduction' ? 'selected' : ''}>Deduction</option>
                                     <option value="Reimbursement" ${data.componentType === 'Reimbursement' ? 'selected' : ''}>Reimbursement</option>
@@ -533,8 +533,8 @@
                                 </select>
                             </div>
                             <div>
-                                <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Calculation Method *</label>
-                                <select id="formCalcMethod" style="width: 100%; padding: 8px 10px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.85rem;">
+                                <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 4px;">Calculation Method *</label>
+                                <select id="formCalcMethod" style="width: 100%; padding: 8px 10px; border: 1.5px solid var(--k-border); border-radius: 8px; font-size: 0.85rem;">
                                     <option value="Flat_Amount" ${data.calculationMethod === 'Flat_Amount' ? 'selected' : ''}>Flat Amount</option>
                                     <option value="Percentage" ${data.calculationMethod === 'Percentage' ? 'selected' : ''}>Percentage</option>
                                     <option value="Formula" ${data.calculationMethod === 'Formula' ? 'selected' : ''}>Formula</option>
@@ -545,18 +545,18 @@
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                             <div>
-                                <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Value or Percentage</label>
-                                <input type="number" step="0.01" id="formValPct" value="${data.defaultValueOrPercentage || 0}" style="width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.85rem;">
+                                <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 4px;">Value or Percentage</label>
+                                <input type="number" step="0.01" id="formValPct" value="${data.defaultValueOrPercentage || 0}" style="width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1.5px solid var(--k-border); border-radius: 8px; font-size: 0.85rem;">
                             </div>
                             <div>
-                                <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Percentage Basis (if percentage)</label>
-                                <input type="text" id="formPctBasis" value="${data.percentageBasis || ''}" placeholder="e.g. BASIC, GROSS, CTC" style="width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.85rem; text-transform: uppercase;">
+                                <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 4px;">Percentage Basis (if percentage)</label>
+                                <input type="text" id="formPctBasis" value="${data.percentageBasis || ''}" placeholder="e.g. BASIC, GROSS, CTC" style="width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1.5px solid var(--k-border); border-radius: 8px; font-size: 0.85rem; text-transform: uppercase;">
                             </div>
                         </div>
 
                         <!-- Statutory Flags & Toggles Grid -->
-                        <div style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
-                            <span style="font-size: 0.75rem; font-weight: 800; color: #475569; text-transform: uppercase;">Statutory &amp; Calculation Flags</span>
+                        <div style="background: var(--k-subtle); border: 1.5px solid var(--k-border); border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                            <span style="font-size: 0.75rem; font-weight: 800; color: var(--k-text-2); text-transform: uppercase;">Statutory &amp; Calculation Flags</span>
                             
                             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;">
                                 <label style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; cursor: pointer;">
@@ -574,21 +574,21 @@
                                 <label style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; cursor: pointer;">
                                     <input type="checkbox" id="formTds" ${data.isTdsApplicable ? 'checked' : ''}> TDS Applicable
                                 </label>
-                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; cursor: pointer; color: #2563eb; font-weight: 700;">
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; cursor: pointer; color: var(--k-accent-text); font-weight: 700;">
                                     <input type="checkbox" id="formLop" ${data.prorateOnLop ? 'checked' : ''}> Prorate On LOP
                                 </label>
                             </div>
 
-                            <div style="border-top: 1px solid #e2e8f0; padding-top: 8px;">
-                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; cursor: pointer; color: #16a34a; font-weight: 700;">
+                            <div style="border-top: 1px solid var(--k-border); padding-top: 8px;">
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; cursor: pointer; color: var(--k-success-text); font-weight: 700;">
                                     <input type="checkbox" id="formActive" ${data.isActive ? 'checked' : ''}> Active Status
                                 </label>
                             </div>
                         </div>
 
                         <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 0.5rem;">
-                            <button type="button" onclick="document.getElementById('payrollEditModal').innerHTML=''" style="padding: 10px 18px; border-radius: 8px; border: 1.5px solid #cbd5e1; background: white; color: #475569; font-weight: 700; cursor: pointer;">Cancel</button>
-                            <button type="submit" style="padding: 10px 22px; border-radius: 8px; border: none; background: #2563eb; color: white; font-weight: 700; cursor: pointer;">Save Component</button>
+                            <button type="button" onclick="document.getElementById('payrollEditModal').innerHTML=''" style="padding: 10px 18px; border-radius: 8px; border: 1.5px solid var(--k-border); background: var(--k-surface); color: var(--k-text-2); font-weight: 700; cursor: pointer;">Cancel</button>
+                            <button type="submit" style="padding: 10px 22px; border-radius: 8px; border: none; background: var(--k-accent); color: var(--k-on-accent); font-weight: 700; cursor: pointer;">Save Component</button>
                         </div>
                     </form>
 

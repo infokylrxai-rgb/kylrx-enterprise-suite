@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+    <script src="kylrx-theme-init.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Notification & Action Centre | Kylrx AI Enterprise Suite">
@@ -79,7 +80,7 @@
 
         body {
             font-family: 'Outfit', sans-serif;
-            background: #f8fafc;
+            background: var(--k-subtle);
             color: var(--text-main);
             margin: 0;
             min-height: 100vh;
@@ -94,7 +95,7 @@
         /* Sidebar Navigation */
         .sidebar {
             width: var(--sidebar-width);
-            background: #ffffff;
+            background: var(--k-surface);
             border-right: 1px solid var(--border);
             padding: 1.5rem 1rem 1rem;
             display: flex;
@@ -129,11 +130,11 @@
         .sidebar-bottom {
             padding-top: 0.75rem;
             margin-top: auto;
-            border-top: 1px solid #f1f5f9;
+            border-top: 1px solid var(--k-border);
             display: flex;
             flex-direction: column;
             gap: 2px;
-            background: #ffffff;
+            background: var(--k-surface);
         }
 
         .sidebar .nav-link {
@@ -144,17 +145,17 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            color: #475569 !important;
+            color: var(--k-text-2) !important;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
         }
         .sidebar .nav-link:hover {
-            background: #eff6ff !important;
-            color: #2563eb !important;
+            background: var(--k-accent-soft) !important;
+            color: var(--k-accent-text) !important;
         }
         .sidebar .nav-link.active {
-            background: #eff6ff !important;
-            color: #2563eb !important;
+            background: var(--k-accent-soft) !important;
+            color: var(--k-accent-text) !important;
             font-weight: 700;
         }
         .sidebar .nav-link.active::before {
@@ -164,7 +165,7 @@
             top: 15%;
             bottom: 15%;
             width: 3.5px;
-            background: #2563eb;
+            background: var(--k-accent);
             border-radius: 0 4px 4px 0;
         }
 
@@ -173,7 +174,7 @@
             margin-left: var(--sidebar-width);
             flex: 1;
             min-height: 100vh;
-            background: #f8fafc;
+            background: var(--k-subtle);
             display: flex;
             flex-direction: column;
             overflow-y: auto;
@@ -181,7 +182,7 @@
 
         /* Header */
         .hub-header {
-            background: #ffffff;
+            background: var(--k-surface);
             border-bottom: 1px solid var(--border-card);
             padding: 1.25rem 2rem;
             display: flex;
@@ -201,7 +202,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            color: #0f172a;
+            color: var(--k-text);
         }
 
         .hub-title-block p {
@@ -227,24 +228,24 @@
             font-weight: 700;
             border-radius: 9px;
             border: 1px solid var(--border-card);
-            background: #ffffff;
+            background: var(--k-surface);
             color: var(--text-main);
             cursor: pointer;
             transition: all 0.2s;
             font-family: inherit;
         }
         .btn-hub:hover {
-            background: #f8fafc;
-            border-color: #cbd5e1;
+            background: var(--k-subtle);
+            border-color: var(--k-border);
             transform: translateY(-1px);
         }
         .btn-hub.btn-primary {
-            background: #2563eb;
-            color: #ffffff;
-            border-color: #2563eb;
+            background: var(--k-accent);
+            color: var(--k-on-accent);
+            border-color: var(--k-accent);
         }
         .btn-hub.btn-primary:hover {
-            background: #1d4ed8;
+            background: var(--k-accent);
         }
 
         /* Action Icon Badges */
@@ -255,7 +256,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: white;
+            background: var(--k-surface);
             border: 1px solid var(--border-card);
             border-radius: 10px;
             color: var(--text-muted);
@@ -271,7 +272,7 @@
             position: absolute;
             top: -3px;
             right: -3px;
-            background: #ef4444;
+            background: var(--k-danger);
             color: white;
             font-size: 0.7rem;
             font-weight: 800;
@@ -293,7 +294,7 @@
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background: #10b981;
+            background: var(--k-success);
             display: inline-block;
             animation: pulseDot 2s infinite ease-in-out;
         }
@@ -307,7 +308,7 @@
         }
 
         .kpi-card {
-            background: #ffffff;
+            background: var(--k-surface);
             border: 1px solid var(--border-card);
             border-radius: 14px;
             padding: 1rem 1.25rem;
@@ -339,14 +340,14 @@
             justify-content: center;
             flex-shrink: 0;
         }
-        .kpi-card.kpi-critical .kpi-icon-wrap { background: #fee2e2; color: var(--danger); }
-        .kpi-card.kpi-due-today .kpi-icon-wrap { background: #fef3c7; color: var(--warning); }
+        .kpi-card.kpi-critical .kpi-icon-wrap { background: var(--k-danger-soft); color: var(--danger); }
+        .kpi-card.kpi-due-today .kpi-icon-wrap { background: var(--k-warning-soft); color: var(--warning); }
         .kpi-card.kpi-upcoming .kpi-icon-wrap { background: #e0f2fe; color: var(--info); }
         .kpi-card.kpi-approvals .kpi-icon-wrap { background: #ede9fe; color: #7c3aed; }
-        .kpi-card.kpi-info .kpi-icon-wrap { background: #dcfce7; color: var(--success); }
+        .kpi-card.kpi-info .kpi-icon-wrap { background: var(--k-success-soft); color: var(--success); }
 
         .kpi-info-block { display: flex; flex-direction: column; }
-        .kpi-val { font-size: 1.5rem; font-weight: 800; line-height: 1.1; color: #0f172a; }
+        .kpi-val { font-size: 1.5rem; font-weight: 800; line-height: 1.1; color: var(--k-text); }
         .kpi-lbl {
             font-size: 0.7rem;
             font-weight: 700;
@@ -374,7 +375,7 @@
 
         .view-mode-tabs {
             display: inline-flex;
-            background: #e2e8f0;
+            background: var(--k-border);
             padding: 4px;
             border-radius: 12px;
             gap: 4px;
@@ -396,7 +397,7 @@
             font-family: inherit;
         }
         .tab-btn.active {
-            background: #ffffff;
+            background: var(--k-surface);
             color: var(--primary);
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
         }
@@ -420,7 +421,7 @@
             border: 1px solid var(--border-card);
             border-radius: 10px;
             font-size: 0.875rem;
-            background: #ffffff;
+            background: var(--k-surface);
             outline: none;
             transition: border-color 0.2s, box-shadow 0.2s;
             box-sizing: border-box;
@@ -450,7 +451,7 @@
         }
         .facet-pill {
             border: 1px solid var(--border-card);
-            background: #ffffff;
+            background: var(--k-surface);
             color: var(--text-main);
             padding: 0.5rem 1rem;
             border-radius: 20px;
@@ -465,13 +466,13 @@
             font-family: inherit;
         }
         .facet-pill:hover {
-            border-color: #cbd5e1;
-            background: #f8fafc;
+            border-color: var(--k-border);
+            background: var(--k-subtle);
         }
         .facet-pill.active {
-            background: #2563eb;
-            color: #ffffff;
-            border-color: #2563eb;
+            background: var(--k-accent);
+            color: var(--k-on-accent);
+            border-color: var(--k-accent);
             box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
         }
         .facet-count {
@@ -495,7 +496,7 @@
 
         /* Actionable Card */
         .action-card {
-            background: #ffffff;
+            background: var(--k-surface);
             border: 1px solid var(--border-card);
             border-radius: 14px;
             padding: 1.25rem 1.5rem;
@@ -536,12 +537,12 @@
             text-transform: uppercase;
             letter-spacing: 0.4px;
         }
-        .badge-category { background: #f1f5f9; color: var(--text-muted); }
-        .badge-critical { background: #fee2e2; color: var(--danger); }
-        .badge-due-today { background: #fef3c7; color: var(--warning); }
+        .badge-category { background: var(--k-subtle); color: var(--text-muted); }
+        .badge-critical { background: var(--k-danger-soft); color: var(--danger); }
+        .badge-due-today { background: var(--k-warning-soft); color: var(--warning); }
         .badge-upcoming { background: #e0f2fe; color: var(--info); }
         .badge-escalated { background: #7f1d1d; color: #fee2e2; }
-        .badge-completed { background: #dcfce7; color: var(--success); }
+        .badge-completed { background: var(--k-success-soft); color: var(--success); }
 
         .item-title {
             font-size: 1rem;
@@ -564,7 +565,7 @@
             display: grid;
             grid-template-columns: repeat(4, 1fr) auto;
             gap: 1rem;
-            background: #f8fafc;
+            background: var(--k-subtle);
             border: 1px solid var(--border-card);
             border-radius: 10px;
             padding: 0.75rem 1rem;
@@ -604,7 +605,7 @@
             justify-content: flex-end;
             gap: 8px;
             padding-top: 0.5rem;
-            border-top: 1px dashed #f1f5f9;
+            border-top: 1px dashed var(--k-border);
         }
         .btn-act {
             display: inline-flex;
@@ -619,18 +620,18 @@
             transition: all 0.15s;
             font-family: inherit;
         }
-        .btn-remind { background: #f8fafc; border-color: #cbd5e1; color: var(--text-muted); }
-        .btn-remind:hover { background: #eff6ff; color: var(--primary); border-color: #93c5fd; }
-        .btn-escalate { background: #fef2f2; border-color: #fecaca; color: var(--danger); }
-        .btn-escalate:hover { background: #fee2e2; }
-        .btn-reject { background: #f8fafc; border-color: #cbd5e1; color: #475569; }
-        .btn-reject:hover { background: #f1f5f9; color: var(--danger); }
-        .btn-approve { background: #059669; color: #ffffff; }
+        .btn-remind { background: var(--k-subtle); border-color: var(--k-border); color: var(--text-muted); }
+        .btn-remind:hover { background: var(--k-accent-soft); color: var(--primary); border-color: var(--k-accent-border); }
+        .btn-escalate { background: var(--k-danger-soft); border-color: var(--k-danger-border); color: var(--danger); }
+        .btn-escalate:hover { background: var(--k-danger-soft); }
+        .btn-reject { background: var(--k-subtle); border-color: var(--k-border); color: var(--k-text-2); }
+        .btn-reject:hover { background: var(--k-subtle); color: var(--danger); }
+        .btn-approve { background: var(--k-success); color: var(--k-on-success); }
         .btn-approve:hover { background: #047857; }
 
         /* Informational Card */
         .info-card {
-            background: #ffffff;
+            background: var(--k-surface);
             border: 1px solid var(--border-card);
             border-radius: 14px;
             padding: 1.25rem 1.5rem;
@@ -668,7 +669,7 @@
             justify-content: center;
         }
         .modal-box {
-            background: #ffffff;
+            background: var(--k-surface);
             border-radius: 18px;
             padding: 2rem;
             width: 90%;
@@ -687,7 +688,7 @@
             align-items: center;
             margin-bottom: 1.25rem;
         }
-        .modal-header h3 { margin: 0; font-size: 1.125rem; font-weight: 800; color: #0f172a; }
+        .modal-header h3 { margin: 0; font-size: 1.125rem; font-weight: 800; color: var(--k-text); }
         .modal-body .form-group {
             margin-bottom: 1rem;
             display: flex;
@@ -697,14 +698,14 @@
         .modal-body label {
             font-size: 0.7rem;
             font-weight: 800;
-            color: #64748b;
+            color: var(--k-muted);
             text-transform: uppercase;
         }
         .modal-body input, .modal-body select, .modal-body textarea {
             width: 100%;
             padding: 9px 12px;
             border-radius: 9px;
-            border: 1px solid #cbd5e1;
+            border: 1px solid var(--k-border);
             font-family: inherit;
             font-size: 0.875rem;
             box-sizing: border-box;
@@ -740,6 +741,10 @@
             .enforced-fields-grid { grid-template-columns: 1fr 1fr; }
         }
     </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="kylrx-theme.css">
 </head>
 
 <body>
@@ -837,11 +842,11 @@
                 <div class="hub-title-block">
                     <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
                         <h1>
-                            <i data-lucide="bell-ring" style="color: #2563eb;"></i>
+                            <i data-lucide="bell-ring" style="color: var(--k-accent-text);"></i>
                             Notification & Action Centre
                         </h1>
-                        <div id="firebase-status-badge" style="display:inline-flex; align-items:center; gap:6px; background:#ecfdf5; border:1px solid #a7f3d0; color:#065f46; padding: 0.25rem 0.75rem; border-radius:9999px; font-size: 0.75rem; font-weight:700;" title="Directly connected to Google Cloud Firebase Firestore">
-                            <span class="live-pulse-dot" style="width:8px; height:8px; border-radius:50%; background:#10b981; box-shadow:0 0 0 2px rgba(16,185,129,0.3); display:inline-block;"></span>
+                        <div id="firebase-status-badge" style="display:inline-flex; align-items:center; gap:6px; background:var(--k-success-soft); border:1px solid var(--k-success-border); color:var(--k-success-text); padding: 0.25rem 0.75rem; border-radius:9999px; font-size: 0.75rem; font-weight:700;" title="Directly connected to Google Cloud Firebase Firestore">
+                            <span class="live-pulse-dot" style="width:8px; height:8px; border-radius:50%; background:var(--k-success); box-shadow:0 0 0 2px rgba(16,185,129,0.3); display:inline-block;"></span>
                             <span>Firebase: Connected • Telemetry Live</span>
                         </div>
                     </div>
@@ -861,12 +866,12 @@
                         <i data-lucide="check-check" style="width:15px; height:15px;"></i>
                         <span>Mark Notices Read</span>
                     </button>
-                    <button class="btn-hub" id="btn-restore" onclick="restoreDefaultFeed()" style="display:inline-flex; color:#2563eb; background:#eff6ff; border-color:#bfdbfe;" title="Restore demo feed">
+                    <button class="btn-hub" id="btn-restore" onclick="restoreDefaultFeed()" style="display:inline-flex; color:var(--k-accent-text); background:var(--k-accent-soft); border-color:var(--k-accent-border);" title="Restore demo feed">
                         <i data-lucide="rotate-ccw" style="width:15px; height:15px;"></i>
                         <span>Restore Feed</span>
                     </button>
 
-                    <div style="width: 1px; height: 26px; background: #e2e8f0; margin: 0 4px;"></div>
+                    <div style="width: 1px; height: 26px; background: var(--k-border); margin: 0 4px;"></div>
 
                     <button class="action-icon" title="Messages" onclick="window.location.href='admin-message.html'">
                         <i data-lucide="message-square" style="width:18px; height:18px;"></i>
@@ -878,13 +883,13 @@
                     </button>
 
                     <!-- Super Admin Badge Pill -->
-                    <div style="display: flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 20px; background: linear-gradient(135deg, #eff6ff, #dbeafe); border: 1.5px solid #93c5fd; color: #1d4ed8; font-weight: 800; font-size: 0.7rem; letter-spacing: 0.5px;">
-                        <i data-lucide="shield-check" style="width: 14px; height: 14px; color: #2563eb;"></i>
+                    <div style="display: flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 20px; background: linear-gradient(135deg, #eff6ff, #dbeafe); border: 1.5px solid var(--k-accent-border); color: var(--k-accent-text); font-weight: 800; font-size: 0.7rem; letter-spacing: 0.5px;">
+                        <i data-lucide="shield-check" style="width: 14px; height: 14px; color: var(--k-accent-text);"></i>
                         <span>SUPER ADMIN</span>
                     </div>
 
                     <!-- Avatar -->
-                    <div style="width: 36px; height: 36px; border-radius: 50%; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.875rem; cursor: pointer;">NB</div>
+                    <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.875rem; cursor: pointer;">NB</div>
                 </div>
             </header>
 
@@ -1026,7 +1031,7 @@
             <div class="modal-body">
                 <div class="form-group">
                     <label>Action Item Title</label>
-                    <input type="text" id="modal-item-title" readonly style="background: #f8fafc;">
+                    <input type="text" id="modal-item-title" readonly style="background: var(--k-subtle);">
                 </div>
                 <div class="form-group">
                     <label>Decision</label>
@@ -1057,7 +1062,7 @@
             <div class="modal-body">
                 <div class="form-group">
                     <label>Action Item Title</label>
-                    <input type="text" id="modal-esc-title" readonly style="background: #f8fafc;">
+                    <input type="text" id="modal-esc-title" readonly style="background: var(--k-subtle);">
                 </div>
                 <div class="form-group">
                     <label>Escalate To (Role / Lead)</label>
@@ -1103,27 +1108,27 @@
                 justify-content: center;
             }
             #customAppsModal .modal {
-                background: #ffffff !important;
-                color: #0f172a !important;
+                background: var(--k-surface) !important;
+                color: var(--k-text) !important;
                 padding: 2rem;
                 border-radius: 24px;
                 width: 90%;
                 max-width: 500px;
                 box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-                border: 1px solid #e2e8f0;
+                border: 1px solid var(--k-border);
                 position: relative;
                 text-align: left;
             }
             #customAppsModal .modal h2 {
                 font-weight: 800;
                 font-size: 1.25rem;
-                color: #0f172a !important;
+                color: var(--k-text) !important;
                 margin-bottom: 4px;
                 margin-top: 0;
             }
             #customAppsModal .modal p {
                 font-size: 0.75rem;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 margin: 0;
             }
             #customAppsModal .modal .form-group {
@@ -1135,7 +1140,7 @@
             #customAppsModal .modal label {
                 font-size: 0.7rem;
                 font-weight: 800;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 text-transform: uppercase;
                 display: block;
                 margin-bottom: 4px;
@@ -1144,9 +1149,9 @@
                 width: 100%;
                 padding: 12px 16px;
                 border-radius: 12px;
-                border: 1px solid #cbd5e1 !important;
-                background: #ffffff !important;
-                color: #0f172a !important;
+                border: 1px solid var(--k-border) !important;
+                background: var(--k-surface) !important;
+                color: var(--k-text) !important;
                 outline: none;
                 margin-top: 4px;
                 font-family: inherit;
@@ -1154,15 +1159,15 @@
                 transition: border-color 0.2s, box-shadow 0.2s;
             }
             #customAppsModal .modal input:focus {
-                border-color: #3b82f6 !important;
+                border-color: var(--k-accent) !important;
                 box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
             }
             #customAppsModal .modal input::placeholder {
-                color: #94a3b8 !important;
+                color: var(--k-muted) !important;
                 opacity: 0.8;
             }
             #customAppsModal .modal button.map-btn {
-                background: #3b82f6;
+                background: var(--k-accent);
                 color: white !important;
                 border: none;
                 border-radius: 12px;
@@ -1176,13 +1181,13 @@
                 margin-top: 0.5rem;
             }
             #customAppsModal .modal button.map-btn:hover {
-                background: #2563eb;
+                background: var(--k-accent);
                 transform: translateY(-1px);
             }
             #customAppsModal .modal h3 {
                 font-size: 0.7rem;
                 font-weight: 800;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 text-transform: uppercase;
                 margin-bottom: 10px;
                 margin-top: 0;
@@ -1194,8 +1199,8 @@
                 width: 36px;
                 height: 36px;
                 border-radius: 10px;
-                background: #f8fafc;
-                color: #64748b !important;
+                background: var(--k-subtle);
+                color: var(--k-muted) !important;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -1204,8 +1209,8 @@
                 border: none;
             }
             #customAppsModal .close-modal:hover {
-                color: #ef4444 !important;
-                background: #fee2e2;
+                color: var(--k-danger-text) !important;
+                background: var(--k-danger-soft);
             }
         </style>
         <div class="modal">
@@ -1229,7 +1234,7 @@
                 <button class="map-btn" onclick="addCustomApp()">Map Tool Link</button>
             </div>
 
-            <div style="border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
+            <div style="border-top: 1px solid var(--k-border); padding-top: 1.25rem;">
                 <h3>Mapped Connections</h3>
                 <div id="registryAppsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;">
                     <!-- Mapped apps inside the registry panel -->

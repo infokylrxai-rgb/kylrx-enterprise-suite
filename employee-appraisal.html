@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="kylrx-theme-init.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Kylrx AI Employee Performance Management System. Track deliverables, log accomplishments, monitor goal completion, and submit self-appraisals.">
@@ -126,7 +127,7 @@
         .sub-header { color: var(--text-muted); font-size: 0.875rem; font-weight: 500; }
 
         .header-right { display: flex; align-items: center; gap: 1rem; }
-        .icon-btn { width: 44px; height: 44px; border-radius: 14px; background: white; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-muted); cursor: pointer; transition: 0.3s; position: relative; }
+        .icon-btn { width: 44px; height: 44px; border-radius: 14px; background: var(--k-surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-muted); cursor: pointer; transition: 0.3s; position: relative; }
         .icon-btn:hover { background: var(--bg); color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
 
         .cycle-badge {
@@ -199,7 +200,7 @@
         }
         .form-group textarea:focus {
             border-color: var(--primary);
-            background: white;
+            background: var(--k-surface);
             box-shadow: 0 0 0 4px rgba(236, 72, 153, 0.12);
         }
 
@@ -212,7 +213,7 @@
             height: 44px;
             border-radius: 12px;
             border: 1px solid var(--border);
-            background: white;
+            background: var(--k-surface);
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -253,7 +254,7 @@
         .btn-action-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
         .btn-action-outline {
-            background: white;
+            background: var(--k-surface);
             border: 1.5px solid var(--border);
             color: var(--text-main);
             padding: 12px 20px;
@@ -280,7 +281,7 @@
         }
         .modal-overlay.active { display: flex; }
         .modal-card {
-            background: white; padding: 2rem; border-radius: 28px;
+            background: var(--k-surface); padding: 2rem; border-radius: 28px;
             width: 90%; max-width: 480px; text-align: center;
             box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
             border: 1px solid var(--border);
@@ -290,7 +291,7 @@
 
         /* Employee Goal Management (PRD §1.1) */
         .emp-goal-filter-tab {
-            background: white;
+            background: var(--k-surface);
             border: 1.5px solid var(--border);
             color: var(--text-muted);
             padding: 8px 16px;
@@ -320,7 +321,7 @@
             box-shadow: 0 12px 24px -6px rgba(236, 72, 153, 0.12) !important;
         }
         .goal-stat-box {
-            background: white;
+            background: var(--k-surface);
             border: 1px solid var(--border);
             border-radius: 16px;
             padding: 16px;
@@ -340,6 +341,10 @@
         }
     </style>
     <link rel="stylesheet" href="sidebar-lock.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="kylrx-theme.css">
 </head>
 <body>
 
@@ -380,7 +385,7 @@
     <div class="modal-overlay" id="completeTaskModal">
         <div class="modal-card" style="text-align: left; max-width: 500px;">
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 1.25rem;">
-                <div style="width: 44px; height: 44px; border-radius: 12px; background: #ecfdf5; color: #10b981; display: flex; align-items: center; justify-content: center;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--k-success-soft); color: var(--k-success-text); display: flex; align-items: center; justify-content: center;">
                     <i data-lucide="check-circle" size="22"></i>
                 </div>
                 <div>
@@ -401,7 +406,7 @@
 
             <div style="display: flex; gap: 10px;">
                 <button type="button" class="btn-action-outline" style="flex: 1;" onclick="closeCompleteTaskModal()">Cancel</button>
-                <button type="button" class="btn-action-primary" style="flex: 2; justify-content: center; background: #10b981;" onclick="submitCompleteTask()">Confirm & Submit</button>
+                <button type="button" class="btn-action-primary" style="flex: 2; justify-content: center; background: var(--k-success);" onclick="submitCompleteTask()">Confirm & Submit</button>
             </div>
         </div>
     </div>
@@ -409,7 +414,7 @@
     <!-- Feedback / Success Modal -->
     <div class="modal-overlay" id="statusModal">
         <div class="modal-card">
-            <div id="statusModalIcon" style="width: 60px; height: 60px; border-radius: 18px; background: #ecfdf5; color: #10b981; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem;">
+            <div id="statusModalIcon" style="width: 60px; height: 60px; border-radius: 18px; background: var(--k-success-soft); color: var(--k-success-text); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem;">
                 <i data-lucide="check-circle" size="30"></i>
             </div>
             <h3 id="statusModalTitle" style="font-size: 1.25rem; font-weight: 800; margin-bottom: 8px;">Success</h3>
@@ -472,7 +477,7 @@
                         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px;">
                             <div>
                                 <label style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted);">Method</label>
-                                <select id="empGoalFormMethod" style="width: 100%; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); background: white; font-size: 0.8rem; margin-top: 4px;">
+                                <select id="empGoalFormMethod" style="width: 100%; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--k-surface); font-size: 0.8rem; margin-top: 4px;">
                                     <option value="quantitative">Quantitative Target</option>
                                     <option value="milestone">Milestones-based</option>
                                     <option value="unit">Unit Reduction / SLA</option>
@@ -481,22 +486,22 @@
                             </div>
                             <div>
                                 <label style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted);">Target Value *</label>
-                                <input type="number" step="any" id="empGoalFormTarget" value="100" required style="width: 100%; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); background: white; font-size: 0.8rem; margin-top: 4px;">
+                                <input type="number" step="any" id="empGoalFormTarget" value="100" required style="width: 100%; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--k-surface); font-size: 0.8rem; margin-top: 4px;">
                             </div>
                             <div>
                                 <label style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted);">Unit (e.g. %, ms, Score) *</label>
-                                <input type="text" id="empGoalFormUnit" value="%" required style="width: 100%; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); background: white; font-size: 0.8rem; margin-top: 4px;">
+                                <input type="text" id="empGoalFormUnit" value="%" required style="width: 100%; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--k-surface); font-size: 0.8rem; margin-top: 4px;">
                             </div>
                         </div>
 
                         <div>
                             <label style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted);">Completion Criteria / Acceptance Standard</label>
-                            <input type="text" id="empGoalFormCriteria" placeholder="e.g. CI pipeline passes with >90% line and branch test coverage." style="width: 100%; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); background: white; font-size: 0.8rem; margin-top: 4px;">
+                            <input type="text" id="empGoalFormCriteria" placeholder="e.g. CI pipeline passes with >90% line and branch test coverage." style="width: 100%; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--k-surface); font-size: 0.8rem; margin-top: 4px;">
                         </div>
                     </div>
 
                     <!-- Milestones Checklist Builder (PRD §1.1 Measure) -->
-                    <div style="background: white; border: 1.5px solid var(--border); border-radius: 14px; padding: 14px;">
+                    <div style="background: var(--k-surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 14px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                             <label style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Key Milestones Checklist</label>
                             <button type="button" onclick="addEmployeeMilestoneInputRow()" style="background: var(--primary-light); color: var(--primary); border: 1px solid var(--primary-mid); border-radius: 8px; padding: 3px 10px; font-size: 0.7rem; font-weight: 700; cursor: pointer;">
@@ -699,7 +704,7 @@
                     </div>
 
                     <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                        <button onclick="window.openEmployeeTemplatePickerModal()" style="background: white; color: var(--text-main); border: 1.5px solid var(--border); padding: 10px 16px; border-radius: 12px; font-weight: 700; font-size: 0.875rem; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                        <button onclick="window.openEmployeeTemplatePickerModal()" style="background: var(--k-surface); color: var(--text-main); border: 1.5px solid var(--border); padding: 10px 16px; border-radius: 12px; font-weight: 700; font-size: 0.875rem; cursor: pointer; display: flex; align-items: center; gap: 8px;">
                             <i data-lucide="layout-template" style="width: 16px; height: 16px; color: var(--primary);"></i>
                             <span>Browse Templates</span>
                         </button>
@@ -716,13 +721,13 @@
                         <div id="statEmpGoalsTotal" style="font-size: 1.5rem; font-weight: 800; color: var(--text-main);">0</div>
                         <div style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-top: 2px;">Total Goals</div>
                     </div>
-                    <div class="goal-stat-box" style="background: #ecfdf5; border-color: #a7f3d0;">
-                        <div id="statEmpGoalsActive" style="font-size: 1.5rem; font-weight: 800; color: #059669;">0</div>
-                        <div style="font-size: 0.7rem; font-weight: 700; color: #059669; text-transform: uppercase; margin-top: 2px;">Active / In Progress</div>
+                    <div class="goal-stat-box" style="background: var(--k-success-soft); border-color: var(--k-success-border);">
+                        <div id="statEmpGoalsActive" style="font-size: 1.5rem; font-weight: 800; color: var(--k-success-text);">0</div>
+                        <div style="font-size: 0.7rem; font-weight: 700; color: var(--k-success-text); text-transform: uppercase; margin-top: 2px;">Active / In Progress</div>
                     </div>
-                    <div class="goal-stat-box" style="background: #fffbeb; border-color: #fde68a;">
-                        <div id="statEmpGoalsPaused" style="font-size: 1.5rem; font-weight: 800; color: #d97706;">0</div>
-                        <div style="font-size: 0.7rem; font-weight: 700; color: #d97706; text-transform: uppercase; margin-top: 2px;">Paused</div>
+                    <div class="goal-stat-box" style="background: var(--k-warning-soft); border-color: var(--k-warning-border);">
+                        <div id="statEmpGoalsPaused" style="font-size: 1.5rem; font-weight: 800; color: var(--k-warning-text);">0</div>
+                        <div style="font-size: 0.7rem; font-weight: 700; color: var(--k-warning-text); text-transform: uppercase; margin-top: 2px;">Paused</div>
                     </div>
                     <div class="goal-stat-box" style="background: var(--primary-light); border-color: var(--primary-mid);">
                         <div id="statEmpGoalsCompleted" style="font-size: 1.5rem; font-weight: 800; color: var(--primary-dark);">0</div>
@@ -745,7 +750,7 @@
                     </div>
 
                     <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                        <select id="empGoalCategoryFilter" style="padding: 8px 14px; border-radius: 12px; border: 1.5px solid var(--border); font-size: 0.8rem; font-weight: 600; outline: none; background: white; color: var(--text-main);">
+                        <select id="empGoalCategoryFilter" style="padding: 8px 14px; border-radius: 12px; border: 1.5px solid var(--border); font-size: 0.8rem; font-weight: 600; outline: none; background: var(--k-surface); color: var(--text-main);">
                             <option value="all">All Categories</option>
                             <option value="Technical Excellence">Technical Excellence</option>
                             <option value="Quality & Reliability">Quality & Reliability</option>
@@ -756,7 +761,7 @@
 
                         <div style="position: relative; min-width: 220px;">
                             <i data-lucide="search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--text-muted);"></i>
-                            <input type="text" id="empGoalSearchInput" placeholder="Search goals or outcomes..." style="width: 100%; padding: 8px 12px 8px 34px; border-radius: 12px; border: 1.5px solid var(--border); font-size: 0.8rem; outline: none; background: white; font-family: inherit;">
+                            <input type="text" id="empGoalSearchInput" placeholder="Search goals or outcomes..." style="width: 100%; padding: 8px 12px 8px 34px; border-radius: 12px; border: 1.5px solid var(--border); font-size: 0.8rem; outline: none; background: var(--k-surface); font-family: inherit;">
                         </div>
                     </div>
                 </div>
@@ -794,9 +799,9 @@
                         <div style="font-size: 1.5rem; font-weight: 800; color: var(--text-main);" id="empStatTotal">0</div>
                         <div style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Total Deliverables</div>
                     </div>
-                    <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 16px; padding: 14px; text-align: center;">
-                        <div style="font-size: 1.5rem; font-weight: 800; color: #10b981;" id="empStatCompleted">0</div>
-                        <div style="font-size: 0.7rem; font-weight: 700; color: #059669; text-transform: uppercase;">Completed</div>
+                    <div style="background: var(--k-success-soft); border: 1px solid var(--k-success-border); border-radius: 16px; padding: 14px; text-align: center;">
+                        <div style="font-size: 1.5rem; font-weight: 800; color: var(--k-success-text);" id="empStatCompleted">0</div>
+                        <div style="font-size: 0.7rem; font-weight: 700; color: var(--k-success-text); text-transform: uppercase;">Completed</div>
                     </div>
                     <div style="background: var(--primary-light); border: 1px solid var(--primary-mid); border-radius: 16px; padding: 14px; text-align: center;">
                         <div style="font-size: 1.5rem; font-weight: 800; color: var(--primary);" id="empStatPct">0%</div>
@@ -1051,17 +1056,17 @@
                     const isAccepted = task.reviewStatus === 'accepted';
                     const isRejected = task.reviewStatus === 'rejected';
 
-                    let statusBadge = `<span style="padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;">Active Queue</span>`;
+                    let statusBadge = `<span style="padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; background: var(--k-subtle); color: var(--k-text-2); border: 1px solid var(--k-border);">Active Queue</span>`;
                     if (isAccepted) {
-                        statusBadge = `<span style="padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0;">Accepted</span>`;
+                        statusBadge = `<span style="padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; background: var(--k-success-soft); color: var(--k-success-text); border: 1px solid var(--k-success-border);">Accepted</span>`;
                     } else if (isRejected) {
-                        statusBadge = `<span style="padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; background: #fee2e2; color: #dc2626; border: 1px solid #fecaca;">Needs Rework</span>`;
+                        statusBadge = `<span style="padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; background: var(--k-danger-soft); color: var(--k-danger-text); border: 1px solid var(--k-danger-border);">Needs Rework</span>`;
                     } else if (isCompleted) {
-                        statusBadge = `<span style="padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; background: #fef3c7; color: #b45309; border: 1px solid #fde68a;">Under Review</span>`;
+                        statusBadge = `<span style="padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; background: var(--k-warning-soft); color: var(--k-warning-text); border: 1px solid var(--k-warning-border);">Under Review</span>`;
                     }
 
                     return `
-                        <div style="background: white; border: 1.5px solid ${isRejected ? '#fca5a5' : isCompleted ? '#bbf7d0' : 'var(--border)'}; border-radius: 16px; padding: 1.25rem; transition: 0.2s;">
+                        <div style="background: var(--k-surface); border: 1.5px solid ${isRejected ? 'var(--k-danger-border)' : isCompleted ? 'var(--k-success-border)' : 'var(--border)'}; border-radius: 16px; padding: 1.25rem; transition: 0.2s;">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
                                 <div style="display: flex; align-items: flex-start; gap: 12px; flex: 1;">
                                     <input type="checkbox" ${isCompleted ? 'checked disabled' : ''} onchange="openCompleteTaskModal('${task.id || task.taskId}', '${task.title.replace(/'/g, "\\'")}')" style="margin-top: 4px; cursor: pointer; width: 20px; height: 20px; accent-color: var(--primary);">
@@ -1076,16 +1081,16 @@
                             </div>
 
                             ${isRejected ? `
-                                <div style="margin-top: 12px; background: #fff1f2; border: 1px solid #fecaca; border-radius: 10px; padding: 10px 14px; font-size: 0.8rem; color: #991b1b;">
+                                <div style="margin-top: 12px; background: #fff1f2; border: 1px solid var(--k-danger-border); border-radius: 10px; padding: 10px 14px; font-size: 0.8rem; color: #991b1b;">
                                     <strong>Reviewer Feedback:</strong> "${task.feedback || 'Revision needed'}"
-                                    <div style="margin-top: 4px; font-weight: 700; color: #b91c1c;">
+                                    <div style="margin-top: 4px; font-weight: 700; color: var(--k-danger-text);">
                                         &rarr; Task moved back to your active queue. Make necessary updates and check the box above to re-submit.
                                     </div>
                                 </div>
                             ` : ''}
 
                             ${task.completionNotes ? `
-                                <div style="margin-top: 10px; font-size: 0.8rem; color: #1e40af; background: #eff6ff; padding: 8px 12px; border-radius: 10px; border: 1px solid #bfdbfe;">
+                                <div style="margin-top: 10px; font-size: 0.8rem; color: var(--k-accent-text); background: var(--k-accent-soft); padding: 8px 12px; border-radius: 10px; border: 1px solid var(--k-accent-border);">
                                     <strong>Work Log:</strong> "${task.completionNotes}"
                                 </div>
                             ` : ''}

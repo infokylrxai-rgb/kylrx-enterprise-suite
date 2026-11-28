@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="kylrx-theme-init.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manager Notifications | HRFlow</title>
@@ -38,7 +39,7 @@
             z-index: 9999;
         }
         .custom-alert-card {
-            background: white;
+            background: var(--k-surface);
             padding: 2rem;
             border-radius: 28px;
             width: 90%;
@@ -81,11 +82,11 @@
         .notif-time { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; }
 
         .icon-btn { 
-            background: #eff6ff; border: 1px solid #dbeafe; width: 44px; height: 44px; 
+            background: var(--k-accent-soft); border: 1px solid var(--k-accent-border); width: 44px; height: 44px; 
             border-radius: 14px; display: flex; align-items: center; justify-content: center; 
-            color: #475569; cursor: pointer; transition: all 0.2s; position: relative;
+            color: var(--k-text-2); cursor: pointer; transition: all 0.2s; position: relative;
         }
-        .icon-btn:hover { background: #dbeafe; transform: scale(1.05); }
+        .icon-btn:hover { background: var(--k-accent-soft); transform: scale(1.05); }
 
         .action-icon {
             width: 42px;
@@ -103,7 +104,7 @@
         }
 
         .action-icon:hover {
-            background: white;
+            background: var(--k-surface);
             color: var(--primary);
             border-color: var(--border);
             transform: translateY(-2px);
@@ -129,31 +130,35 @@
         .config-header h2 { font-weight: 800; font-size: 1.25rem; }
         .config-section { margin-bottom: 2rem; }
         .config-section h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--primary); margin-bottom: 1.25rem; font-weight: 800; }
-        .config-option { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 0.75rem; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border); }
+        .config-option { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 0.75rem; background: var(--k-subtle); border-radius: 12px; border: 1px solid var(--border); }
         .config-option span { font-size: 0.875rem; font-weight: 600; }
 
         /* Switches */
         .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 20px; }
-        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: var(--k-surface); transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: var(--primary); }
         input:checked + .slider:before { transform: translateX(20px); }
 
-        .btn-theme { padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: white; cursor: pointer; font-size: 0.8rem; font-weight: 700; transition: 0.3s; text-align: center; }
-        .btn-theme.active { border-color: var(--primary); background: #eff6ff; color: var(--primary); }
+        .btn-theme { padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--k-surface); cursor: pointer; font-size: 0.8rem; font-weight: 700; transition: 0.3s; text-align: center; }
+        .btn-theme.active { border-color: var(--primary); background: var(--k-accent-soft); color: var(--primary); }
 
         /* Density Modes */
         .tight .notif-item { padding: 1rem; }
         .tight .notif-desc { display: none; }
 
         .sidebar-footer { margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border); }
-        .profile-mini { margin-top: auto; background: var(--primary-light, #eff6ff); padding: 0.75rem 1rem; border-radius: 16px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--border, #e2e8f0); }
-        .avatar { width: 40px; height: 40px; border-radius: 10px; background: var(--primary, #3b82f6); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; flex-shrink: 0; }
+        .profile-mini { margin-top: auto; background: var(--primary-light, var(--k-accent-soft)); padding: 0.75rem 1rem; border-radius: 16px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--border, var(--k-border)); }
+        .avatar { width: 40px; height: 40px; border-radius: 10px; background: var(--primary, var(--k-accent)); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; flex-shrink: 0; }
         .profile-info { flex: 1; min-width: 0; }
-        .profile-name { font-size: 0.875rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main, #0f172a); }
-        .profile-role { font-size: 0.7rem; color: var(--text-muted, #64748b); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .profile-name { font-size: 0.875rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main, var(--k-text)); }
+        .profile-role { font-size: 0.7rem; color: var(--text-muted, var(--k-muted)); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="kylrx-theme.css">
 </head>
 <body>
     
@@ -163,7 +168,7 @@
             <!-- Brand Header matching Admin Console -->
             <a href="manager-dashboard.html" class="logo" id="brandLogoLink">
                 <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
-                <span class="logo-text">Kylrx <span style="color: var(--primary, #2563eb);">AI</span></span>
+                <span class="logo-text">Kylrx <span style="color: var(--primary, var(--k-accent-text));">AI</span></span>
             </a>
 
             <!-- Top Department Card (Zero-Collision Flex Layout) -->
@@ -200,7 +205,7 @@
 
                 <div class="nav-label" style="display: flex; justify-content: space-between; align-items: center;">
                     <span>CUSTOM APPS</span>
-                    <button onclick="if(typeof openAppRegistryModal !== 'undefined') { openAppRegistryModal(); } else { window.location.href=new URLSearchParams(window.location.search).get('id') ? `manager-dashboard.html?id=${new URLSearchParams(window.location.search).get('id')}` : 'manager-dashboard.html'; }" style="background: none; border: none; color: var(--primary, #2563eb); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
+                    <button onclick="if(typeof openAppRegistryModal !== 'undefined') { openAppRegistryModal(); } else { window.location.href=new URLSearchParams(window.location.search).get('id') ? `manager-dashboard.html?id=${new URLSearchParams(window.location.search).get('id')}` : 'manager-dashboard.html'; }" style="background: none; border: none; color: var(--primary, var(--k-accent-text)); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
                         <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
                     </button>
                 </div>
@@ -226,9 +231,9 @@
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="#" class="nav-link" id="logoutBtn" onclick="logout()" style="color: var(--danger, #ef4444) !important;">
-                        <i data-lucide="log-out" style="color: var(--danger, #ef4444) !important;"></i>
-                        <span style="color: var(--danger, #ef4444) !important;">Logout</span>
+                    <a href="#" class="nav-link" id="logoutBtn" onclick="logout()" style="color: var(--danger, var(--k-danger-text)) !important;">
+                        <i data-lucide="log-out" style="color: var(--danger, var(--k-danger-text)) !important;"></i>
+                        <span style="color: var(--danger, var(--k-danger-text)) !important;">Logout</span>
                     </a>
                 </div>
                 <div class="profile-mini" style="margin-top: 6px;">
@@ -246,7 +251,7 @@
                     <h1 style="font-size: 2.25rem; font-weight: 800; letter-spacing: -1px;">Manager Notifications</h1>
                     <p style="color: var(--text-muted); font-weight: 500;">Manage and view all system alerts for this unit</p>
                 </div>
-                <div style="display: flex; align-items: center; gap: 0.75rem; background: white; padding: 6px; border-radius: 14px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                <div style="display: flex; align-items: center; gap: 0.75rem; background: var(--k-surface); padding: 6px; border-radius: 14px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
                     <button class="action-icon" title="Messages" onclick="window.location.href='manager-message.html?id=' + new URLSearchParams(window.location.search).get('id')">
                         <i data-lucide="message-square"></i>
                         <span class="action-icon-badge" id="headerMsgBadge"></span>
@@ -257,7 +262,7 @@
                         <span class="action-icon-badge" id="headerNotifBadge"></span>
                     </button>
                     <div style="width: 1px; height: 24px; background: var(--border);"></div>
-                    <button class="action-icon" title="Clear All Notifications" onclick="clearAllNotifications()" style="color: #ef4444;">
+                    <button class="action-icon" title="Clear All Notifications" onclick="clearAllNotifications()" style="color: var(--k-danger-text);">
                         <i data-lucide="trash-2"></i>
                     </button>
                 </div>
@@ -275,7 +280,7 @@
                     </div>
                 </div>
                 <div class="notif-item">
-                    <div class="notif-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;"><i data-lucide="user-plus"></i></div>
+                    <div class="notif-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--k-success-text);"><i data-lucide="user-plus"></i></div>
                     <div class="notif-content">
                         <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                                 <div class="notif-title">New Manager Registered</div>
@@ -286,7 +291,7 @@
                     </div>
                 </div>
                 <div class="notif-item">
-                    <div class="notif-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;"><i data-lucide="alert-triangle"></i></div>
+                    <div class="notif-icon" style="background: rgba(239, 68, 68, 0.1); color: var(--k-danger-text);"><i data-lucide="alert-triangle"></i></div>
                     <div class="notif-content">
                         <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                                 <div class="notif-title">Critical: System Lock Active</div>
@@ -379,7 +384,7 @@
         function showManagerError(message) {
             console.warn('[Manager notifications] Could not load:', message);
             const box = document.querySelector('.card');
-            if (box) box.innerHTML = `<div style="text-align:center; padding: 2rem 2rem; color:#991b1b;"><strong>Could not load notifications</strong><p style="font-size: 0.875rem; margin-top:6px;">${esc(message)}</p></div>`;
+            if (box) box.innerHTML = `<div style="text-align:center; padding: 2rem 2rem; color:var(--k-danger-text);"><strong>Could not load notifications</strong><p style="font-size: 0.875rem; margin-top:6px;">${esc(message)}</p></div>`;
             showManagerToast('Could not load notifications: ' + message, true);
         }
 
@@ -578,12 +583,12 @@
                 const actionButtons = isHelpRequest && helpStatus === 'pending' ? `
                     <div style="display:flex; gap:8px; margin-top:10px;">
                         <button onclick="handleHelpRequest('${esc(docId)}','allow')"
-                            style="flex:1; background:#dcfce7; color:#166534; border:1px solid #bbf7d0; border-radius:8px; padding:7px 12px; font-size: 0.75rem; font-weight:700; cursor:pointer; transition:0.2s;"
+                            style="flex:1; background:var(--k-success-soft); color:var(--k-success-text); border:1px solid var(--k-success-border); border-radius:8px; padding:7px 12px; font-size: 0.75rem; font-weight:700; cursor:pointer; transition:0.2s;"
                             onmouseover="this.style.background='#bbf7d0'" onmouseout="this.style.background='#dcfce7'">
                             ✅ Allow Access
                         </button>
                         <button onclick="handleHelpRequest('${esc(docId)}','decline')"
-                            style="flex:1; background:#fee2e2; color:#991b1b; border:1px solid #fecaca; border-radius:8px; padding:7px 12px; font-size: 0.75rem; font-weight:700; cursor:pointer; transition:0.2s;"
+                            style="flex:1; background:var(--k-danger-soft); color:var(--k-danger-text); border:1px solid var(--k-danger-border); border-radius:8px; padding:7px 12px; font-size: 0.75rem; font-weight:700; cursor:pointer; transition:0.2s;"
                             onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'">
                             ❌ Decline
                         </button>
@@ -594,7 +599,7 @@
                         <div class="notif-icon" style="background: ${bg}; color: ${color};"><i data-lucide="${icon}"></i></div>
                         <div class="notif-content">
                             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                                <div class="notif-title">${unread ? '<span title="Unread" style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#2563eb; margin-right:6px;"></span>' : ''}${esc(data.title || (priority.toUpperCase() + ' ALERT'))}</div>
+                                <div class="notif-title">${unread ? '<span title="Unread" style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--k-accent); margin-right:6px;"></span>' : ''}${esc(data.title || (priority.toUpperCase() + ' ALERT'))}</div>
                                 <span style="display:flex; gap:4px;">
                                 <button onclick="managerToggleRead('${esc(docId)}', ${unread})" title="${unread ? 'Mark as read' : (legacyLocked ? 'Read (older notification, cannot be marked unread)' : 'Mark as unread')}" ${legacyLocked ? 'disabled' : ''} style="background:none; border:none; color:var(--text-muted); cursor:pointer; padding:4px;"><i data-lucide="${unread ? 'check' : 'rotate-ccw'}" size="16"></i></button>
                                 <button onclick="deleteNotification('${esc(docId)}')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; padding:4px; transition:color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'"><i data-lucide="x" style="width:16px; height:16px;"></i></button>
@@ -703,7 +708,7 @@
                 const ensureNotifModals = () => {
             if (document.getElementById('customDelNotifModal')) return;
             const modalStyle = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center; z-index:9999; backdrop-filter:blur(2px);';
-            const contentStyle = 'background:white; padding:24px; border-radius:12px; width: 100%; max-width: min(400px, 90%); box-shadow:0 10px 25px rgba(0,0,0,0.1); font-family:inherit; text-align:left;';
+            const contentStyle = 'background:var(--k-surface); color:var(--k-text); padding:24px; border-radius:12px; width: 100%; max-width: min(400px, 90%); box-shadow:0 10px 25px rgba(0,0,0,0.1); font-family:inherit; text-align:left;';
             const btnStyle = 'padding:8px 16px; border-radius:6px; cursor:pointer; font-weight:500; font-family:inherit;';
             
             const delModal = document.createElement('div');
@@ -711,11 +716,11 @@
             delModal.style.cssText = modalStyle;
             delModal.innerHTML = `
                 <div style="${contentStyle}">
-                    <h3 style="margin-top:0; margin-bottom:8px; color:#ef4444; font-size: 1.125rem; font-weight:700;">Clear Notification</h3>
-                    <p style="color:#475569; margin-bottom:20px; font-size: 0.875rem;">Are you sure you want to permanently clear this notification?</p>
+                    <h3 style="margin-top:0; margin-bottom:8px; color:var(--k-danger-text); font-size: 1.125rem; font-weight:700;">Clear Notification</h3>
+                    <p style="color:var(--k-text-2); margin-bottom:20px; font-size: 0.875rem;">Are you sure you want to permanently clear this notification?</p>
                     <div style="display:flex; justify-content:flex-end; gap:12px;">
-                        <button id="customDelNotifCancel" style="${btnStyle} border:1px solid #cbd5e1; background:white; color:#475569;">Cancel</button>
-                        <button id="customDelNotifConfirm" style="${btnStyle} border:none; background:#ef4444; color:white;">Clear</button>
+                        <button id="customDelNotifCancel" style="${btnStyle} border:1px solid #cbd5e1; background:var(--k-surface); color:var(--k-text-2);">Cancel</button>
+                        <button id="customDelNotifConfirm" style="${btnStyle} border:none; background:var(--k-danger); color:white;">Clear</button>
                     </div>
                 </div>
             `;
@@ -725,11 +730,11 @@
             clearAllModal.style.cssText = modalStyle;
             clearAllModal.innerHTML = `
                 <div style="${contentStyle}">
-                    <h3 style="margin-top:0; margin-bottom:8px; color:#ef4444; font-size: 1.125rem; font-weight:700;">Clear All Notifications</h3>
-                    <p style="color:#475569; margin-bottom:20px; font-size: 0.875rem;">Are you sure you want to permanently clear all notifications? This action cannot be undone.</p>
+                    <h3 style="margin-top:0; margin-bottom:8px; color:var(--k-danger-text); font-size: 1.125rem; font-weight:700;">Clear All Notifications</h3>
+                    <p style="color:var(--k-text-2); margin-bottom:20px; font-size: 0.875rem;">Are you sure you want to permanently clear all notifications? This action cannot be undone.</p>
                     <div style="display:flex; justify-content:flex-end; gap:12px;">
-                        <button id="customClearAllNotifCancel" style="${btnStyle} border:1px solid #cbd5e1; background:white; color:#475569;">Cancel</button>
-                        <button id="customClearAllNotifConfirm" style="${btnStyle} border:none; background:#ef4444; color:white;">Clear All</button>
+                        <button id="customClearAllNotifCancel" style="${btnStyle} border:1px solid #cbd5e1; background:var(--k-surface); color:var(--k-text-2);">Cancel</button>
+                        <button id="customClearAllNotifConfirm" style="${btnStyle} border:none; background:var(--k-danger); color:white;">Clear All</button>
                     </div>
                 </div>
             `;

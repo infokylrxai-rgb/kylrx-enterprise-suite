@@ -24,6 +24,9 @@ const serviceModule = { exports: {} };
 const serviceFn = new Function('module', 'exports', 'require', serviceContent);
 serviceFn(serviceModule, serviceModule.exports, () => ({}));
 const gratuityService = serviceModule.exports;
+// The service no longer seeds its sample employees on load (they answered real
+// lookups as if they were records), so these tests load them as fixtures.
+gratuityService.seedDefaultRecords();
 
 // Load gratuityProfileUIController (UMD module)
 const uiPath = path.join(rootDir, 'gratuityProfileUIController.js');

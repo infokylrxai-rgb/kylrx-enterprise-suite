@@ -20,7 +20,7 @@ export async function loadIdentity() {
     let role = (await user.getIdTokenResult()).claims.role;
     if (!role) {
         // Accounts created before role claims existed: the server-written profile has the role
-        try { role = (await getDoc(doc(db, 'users', user.uid))).data()?.role; } catch (_) {}
+        try { role = (await getDoc(doc(db, 'users', user.uid))).data()?.role; } catch (err) { console.error('[notification-actions] role = (await getDoc(doc(db, users, user.uid)) failed:', err); }
     }
     return { uid: user.uid, orgId, role: role || 'employee' };
 }

@@ -93,9 +93,9 @@ class UpcomingBirthdaysController {
                 container.innerHTML = `
                     <div class="birthday-panel">
                         <div class="birthday-empty-state">
-                            <i data-lucide="alert-circle" style="width:36px;height:36px;color:#ef4444;margin-bottom:8px;"></i>
+                            <i data-lucide="alert-circle" style="width:36px;height:36px;color:var(--k-danger-text);margin-bottom:8px;"></i>
                             <h3>Unable to load birthdays</h3>
-                            <p style="color:#ef4444;font-size:0.8rem;">Database connection error: ${err.message}</p>
+                            <p style="color:var(--k-danger-text);font-size:0.8rem;">Database connection error: ${err.message}</p>
                         </div>
                     </div>
                 `;
@@ -630,7 +630,7 @@ class UpcomingBirthdaysController {
                         <div class="birthday-title-text">
                             <h2>
                                 <span>Upcoming Birthdays</span>
-                                <span style="font-size:0.75rem; background:#f1f5f9; color:#475569; padding:2px 8px; border-radius:6px; font-weight:700;">
+                                <span style="font-size:0.75rem; background:var(--k-subtle); color:var(--k-text-2); padding:2px 8px; border-radius:6px; font-weight:700;">
                                     ${this.config.role === 'hr' ? 'All Personnel' : 'Team Scope'}
                                 </span>
                             </h2>
@@ -698,7 +698,7 @@ class UpcomingBirthdaysController {
                         <div class="bday-modal-body">
                             <div id="wishRecipientInfo"></div>
 
-                            <label style="font-size:0.75rem; font-weight:800; color:#475569; text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:6px;">
+                            <label style="font-size:0.75rem; font-weight:800; color:var(--k-text-2); text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:6px;">
                                 Quick Greetings:
                             </label>
                             <div class="bday-quick-picks">
@@ -713,18 +713,18 @@ class UpcomingBirthdaysController {
                                 </button>
                             </div>
 
-                            <label style="font-size:0.75rem; font-weight:800; color:#475569; text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:6px;">
+                            <label style="font-size:0.75rem; font-weight:800; color:var(--k-text-2); text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:6px;">
                                 Custom Message:
                             </label>
                             <textarea class="bday-wish-textarea" id="bdayWishCustomText" placeholder="Write your personalized birthday greeting..."></textarea>
 
-                            <div style="margin-top:1rem; display:flex; align-items:center; gap:8px; font-size:0.8rem; color:#475569;">
+                            <div style="margin-top:1rem; display:flex; align-items:center; gap:8px; font-size:0.8rem; color:var(--k-text-2);">
                                 <input type="checkbox" id="bdayNotifyBell" checked style="accent-color:#6366f1;">
                                 <label for="bdayNotifyBell">Post to Direct Messaging & send system notification</label>
                             </div>
 
                             <div class="bday-modal-footer">
-                                <button type="button" class="btn-today-jump" style="background:#f1f5f9; color:#475569; border-color:#e2e8f0;" onclick="document.getElementById('birthdayWishModal').style.display='none'">
+                                <button type="button" class="btn-today-jump" style="background:var(--k-subtle); color:var(--k-text-2); border-color:var(--k-border);" onclick="document.getElementById('birthdayWishModal').style.display='none'">
                                     Cancel
                                 </button>
                                 <button type="button" class="btn-wish-action" style="width:auto; padding:10px 20px;" id="btnSubmitBirthdayWish" onclick="window.UpcomingBirthdaysInstance.submitBirthdayWish()">
@@ -745,20 +745,20 @@ class UpcomingBirthdaysController {
                     <div class="bday-modal-card" style="max-width: 680px; max-height: 85vh; display:flex; flex-direction:column;">
                         <div class="bday-modal-header" style="background: linear-gradient(135deg, #f0fdf4 0%, #eff6ff 100%);">
                             <div class="bday-modal-title">
-                                <i data-lucide="calendar-heart" style="width:24px;height:24px;color:#2563eb;"></i>
+                                <i data-lucide="calendar-heart" style="width:24px;height:24px;color:var(--k-accent-text);"></i>
                                 <div>
-                                    <h3 style="color:#1e3a8a;">Annual Birthday Directory</h3>
-                                    <p style="font-size:0.75rem; color:#475569; margin:0;">Complete chronological workforce birthday calendar</p>
+                                    <h3 style="color:var(--k-accent-text);">Annual Birthday Directory</h3>
+                                    <p style="font-size:0.75rem; color:var(--k-text-2); margin:0;">Complete chronological workforce birthday calendar</p>
                                 </div>
                             </div>
                             <button class="month-step-btn" onclick="document.getElementById('allBirthdaysModal').style.display='none'">
                                 <i data-lucide="x" style="width:18px;height:18px;"></i>
                             </button>
                         </div>
-                        <div style="padding:1rem 1.5rem; border-bottom:1px solid #e2e8f0; background:#f8fafc; display:flex; gap:10px; align-items:center;">
-                            <i data-lucide="search" style="width:16px;height:16px;color:#94a3b8;"></i>
+                        <div style="padding:1rem 1.5rem; border-bottom:1px solid var(--k-border); background:var(--k-subtle); display:flex; gap:10px; align-items:center;">
+                            <i data-lucide="search" style="width:16px;height:16px;color:var(--k-muted);"></i>
                             <input type="text" id="allBdaySearchInput" placeholder="Filter personnel or department..." oninput="window.UpcomingBirthdaysInstance.filterAllDirectory(this.value)" style="flex:1; border:none; background:transparent; font-size:0.85rem; font-family:inherit; outline:none;">
-                            <span style="font-size:0.75rem; color:#64748b; font-weight:700;" id="allBdayCountBadge"></span>
+                            <span style="font-size:0.75rem; color:var(--k-muted); font-weight:700;" id="allBdayCountBadge"></span>
                         </div>
                         <div class="bday-modal-body" style="overflow-y:auto; flex:1; padding:1.25rem;" id="allBirthdaysListContainer">
                             <!-- Populated dynamically -->
@@ -790,8 +790,8 @@ class UpcomingBirthdaysController {
                 <div class="bday-recipient-card">
                     ${this.renderAvatar(emp)}
                     <div>
-                        <div style="font-size:0.95rem; font-weight:800; color:#0f172a;">${name}</div>
-                        <div style="font-size:0.75rem; color:#64748b;">${role} • ${dept}</div>
+                        <div style="font-size:0.95rem; font-weight:800; color:var(--k-text);">${name}</div>
+                        <div style="font-size:0.75rem; color:var(--k-muted);">${role} • ${dept}</div>
                     </div>
                 </div>
             `;
@@ -1011,7 +1011,7 @@ class UpcomingBirthdaysController {
 
         if (allWithDob.length === 0) {
             container.innerHTML = `
-                <div style="padding:2.5rem; text-align:center; color:#94a3b8; font-size:0.85rem;">
+                <div style="padding:2.5rem; text-align:center; color:var(--k-muted); font-size:0.85rem;">
                     No matching birthdays found.
                 </div>
             `;
@@ -1025,7 +1025,7 @@ class UpcomingBirthdaysController {
             if (parsed.birthMonth !== currentMonth) {
                 currentMonth = parsed.birthMonth;
                 html += `
-                    <div style="position:sticky; top:0; background:#f8fafc; padding:6px 12px; border-radius:8px; font-weight:800; font-size:0.85rem; color:#4338ca; border:1px solid #e0e7ff; margin-top:6px;">
+                    <div style="position:sticky; top:0; background:var(--k-subtle); padding:6px 12px; border-radius:8px; font-weight:800; font-size:0.85rem; color:#4338ca; border:1px solid #e0e7ff; margin-top:6px;">
                         ${MONTH_NAMES[currentMonth]}
                     </div>
                 `;
@@ -1036,17 +1036,17 @@ class UpcomingBirthdaysController {
             const dept = emp.departmentName || emp.department || 'General';
 
             html += `
-                <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:#ffffff; border:1px solid #f1f5f9; border-radius:12px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:var(--k-surface); border:1px solid var(--k-border); border-radius:12px;">
                     <div style="display:flex; align-items:center; gap:12px;">
                         ${this.renderAvatar(emp)}
                         <div>
-                            <div style="font-weight:700; font-size:0.88rem; color:#0f172a;">${name}</div>
-                            <div style="font-size:0.74rem; color:#64748b;">${role} • ${dept}</div>
+                            <div style="font-weight:700; font-size:0.88rem; color:var(--k-text);">${name}</div>
+                            <div style="font-size:0.74rem; color:var(--k-muted);">${role} • ${dept}</div>
                         </div>
                     </div>
                     <div style="text-align:right;">
                         <div style="font-weight:800; font-size:0.82rem; color:#db2777;">${countdown.formattedDate}</div>
-                        <div style="font-size:0.72rem; color:#64748b; font-weight:600;">${countdown.countdownText}</div>
+                        <div style="font-size:0.72rem; color:var(--k-muted); font-weight:600;">${countdown.countdownText}</div>
                     </div>
                 </div>
             `;

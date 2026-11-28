@@ -287,6 +287,8 @@ describe('Global Route Authentication & RBAC Enforcement Suite', () => {
     });
 
     it('enforces that employee-facing reads are restricted to req.user.id', async () => {
+        // Fixture: the payroll email service no longer starts with its sample employees.
+        require('../services/payroll-email-account-service.js')._seedSampleEmployees();
         const callerId = 'EMP-1001';
         const employeeToken = jwt.sign(
             { id: callerId, email: 'caller@example.com', role: 'Employee' },

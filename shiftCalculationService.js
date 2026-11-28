@@ -730,81 +730,81 @@
                 z-index: 99999; animation: fadeIn 0.2s ease;
             `;
             modal.innerHTML = `
-                <div style="background: white; border-radius: 24px; padding: 2rem; width: 92%; max-width: 620px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); border: 1px solid #e2e8f0; max-height: 90vh; overflow-y: auto;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                <div style="background: var(--k-surface); border-radius: 24px; padding: 2rem; width: 92%; max-width: 620px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); border: 1px solid var(--k-border); max-height: 90vh; overflow-y: auto;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--k-border); padding-bottom: 1rem; margin-bottom: 1.5rem;">
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="width: 36px; height: 36px; border-radius: 10px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                            <div style="width: 36px; height: 36px; border-radius: 10px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center;">
                                 <i data-lucide="clock" style="width: 20px; height: 20px;"></i>
                             </div>
-                            <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0;" id="shiftModalTitle">New Shift Policy</h2>
+                            <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--k-text); margin: 0;" id="shiftModalTitle">New Shift Policy</h2>
                         </div>
-                        <button type="button" id="btnCloseShiftModal" style="background: none; border: none; font-size: 1.5rem; color: #64748b; cursor: pointer; padding: 4px;">&times;</button>
+                        <button type="button" id="btnCloseShiftModal" style="background: none; border: none; font-size: 1.5rem; color: var(--k-muted); cursor: pointer; padding: 4px;">&times;</button>
                     </div>
 
                     <form id="shiftForm">
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
                             <div>
-                                <label style="font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase;">1. Shift Code * (Primary Key)</label>
-                                <input type="text" id="inputShiftCode" placeholder="e.g. SH_GEN_01" style="width: 100%; padding: 10px 14px; border-radius: 12px; border: 1.5px solid #cbd5e1; font-family: inherit; font-size: 0.9rem; margin-top: 6px; box-sizing: border-box;" required>
+                                <label style="font-size: 0.75rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">1. Shift Code * (Primary Key)</label>
+                                <input type="text" id="inputShiftCode" placeholder="e.g. SH_GEN_01" style="width: 100%; padding: 10px 14px; border-radius: 12px; border: 1.5px solid var(--k-border); font-family: inherit; font-size: 0.9rem; margin-top: 6px; box-sizing: border-box;" required>
                             </div>
                             <div>
-                                <label style="font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase;">2. Shift Name * (Display Title)</label>
-                                <input type="text" id="inputShiftName" placeholder="e.g. General Corporate Shift" style="width: 100%; padding: 10px 14px; border-radius: 12px; border: 1.5px solid #cbd5e1; font-family: inherit; font-size: 0.9rem; margin-top: 6px; box-sizing: border-box;" required>
+                                <label style="font-size: 0.75rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">2. Shift Name * (Display Title)</label>
+                                <input type="text" id="inputShiftName" placeholder="e.g. General Corporate Shift" style="width: 100%; padding: 10px 14px; border-radius: 12px; border: 1.5px solid var(--k-border); font-family: inherit; font-size: 0.9rem; margin-top: 6px; box-sizing: border-box;" required>
                             </div>
                         </div>
 
                         <!-- Time Pickers -->
                         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
                             <div>
-                                <label style="font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase;">3. Start Time * (HH:mm)</label>
-                                <input type="time" id="inputShiftStartTime" value="09:30" style="width: 100%; padding: 10px 14px; border-radius: 12px; border: 1.5px solid #cbd5e1; font-family: inherit; font-size: 0.9rem; margin-top: 6px; box-sizing: border-box;" required>
+                                <label style="font-size: 0.75rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">3. Start Time * (HH:mm)</label>
+                                <input type="time" id="inputShiftStartTime" value="09:30" style="width: 100%; padding: 10px 14px; border-radius: 12px; border: 1.5px solid var(--k-border); font-family: inherit; font-size: 0.9rem; margin-top: 6px; box-sizing: border-box;" required>
                             </div>
                             <div>
-                                <label style="font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase;">4. End Time * (HH:mm)</label>
-                                <input type="time" id="inputShiftEndTime" value="18:30" style="width: 100%; padding: 10px 14px; border-radius: 12px; border: 1.5px solid #cbd5e1; font-family: inherit; font-size: 0.9rem; margin-top: 6px; box-sizing: border-box;" required>
+                                <label style="font-size: 0.75rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">4. End Time * (HH:mm)</label>
+                                <input type="time" id="inputShiftEndTime" value="18:30" style="width: 100%; padding: 10px 14px; border-radius: 12px; border: 1.5px solid var(--k-border); font-family: inherit; font-size: 0.9rem; margin-top: 6px; box-sizing: border-box;" required>
                             </div>
                             <div>
-                                <label style="font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase;">5. Break Minutes *</label>
-                                <input type="number" id="inputShiftBreakMinutes" value="60" min="0" max="240" style="width: 100%; padding: 10px 14px; border-radius: 12px; border: 1.5px solid #cbd5e1; font-family: inherit; font-size: 0.9rem; margin-top: 6px; box-sizing: border-box;" required>
+                                <label style="font-size: 0.75rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">5. Break Minutes *</label>
+                                <input type="number" id="inputShiftBreakMinutes" value="60" min="0" max="240" style="width: 100%; padding: 10px 14px; border-radius: 12px; border: 1.5px solid var(--k-border); font-family: inherit; font-size: 0.9rem; margin-top: 6px; box-sizing: border-box;" required>
                             </div>
                         </div>
 
                         <!-- Grace Tolerances & Thresholds -->
                         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 0.75rem; margin-bottom: 1.25rem;">
                             <div>
-                                <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">6. Grace In (Mins)</label>
-                                <input type="number" id="inputGraceInMinutes" value="15" min="0" max="60" style="width: 100%; padding: 8px 12px; border-radius: 10px; border: 1.5px solid #cbd5e1; font-family: inherit; font-size: 0.85rem; margin-top: 4px; box-sizing: border-box;" required>
+                                <label style="font-size: 0.72rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">6. Grace In (Mins)</label>
+                                <input type="number" id="inputGraceInMinutes" value="15" min="0" max="60" style="width: 100%; padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--k-border); font-family: inherit; font-size: 0.85rem; margin-top: 4px; box-sizing: border-box;" required>
                             </div>
                             <div>
-                                <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">7. Grace Out (Mins)</label>
-                                <input type="number" id="inputGraceOutMinutes" value="15" min="0" max="60" style="width: 100%; padding: 8px 12px; border-radius: 10px; border: 1.5px solid #cbd5e1; font-family: inherit; font-size: 0.85rem; margin-top: 4px; box-sizing: border-box;" required>
+                                <label style="font-size: 0.72rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">7. Grace Out (Mins)</label>
+                                <input type="number" id="inputGraceOutMinutes" value="15" min="0" max="60" style="width: 100%; padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--k-border); font-family: inherit; font-size: 0.85rem; margin-top: 4px; box-sizing: border-box;" required>
                             </div>
                             <div>
-                                <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">8. Half Day (Mins)</label>
-                                <input type="number" id="inputHalfDayMinutes" value="240" min="60" max="480" style="width: 100%; padding: 8px 12px; border-radius: 10px; border: 1.5px solid #cbd5e1; font-family: inherit; font-size: 0.85rem; margin-top: 4px; box-sizing: border-box;" required>
+                                <label style="font-size: 0.72rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">8. Half Day (Mins)</label>
+                                <input type="number" id="inputHalfDayMinutes" value="240" min="60" max="480" style="width: 100%; padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--k-border); font-family: inherit; font-size: 0.85rem; margin-top: 4px; box-sizing: border-box;" required>
                             </div>
                             <div>
-                                <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">9. Full Day (Mins)</label>
-                                <input type="number" id="inputFullDayMinutes" value="480" min="120" max="720" style="width: 100%; padding: 8px 12px; border-radius: 10px; border: 1.5px solid #cbd5e1; font-family: inherit; font-size: 0.85rem; margin-top: 4px; box-sizing: border-box;" required>
+                                <label style="font-size: 0.72rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">9. Full Day (Mins)</label>
+                                <input type="number" id="inputFullDayMinutes" value="480" min="120" max="720" style="width: 100%; padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--k-border); font-family: inherit; font-size: 0.85rem; margin-top: 4px; box-sizing: border-box;" required>
                             </div>
                         </div>
 
                         <!-- Flags: Night Shift & Overtime Eligible -->
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
-                            <label style="display: flex; align-items: center; gap: 8px; background: #f8fafc; padding: 10px 14px; border-radius: 12px; border: 1px solid #e2e8f0; cursor: pointer; font-size: 0.85rem; font-weight: 700; color: #0f172a;">
+                            <label style="display: flex; align-items: center; gap: 8px; background: var(--k-subtle); padding: 10px 14px; border-radius: 12px; border: 1px solid var(--k-border); cursor: pointer; font-size: 0.85rem; font-weight: 700; color: var(--k-text);">
                                 <input type="checkbox" id="checkNightShift" style="width: 18px; height: 18px; accent-color: #2563eb; cursor: pointer;">
                                 10. Night Shift (Cross-Midnight)
                             </label>
-                            <label style="display: flex; align-items: center; gap: 8px; background: #f8fafc; padding: 10px 14px; border-radius: 12px; border: 1px solid #e2e8f0; cursor: pointer; font-size: 0.85rem; font-weight: 700; color: #0f172a;">
+                            <label style="display: flex; align-items: center; gap: 8px; background: var(--k-subtle); padding: 10px 14px; border-radius: 12px; border: 1px solid var(--k-border); cursor: pointer; font-size: 0.85rem; font-weight: 700; color: var(--k-text);">
                                 <input type="checkbox" id="checkOvertimeEligible" style="width: 18px; height: 18px; accent-color: #2563eb; cursor: pointer;" checked>
                                 11. Overtime Eligible
                             </label>
                         </div>
 
                         <!-- Weekly Off Pattern Multi-Select Checkboxes -->
-                        <div style="margin-bottom: 1.25rem; background: #f8fafc; padding: 12px 14px; border-radius: 12px; border: 1px solid #e2e8f0;">
-                            <label style="font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 8px;">12. Weekly Off Pattern (Structured Checkboxes)</label>
-                            <div style="display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.82rem; font-weight: 600; color: #334155;">
+                        <div style="margin-bottom: 1.25rem; background: var(--k-subtle); padding: 12px 14px; border-radius: 12px; border: 1px solid var(--k-border);">
+                            <label style="font-size: 0.75rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase; display: block; margin-bottom: 8px;">12. Weekly Off Pattern (Structured Checkboxes)</label>
+                            <div style="display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.82rem; font-weight: 600; color: var(--k-text-2);">
                                 <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;"><input type="checkbox" name="woDays" value="Sun" checked> Sunday</label>
                                 <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;"><input type="checkbox" name="woDays" value="Sat"> Saturday (All)</label>
                                 <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;"><input type="checkbox" name="woDays" value="2nd_4th_Sat"> 2nd & 4th Sat</label>
@@ -814,17 +814,17 @@
                         </div>
 
                         <!-- Operational Status -->
-                        <div style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px; background: #f8fafc; padding: 12px 16px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                        <div style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px; background: var(--k-subtle); padding: 12px 16px; border-radius: 12px; border: 1px solid var(--k-border);">
                             <input type="checkbox" id="checkShiftActive" style="width: 18px; height: 18px; cursor: pointer;" checked>
                             <div>
-                                <label for="checkShiftActive" style="font-size: 0.85rem; font-weight: 700; color: #0f172a; cursor: pointer;">13. Operational Status (Active)</label>
-                                <p style="font-size: 0.72rem; color: #64748b; margin: 0;">Active shifts appear in roster assignment and employee profile dropdowns</p>
+                                <label for="checkShiftActive" style="font-size: 0.85rem; font-weight: 700; color: var(--k-text); cursor: pointer;">13. Operational Status (Active)</label>
+                                <p style="font-size: 0.72rem; color: var(--k-muted); margin: 0;">Active shifts appear in roster assignment and employee profile dropdowns</p>
                             </div>
                         </div>
 
                         <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                            <button type="button" id="btnCancelShiftModal" style="padding: 10px 18px; border-radius: 12px; border: 1px solid #cbd5e1; background: white; font-weight: 700; cursor: pointer;">Cancel</button>
-                            <button type="submit" id="btnSaveShiftModal" style="padding: 10px 22px; border-radius: 12px; border: none; background: #2563eb; color: white; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                            <button type="button" id="btnCancelShiftModal" style="padding: 10px 18px; border-radius: 12px; border: 1px solid var(--k-border); background: var(--k-surface); font-weight: 700; cursor: pointer;">Cancel</button>
+                            <button type="submit" id="btnSaveShiftModal" style="padding: 10px 22px; border-radius: 12px; border: none; background: var(--k-accent); color: white; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
                                 <i data-lucide="check"></i> Save Shift Policy
                             </button>
                         </div>
@@ -963,95 +963,95 @@
         const totalCount = shifts.length;
 
         container.innerHTML = `
-            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 24px; padding: 2rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 2rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 1.25rem; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+            <div style="background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 24px; padding: 2rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--k-border); padding-bottom: 1.25rem; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="width: 40px; height: 40px; border-radius: 12px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                            <div style="width: 40px; height: 40px; border-radius: 12px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center;">
                                 <i data-lucide="clock" style="width: 22px; height: 22px;"></i>
                             </div>
                             <div>
-                                <h2 style="font-size: 1.3rem; font-weight: 800; color: #0f172a; margin: 0;">Shifts &amp; Week-offs Management Console</h2>
-                                <p style="font-size: 0.8rem; color: #64748b; margin: 2px 0 0 0;">
+                                <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--k-text); margin: 0;">Shifts &amp; Week-offs Management Console</h2>
+                                <p style="font-size: 0.8rem; color: var(--k-muted); margin: 2px 0 0 0;">
                                     PRD Sections 1, 13 &amp; 16: Strict 13-attribute schema with dynamic attendance evaluation and cross-midnight support
                                 </p>
                             </div>
                         </div>
                     </div>
                     <div style="display: flex; gap: 10px;">
-                        <button type="button" class="btn btn-outline" id="btnAdminAddShift" style="font-size: 0.85rem; border: 1.5px solid #e2e8f0; background: white; cursor: pointer; padding: 10px 16px; border-radius: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
-                            <i data-lucide="plus-circle" style="color: #2563eb;"></i> Add Shift Policy
+                        <button type="button" class="btn btn-outline" id="btnAdminAddShift" style="font-size: 0.85rem; border: 1.5px solid var(--k-border); background: var(--k-surface); cursor: pointer; padding: 10px 16px; border-radius: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                            <i data-lucide="plus-circle" style="color: var(--k-accent-text);"></i> Add Shift Policy
                         </button>
                     </div>
                 </div>
 
                 <!-- Attributes Summary Cards -->
-                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+                <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 16px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
                     <div>
-                        <span style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">1. Code Attribute</span>
-                        <p style="font-size: 0.82rem; font-weight: 700; color: #0f172a; margin-top: 2px;">Shift_Code (PK)</p>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">1. Code Attribute</span>
+                        <p style="font-size: 0.82rem; font-weight: 700; color: var(--k-text); margin-top: 2px;">Shift_Code (PK)</p>
                     </div>
                     <div>
-                        <span style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">2. Schedule Hours</span>
-                        <p style="font-size: 0.82rem; font-weight: 700; color: #0f172a; margin-top: 2px;">Start_Time / End_Time (HH:mm)</p>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">2. Schedule Hours</span>
+                        <p style="font-size: 0.82rem; font-weight: 700; color: var(--k-text); margin-top: 2px;">Start_Time / End_Time (HH:mm)</p>
                     </div>
                     <div>
-                        <span style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">3. Week-off Policy</span>
-                        <p style="font-size: 0.82rem; font-weight: 700; color: #2563eb; margin-top: 2px;">Weekly_Off_Pattern</p>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">3. Week-off Policy</span>
+                        <p style="font-size: 0.82rem; font-weight: 700; color: var(--k-accent-text); margin-top: 2px;">Weekly_Off_Pattern</p>
                     </div>
                     <div>
-                        <span style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">4. Operational Status</span>
-                        <p style="font-size: 0.82rem; font-weight: 700; color: #166534; margin-top: 2px;">Active (${activeCount}/${totalCount})</p>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">4. Operational Status</span>
+                        <p style="font-size: 0.82rem; font-weight: 700; color: var(--k-success-text); margin-top: 2px;">Active (${activeCount}/${totalCount})</p>
                     </div>
                 </div>
 
                 <!-- Shifts Table -->
-                <div style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 16px;">
+                <div style="overflow-x: auto; border: 1px solid var(--k-border); border-radius: 16px;">
                     <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
                         <thead>
-                            <tr style="background: #f8fafc; border-bottom: 1.5px solid #e2e8f0;">
-                                <th style="padding: 12px 16px; font-weight: 800; color: #475569;">#</th>
-                                <th style="padding: 12px 16px; font-weight: 800; color: #475569;">Shift Code</th>
-                                <th style="padding: 12px 16px; font-weight: 800; color: #475569;">Shift Name</th>
-                                <th style="padding: 12px 16px; font-weight: 800; color: #475569;">Timings</th>
-                                <th style="padding: 12px 16px; font-weight: 800; color: #475569;">Break &amp; Grace</th>
-                                <th style="padding: 12px 16px; font-weight: 800; color: #475569;">Thresholds (Half/Full)</th>
-                                <th style="padding: 12px 16px; font-weight: 800; color: #475569;">Week-Off</th>
-                                <th style="padding: 12px 16px; font-weight: 800; color: #475569; text-align: center;">Flags</th>
-                                <th style="padding: 12px 16px; font-weight: 800; color: #475569; text-align: center;">Status</th>
-                                <th style="padding: 12px 16px; font-weight: 800; color: #475569; text-align: right;">Actions</th>
+                            <tr style="background: var(--k-subtle); border-bottom: 1.5px solid var(--k-border);">
+                                <th style="padding: 12px 16px; font-weight: 800; color: var(--k-text-2);">#</th>
+                                <th style="padding: 12px 16px; font-weight: 800; color: var(--k-text-2);">Shift Code</th>
+                                <th style="padding: 12px 16px; font-weight: 800; color: var(--k-text-2);">Shift Name</th>
+                                <th style="padding: 12px 16px; font-weight: 800; color: var(--k-text-2);">Timings</th>
+                                <th style="padding: 12px 16px; font-weight: 800; color: var(--k-text-2);">Break &amp; Grace</th>
+                                <th style="padding: 12px 16px; font-weight: 800; color: var(--k-text-2);">Thresholds (Half/Full)</th>
+                                <th style="padding: 12px 16px; font-weight: 800; color: var(--k-text-2);">Week-Off</th>
+                                <th style="padding: 12px 16px; font-weight: 800; color: var(--k-text-2); text-align: center;">Flags</th>
+                                <th style="padding: 12px 16px; font-weight: 800; color: var(--k-text-2); text-align: center;">Status</th>
+                                <th style="padding: 12px 16px; font-weight: 800; color: var(--k-text-2); text-align: right;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             ${shifts.map((s, idx) => {
                                 const statusBadge = s.isActive
-                                    ? '<span style="background: #dcfce7; color: #15803d; padding: 4px 10px; border-radius: 100px; font-size: 0.72rem; font-weight: 800;">Active</span>'
-                                    : '<span style="background: #fee2e2; color: #b91c1c; padding: 4px 10px; border-radius: 100px; font-size: 0.72rem; font-weight: 800;">Inactive</span>';
+                                    ? '<span style="background: var(--k-success-soft); color: var(--k-success-text); padding: 4px 10px; border-radius: 100px; font-size: 0.72rem; font-weight: 800;">Active</span>'
+                                    : '<span style="background: var(--k-danger-soft); color: var(--k-danger-text); padding: 4px 10px; border-radius: 100px; font-size: 0.72rem; font-weight: 800;">Inactive</span>';
 
                                 const nightBadge = s.isNightShift
                                     ? '<span style="background: #312e81; color: #e0e7ff; padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; font-weight: 700;">Night</span>'
-                                    : '<span style="background: #f1f5f9; color: #475569; padding: 2px 6px; border-radius: 4px; font-size: 0.68rem;">Day</span>';
+                                    : '<span style="background: var(--k-subtle); color: var(--k-text-2); padding: 2px 6px; border-radius: 4px; font-size: 0.68rem;">Day</span>';
 
                                 const otBadge = s.isOvertimeEligible
-                                    ? '<span style="background: #eff6ff; color: #1d4ed8; padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; margin-left: 4px;">OT</span>'
+                                    ? '<span style="background: var(--k-accent-soft); color: var(--k-accent-text); padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; margin-left: 4px;">OT</span>'
                                     : '';
 
                                 return `
-                                    <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
-                                        <td style="padding: 12px 16px; color: #94a3b8; font-weight: 600;">${idx + 1}</td>
-                                        <td style="padding: 12px 16px; font-weight: 800; color: #0f172a; font-family: monospace;">${s.shiftCode}</td>
-                                        <td style="padding: 12px 16px; font-weight: 700; color: #334155;">${s.shiftName}</td>
-                                        <td style="padding: 12px 16px; font-family: monospace; font-size: 0.82rem; font-weight: 700; color: #2563eb;">
+                                    <tr style="border-bottom: 1px solid var(--k-border); transition: background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                                        <td style="padding: 12px 16px; color: var(--k-muted); font-weight: 600;">${idx + 1}</td>
+                                        <td style="padding: 12px 16px; font-weight: 800; color: var(--k-text); font-family: monospace;">${s.shiftCode}</td>
+                                        <td style="padding: 12px 16px; font-weight: 700; color: var(--k-text-2);">${s.shiftName}</td>
+                                        <td style="padding: 12px 16px; font-family: monospace; font-size: 0.82rem; font-weight: 700; color: var(--k-accent-text);">
                                             ${s.startTime} - ${s.endTime}
                                         </td>
-                                        <td style="padding: 12px 16px; font-size: 0.78rem; color: #64748b;">
+                                        <td style="padding: 12px 16px; font-size: 0.78rem; color: var(--k-muted);">
                                             Break: ${s.breakMinutes}m | Grace: +${s.graceInMinutes}/-${s.graceOutMinutes}m
                                         </td>
-                                        <td style="padding: 12px 16px; font-size: 0.78rem; color: #334155; font-weight: 600;">
+                                        <td style="padding: 12px 16px; font-size: 0.78rem; color: var(--k-text-2); font-weight: 600;">
                                             ${s.halfDayMinutes}m / ${s.fullDayMinutes}m
                                         </td>
                                         <td style="padding: 12px 16px;">
-                                            <span style="background: #f1f5f9; color: #0f172a; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.75rem; font-weight: 700;">${s.weeklyOffPattern}</span>
+                                            <span style="background: var(--k-subtle); color: var(--k-text); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.75rem; font-weight: 700;">${s.weeklyOffPattern}</span>
                                         </td>
                                         <td style="padding: 12px 16px; text-align: center;">
                                             ${nightBadge}${otBadge}
@@ -1059,8 +1059,8 @@
                                         <td style="padding: 12px 16px; text-align: center;">${statusBadge}</td>
                                         <td style="padding: 12px 16px; text-align: right;">
                                             <div style="display: inline-flex; gap: 6px;">
-                                                <button onclick="window.KylrxShiftCalculationService.openShiftModal('${s.shiftCode}')" style="padding: 6px 10px; border: 1px solid #cbd5e1; background: white; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer;">Edit</button>
-                                                <button onclick="window.KylrxShiftCalculationService.toggleShiftStatus('${s.shiftCode}').then(() => window.KylrxShiftCalculationService.renderAdminConsole())" style="padding: 6px 10px; border: 1px solid ${s.isActive ? '#fecaca' : '#bbf7d0'}; background: ${s.isActive ? '#fff1f2' : '#f0fdf4'}; color: ${s.isActive ? '#991b1b' : '#166534'}; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer;">${s.isActive ? 'Deactivate' : 'Activate'}</button>
+                                                <button onclick="window.KylrxShiftCalculationService.openShiftModal('${s.shiftCode}')" style="padding: 6px 10px; border: 1px solid var(--k-border); background: var(--k-surface); border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer;">Edit</button>
+                                                <button onclick="window.KylrxShiftCalculationService.toggleShiftStatus('${s.shiftCode}').then(() => window.KylrxShiftCalculationService.renderAdminConsole())" style="padding: 6px 10px; border: 1px solid ${s.isActive ? 'var(--k-danger-border)' : 'var(--k-success-border)'}; background: ${s.isActive ? '#fff1f2' : 'var(--k-success-soft)'}; color: ${s.isActive ? '#991b1b' : '#166534'}; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer;">${s.isActive ? 'Deactivate' : 'Activate'}</button>
                                             </div>
                                         </td>
                                     </tr>

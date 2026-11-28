@@ -1,6 +1,9 @@
 import { test, describe, before, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import payrollService from '../services/payroll-email-account-service.js';
+// The service no longer starts with sample employees (the API served them as the
+// organisation's); these tests load them as fixtures.
+payrollService._seedSampleEmployees();
 
 describe('3. Payroll, Email and Account Views Suite (PRD §3)', () => {
 

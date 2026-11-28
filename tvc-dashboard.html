@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="kylrx-theme-init.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kylrx Workforce Command Center</title>
@@ -283,9 +284,9 @@
         .log-entry:hover { background: var(--bg-base); }
         .log-time { color: var(--text-muted); font-family: 'Roboto Mono', monospace; }
         .log-type { font-weight: 800; font-size: 0.7rem; text-transform: uppercase; padding: 4px 8px; border-radius: 4px; width: fit-content; }
-        .type-tab { background: #fef2f2; color: #ef4444; }
+        .type-tab { background: var(--k-danger-soft); color: var(--k-danger-text); }
         .type-focus { background: #fff7ed; color: #f97316; }
-        .type-active { background: #f0fdf4; color: #16a34a; }
+        .type-active { background: var(--k-success-soft); color: var(--k-success-text); }
         .log-msg { font-weight: 600; }
 
         /* Layout Grid */
@@ -317,8 +318,8 @@
 
         /* Bonus Badge */
         .bonus-badge {
-            background: #f0fdf4;
-            color: #16a34a;
+            background: var(--k-success-soft);
+            color: var(--k-success-text);
             padding: 4px 10px;
             border-radius: 8px;
             font-size: 0.7rem;
@@ -342,7 +343,7 @@
         .shift-bar-bg {
             width: 100%;
             height: 4px;
-            background: #e2e8f0;
+            background: var(--k-border);
             border-radius: 10px;
             margin: 6px 0;
             overflow: hidden;
@@ -374,6 +375,7 @@
         }
     </style>
     <link rel="stylesheet" href="sidebar-lock.css">
+    <link rel="stylesheet" href="kylrx-theme.css">
 </head>
 <body>
     <div class="dashboard-container">
@@ -464,7 +466,7 @@
             <div class="top-bar">
                 <div class="ai-status">
                     <div class="ai-dot"></div>
-                    <span>Kylrx AI Command Center // <span style="color: #10b981;">CLOUD LINK ACTIVE</span></span>
+                    <span>Kylrx AI Command Center // <span style="color: var(--k-success-text);">CLOUD LINK ACTIVE</span></span>
                 </div>
                 <div style="width: 1px; height: 16px; background: var(--surface-border);"></div>
                 
@@ -477,7 +479,7 @@
                 <div id="tvcStatus" style="display: flex; align-items: center; gap: 8px; padding: 4px 12px; background: var(--bg-base); border-radius: 100px; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); border: 1px solid var(--surface-border);">
                     <span style="width: 8px; height: 8px; background: #cbd5e1; border-radius: 50%;" id="tvcDot"></span>
                     <span id="tvcStatusText">SECURE: IDLE</span>
-                    <span id="adminSessionTimer" style="margin-left: 8px; padding-left: 8px; border-left: 1px solid #cbd5e1; color: var(--primary); display: none;">00:00:00</span>
+                    <span id="adminSessionTimer" style="margin-left: 8px; padding-left: 8px; border-left: 1px solid var(--k-border); color: var(--primary); display: none;">00:00:00</span>
                 </div>
 
                 <div class="btn-group" style="display: flex; gap: 8px;">
@@ -1435,11 +1437,11 @@
                 <div style="display:flex;gap:10px;align-items:flex-start;">
                     <div style="font-size: 1.5rem;">⚠️</div>
                     <div>
-                        <div style="font-weight:800;color:#b91c1c;font-size: 0.875rem;">Under-Hours Alert</div>
+                        <div style="font-weight:800;color:var(--k-danger-text);font-size: 0.875rem;">Under-Hours Alert</div>
                         <div style="font-size: 0.8rem;color:#7f1d1d;margin-top:4px;"><b>${name}</b> worked only <b>${hrs}h</b> — below 4h minimum.</div>
-                        <div style="font-size: 0.7rem;color:#9ca3af;margin-top:6px;">Manager notification sent ✓</div>
+                        <div style="font-size: 0.7rem;color:var(--k-muted);margin-top:6px;">Manager notification sent ✓</div>
                     </div>
-                    <button onclick="document.getElementById('underHoursBanner').remove()" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size: 1.125rem;margin-left:auto;">✕</button>
+                    <button onclick="document.getElementById('underHoursBanner').remove()" style="background:none;border:none;cursor:pointer;color:var(--k-muted);font-size: 1.125rem;margin-left:auto;">✕</button>
                 </div>
             `;
             setTimeout(() => banner && banner.remove(), 8000);
@@ -1532,8 +1534,8 @@
 
             if (avgFocus < 70) {
                 alertHtml += `
-                    <div style="padding: 10px 14px; background: #fffbeb; border: 1.5px solid #fef3c7; border-radius: 12px; margin-bottom: 8px;">
-                        <div style="font-weight: 700; font-size: 0.75rem; color: #b45309; display: flex; align-items: center; gap: 4px;">
+                    <div style="padding: 10px 14px; background: var(--k-warning-soft); border: 1.5px solid #fef3c7; border-radius: 12px; margin-bottom: 8px;">
+                        <div style="font-weight: 700; font-size: 0.75rem; color: var(--k-warning-text); display: flex; align-items: center; gap: 4px;">
                             <i data-lucide="alert-triangle" style="width: 14px; height: 14px;"></i>
                             ATTENTION SPAN DROP
                         </div>
@@ -1572,11 +1574,11 @@
                 <div style="display:flex;gap:10px;align-items:flex-start;">
                     <div style="font-size: 1.5rem;">⚠️</div>
                     <div>
-                        <div style="font-weight:800;color:#d97706;font-size: 0.875rem;">Productivity Focus Alert</div>
+                        <div style="font-weight:800;color:var(--k-warning-text);font-size: 0.875rem;">Productivity Focus Alert</div>
                         <div style="font-size: 0.8rem;color:#78350f;margin-top:4px;">Organizational average dropped to <b>${avgFocus}%</b> — below the 70% company baseline!</div>
-                        <div style="font-size: 0.7rem;color:#9ca3af;margin-top:6px;">Automated manager notification broadcasted ✓</div>
+                        <div style="font-size: 0.7rem;color:var(--k-muted);margin-top:6px;">Automated manager notification broadcasted ✓</div>
                     </div>
-                    <button onclick="document.getElementById('focusAlertBanner').remove()" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size: 1.125rem;margin-left:auto;">✕</button>
+                    <button onclick="document.getElementById('focusAlertBanner').remove()" style="background:none;border:none;cursor:pointer;color:var(--k-muted);font-size: 1.125rem;margin-left:auto;">✕</button>
                 </div>
             `;
             setTimeout(() => banner && banner.remove(), 10000);
@@ -1610,13 +1612,13 @@
 
             // Under-hours warning stripe
             const underHoursWarning = (!config.isCommander && hrs > 0 && hrs < 4)
-                ? `<div style="margin-top:8px;padding:6px 10px;background:#fef2f2;border-radius:8px;font-size: 0.7rem;font-weight:700;color:#b91c1c;display:flex;gap:6px;align-items:center;">
+                ? `<div style="margin-top:8px;padding:6px 10px;background:var(--k-danger-soft);border-radius:8px;font-size: 0.7rem;font-weight:700;color:var(--k-danger-text);display:flex;gap:6px;align-items:center;">
                     ⚠ Worked ${hrs}h — Alert sent to manager
                    </div>`
                 : '';
 
             return `
-                <div class="tele-card" style="cursor: pointer; transition: transform 0.2s; ${config.isCommander ? 'border-color:var(--primary);background:#f8fafc;border-width:2px;' : (hrs > 0 && hrs < 4 ? 'border-color:#fca5a5;' : (isHighPerformer ? 'border-color:var(--success);' : ''))}" onclick="showProductivityAnalytics('${config.id}', '${(config.name || '').replace(/'/g, "\\'")}')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                <div class="tele-card" style="cursor: pointer; transition: transform 0.2s; ${config.isCommander ? 'border-color:var(--primary);background:var(--k-subtle);border-width:2px;' : (hrs > 0 && hrs < 4 ? 'border-color:#fca5a5;' : (isHighPerformer ? 'border-color:var(--success);' : ''))}" onclick="showProductivityAnalytics('${config.id}', '${(config.name || '').replace(/'/g, "\\'")}')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;">
                         <div>
                             <div class="tele-name">${config.name}</div>
@@ -1829,87 +1831,87 @@
 
     <!-- Productivity Analytics Modal -->
     <div id="productivityModal" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index:9999; justify-content:center; align-items:center; opacity:0; transition: opacity 0.3s ease;">
-        <div style="background:white; padding: 2rem; border-radius:24px; width: 100%; max-width: min(640px, 90%); box-shadow:0 25px 50px -12px rgba(0,0,0,0.15); border: 1px solid var(--surface-border); display: flex; flex-direction: column; gap: 1.5rem; position: relative;">
+        <div style="background:var(--k-surface); padding: 2rem; border-radius:24px; width: 100%; max-width: min(640px, 90%); box-shadow:0 25px 50px -12px rgba(0,0,0,0.15); border: 1px solid var(--surface-border); display: flex; flex-direction: column; gap: 1.5rem; position: relative;">
             
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <div style="color: #1e293b; font-size: 1.5rem; display: flex; align-items: center; justify-content: center;">
-                        <i data-lucide="trending-up" style="width: 24px; height: 24px; color: #1e293b;"></i>
+                    <div style="color: var(--k-text); font-size: 1.5rem; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="trending-up" style="width: 24px; height: 24px; color: var(--k-text);"></i>
                     </div>
-                    <h3 style="font-weight:800; font-size: 1.25rem; margin: 0; color: #1e293b;" id="prodModalTitle">Productivity Analytics</h3>
+                    <h3 style="font-weight:800; font-size: 1.25rem; margin: 0; color: var(--k-text);" id="prodModalTitle">Productivity Analytics</h3>
                 </div>
-                <button id="btnCloseProductivity" style="background:#eff6ff; border:none; cursor:pointer; color:#1e293b; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; transition: 0.2s;"><i data-lucide="x" style="width: 18px; height: 18px;"></i></button>
+                <button id="btnCloseProductivity" style="background:var(--k-accent-soft); border:none; cursor:pointer; color:var(--k-text); width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; transition: 0.2s;"><i data-lucide="x" style="width: 18px; height: 18px;"></i></button>
             </div>
 
             <!-- Bar Chart Area (Unified single level containing both bars and labels) -->
-            <div style="background: #eff6ff; padding: 2rem 2rem 1.25rem 2rem; border-radius: 20px; display: flex; align-items: stretch; justify-content: space-between; height: 240px; margin-top: 0.5rem; gap: 16px; position: relative;">
+            <div style="background: var(--k-accent-soft); padding: 2rem 2rem 1.25rem 2rem; border-radius: 20px; display: flex; align-items: stretch; justify-content: space-between; height: 240px; margin-top: 0.5rem; gap: 16px; position: relative;">
                 <!-- Mon -->
                 <div style="display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; justify-content: space-between;">
                     <div style="width: 100%; height: 165px; display: flex; align-items: flex-end; justify-content: center;">
-                        <div id="barMon" style="width: 100%; max-width: 44px; height: 0%; background: #3b82f6; border-radius: 8px 8px 0 0; transition: height 0.5s ease-out; position: relative;" title="Monday: 0%">
-                            <span id="labelValMon" style="position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; font-weight: 800; color: #1e293b;">0%</span>
+                        <div id="barMon" style="width: 100%; max-width: 44px; height: 0%; background: var(--k-accent); border-radius: 8px 8px 0 0; transition: height 0.5s ease-out; position: relative;" title="Monday: 0%">
+                            <span id="labelValMon" style="position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; font-weight: 800; color: var(--k-text);">0%</span>
                         </div>
                     </div>
-                    <span style="font-size: 0.8rem; font-weight: 700; color: #64748b; margin-top: 6px;">Mon</span>
+                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--k-muted); margin-top: 6px;">Mon</span>
                 </div>
                 <!-- Tue -->
                 <div style="display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; justify-content: space-between;">
                     <div style="width: 100%; height: 165px; display: flex; align-items: flex-end; justify-content: center;">
-                        <div id="barTue" style="width: 100%; max-width: 44px; height: 0%; background: #3b82f6; border-radius: 8px 8px 0 0; transition: height 0.5s ease-out; position: relative;" title="Tuesday: 0%">
-                            <span id="labelValTue" style="position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; font-weight: 800; color: #1e293b;">0%</span>
+                        <div id="barTue" style="width: 100%; max-width: 44px; height: 0%; background: var(--k-accent); border-radius: 8px 8px 0 0; transition: height 0.5s ease-out; position: relative;" title="Tuesday: 0%">
+                            <span id="labelValTue" style="position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; font-weight: 800; color: var(--k-text);">0%</span>
                         </div>
                     </div>
-                    <span style="font-size: 0.8rem; font-weight: 700; color: #64748b; margin-top: 6px;">Tue</span>
+                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--k-muted); margin-top: 6px;">Tue</span>
                 </div>
                 <!-- Wed -->
                 <div style="display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; justify-content: space-between;">
                     <div style="width: 100%; height: 165px; display: flex; align-items: flex-end; justify-content: center;">
-                        <div id="barWed" style="width: 100%; max-width: 44px; height: 0%; background: #3b82f6; border-radius: 8px 8px 0 0; transition: height 0.5s ease-out; position: relative;" title="Wednesday: 0%">
-                            <span id="labelValWed" style="position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; font-weight: 800; color: #1e293b;">0%</span>
+                        <div id="barWed" style="width: 100%; max-width: 44px; height: 0%; background: var(--k-accent); border-radius: 8px 8px 0 0; transition: height 0.5s ease-out; position: relative;" title="Wednesday: 0%">
+                            <span id="labelValWed" style="position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; font-weight: 800; color: var(--k-text);">0%</span>
                         </div>
                     </div>
-                    <span style="font-size: 0.8rem; font-weight: 700; color: #64748b; margin-top: 6px;">Wed</span>
+                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--k-muted); margin-top: 6px;">Wed</span>
                 </div>
                 <!-- Thu -->
                 <div style="display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; justify-content: space-between;">
                     <div style="width: 100%; height: 165px; display: flex; align-items: flex-end; justify-content: center;">
-                        <div id="barThu" style="width: 100%; max-width: 44px; height: 0%; background: #3b82f6; border-radius: 8px 8px 0 0; transition: height 0.5s ease-out; position: relative;" title="Thursday: 0%">
-                            <span id="labelValThu" style="position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; font-weight: 800; color: #1e293b;">0%</span>
+                        <div id="barThu" style="width: 100%; max-width: 44px; height: 0%; background: var(--k-accent); border-radius: 8px 8px 0 0; transition: height 0.5s ease-out; position: relative;" title="Thursday: 0%">
+                            <span id="labelValThu" style="position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; font-weight: 800; color: var(--k-text);">0%</span>
                         </div>
                     </div>
-                    <span style="font-size: 0.8rem; font-weight: 700; color: #64748b; margin-top: 6px;">Thu</span>
+                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--k-muted); margin-top: 6px;">Thu</span>
                 </div>
                 <!-- Fri -->
                 <div style="display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; justify-content: space-between;">
                     <div style="width: 100%; height: 165px; display: flex; align-items: flex-end; justify-content: center;">
-                        <div id="barFri" style="width: 100%; max-width: 44px; height: 0%; background: #3b82f6; border-radius: 8px 8px 0 0; transition: height 0.5s ease-out; position: relative;" title="Friday: 0%">
-                            <span id="labelValFri" style="position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; font-weight: 800; color: #1e293b;">0%</span>
+                        <div id="barFri" style="width: 100%; max-width: 44px; height: 0%; background: var(--k-accent); border-radius: 8px 8px 0 0; transition: height 0.5s ease-out; position: relative;" title="Friday: 0%">
+                            <span id="labelValFri" style="position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; font-weight: 800; color: var(--k-text);">0%</span>
                         </div>
                     </div>
-                    <span style="font-size: 0.8rem; font-weight: 700; color: #64748b; margin-top: 6px;">Fri</span>
+                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--k-muted); margin-top: 6px;">Fri</span>
                 </div>
                 <!-- Sat -->
                 <div style="display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; justify-content: space-between;">
                     <div style="width: 100%; height: 165px; display: flex; align-items: flex-end; justify-content: center;">
-                        <div id="barSat" style="width: 100%; max-width: 44px; height: 0%; background: #3b82f6; border-radius: 8px 8px 0 0; transition: height 0.5s ease-out; position: relative;" title="Saturday: 0%">
-                            <span id="labelValSat" style="position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; font-weight: 800; color: #1e293b;">0%</span>
+                        <div id="barSat" style="width: 100%; max-width: 44px; height: 0%; background: var(--k-accent); border-radius: 8px 8px 0 0; transition: height 0.5s ease-out; position: relative;" title="Saturday: 0%">
+                            <span id="labelValSat" style="position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; font-weight: 800; color: var(--k-text);">0%</span>
                         </div>
                     </div>
-                    <span style="font-size: 0.8rem; font-weight: 700; color: #64748b; margin-top: 6px;">Sat</span>
+                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--k-muted); margin-top: 6px;">Sat</span>
                 </div>
                 <!-- Sun -->
                 <div style="display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; justify-content: space-between;">
                     <div style="width: 100%; height: 165px; display: flex; align-items: flex-end; justify-content: center;">
-                        <div id="barSun" style="width: 100%; max-width: 44px; height: 0%; background: #3b82f6; border-radius: 8px 8px 0 0; transition: height 0.5s ease-out; position: relative;" title="Sunday: 0%">
-                            <span id="labelValSun" style="position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; font-weight: 800; color: #1e293b;">0%</span>
+                        <div id="barSun" style="width: 100%; max-width: 44px; height: 0%; background: var(--k-accent); border-radius: 8px 8px 0 0; transition: height 0.5s ease-out; position: relative;" title="Sunday: 0%">
+                            <span id="labelValSun" style="position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; font-weight: 800; color: var(--k-text);">0%</span>
                         </div>
                     </div>
-                    <span style="font-size: 0.8rem; font-weight: 700; color: #64748b; margin-top: 6px;">Sun</span>
+                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--k-muted); margin-top: 6px;">Sun</span>
                 </div>
             </div>
 
             <!-- Additional Analytics Summary Footer -->
-            <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 1rem 1.5rem; border-radius: 16px; border: 1px solid var(--surface-border); font-size: 0.8rem; font-weight: 700;">
+            <div style="display: flex; justify-content: space-between; align-items: center; background: var(--k-subtle); padding: 1rem 1.5rem; border-radius: 16px; border: 1px solid var(--surface-border); font-size: 0.8rem; font-weight: 700;">
                 <div>
                     <span style="color: var(--text-muted); display: block; font-size: 0.7rem; text-transform: uppercase;">Average Weekly Efficiency</span>
                     <span id="avgWeeklyEff" style="font-size: 1.25rem; font-weight: 800; color: var(--primary);">78%</span>
@@ -1928,13 +1930,13 @@
     </div>
     <!-- Custom App Registry Modal -->
     <div id="customAppsModal" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index:9999; justify-content:center; align-items:center; opacity:0; transition: opacity 0.3s ease;">
-        <div style="background:white; padding: 2rem; border-radius:24px; width: 100%; max-width: min(450px, 90%); box-shadow:0 25px 50px -12px rgba(0,0,0,0.15); border: 1px solid var(--surface-border); display: flex; flex-direction: column; gap: 1.5rem; position: relative;">
+        <div style="background:var(--k-surface); padding: 2rem; border-radius:24px; width: 100%; max-width: min(450px, 90%); box-shadow:0 25px 50px -12px rgba(0,0,0,0.15); border: 1px solid var(--surface-border); display: flex; flex-direction: column; gap: 1.5rem; position: relative;">
             
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <h3 style="font-weight:800; font-size: 1.25rem; margin: 0; color: #1e293b;">Custom App Registry</h3>
+                    <h3 style="font-weight:800; font-size: 1.25rem; margin: 0; color: var(--k-text);">Custom App Registry</h3>
                 </div>
-                <button onclick="closeAppRegistryModal()" style="background:#eff6ff; border:none; cursor:pointer; color:#1e293b; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; transition: 0.2s;"><i data-lucide="x" style="width: 18px; height: 18px;"></i></button>
+                <button onclick="closeAppRegistryModal()" style="background:var(--k-accent-soft); border:none; cursor:pointer; color:var(--k-text); width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; transition: 0.2s;"><i data-lucide="x" style="width: 18px; height: 18px;"></i></button>
             </div>
             <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: -10px;">Custom-map external tools in real time to the sidebar</p>
             

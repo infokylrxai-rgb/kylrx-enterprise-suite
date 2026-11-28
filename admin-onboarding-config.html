@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="kylrx-theme-init.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Workflow Builder | Kylrx AI Enterprise</title>
@@ -37,7 +38,7 @@
         .layout { display: grid; grid-template-columns: var(--sidebar-width) 320px 1fr; height: 100vh; }
 
         /* Full Sidebar */
-        .sidebar {background: white;
+        .sidebar {background: var(--k-surface);
             border-right: 1px solid var(--border);
             padding: 2rem 1.5rem;
             display: flex;
@@ -58,7 +59,7 @@
 
         /* Block Palette */
         .block-palette {
-            background: white;
+            background: var(--k-surface);
             border-right: 1px solid var(--border);
             padding: 2rem 1.5rem;
             overflow-y: auto;
@@ -99,7 +100,7 @@
         }
         .block-item:hover { border-color: var(--primary); transform: translateX(4px); box-shadow: var(--shadow); }
 
-        .block-icon { width: 32px; height: 32px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--primary); border: 1px solid var(--border); }
+        .block-icon { width: 32px; height: 32px; background: var(--k-surface); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--primary); border: 1px solid var(--border); }
         .block-info h4 { font-size: 0.875rem; font-weight: 700; }
         .block-info p { font-size: 0.7rem; color: var(--text-muted); }
 
@@ -132,7 +133,7 @@
         .drop-zone.drag-over { border-color: var(--primary); background: var(--primary-light); }
 
         .workflow-step {
-            background: white;
+            background: var(--k-surface);
             border: 1px solid var(--border);
             border-radius: 24px;
             padding: 1.5rem;
@@ -155,7 +156,7 @@
             display: inline-flex; align-items: center; gap: 8px;
         }
         .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2); }
-        .btn-outline { background: white; border: 1px solid var(--border); color: var(--text-main); }
+        .btn-outline { background: var(--k-surface); border: 1px solid var(--border); color: var(--text-main); }
         /* Notification Modal */
         .modal-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
@@ -164,7 +165,7 @@
             animation: fadeIn 0.3s ease;
         }
         .notif-modal {
-            background: white; width: 100%; max-width: 400px; border-radius: 32px; padding: 2rem;
+            background: var(--k-surface); width: 100%; max-width: 400px; border-radius: 32px; padding: 2rem;
             text-align: center; border: 1px solid var(--border); box-shadow: var(--shadow);
             animation: modalPop 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -172,12 +173,16 @@
         @keyframes modalPop { from { opacity: 0; transform: scale(0.9) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 
         .success-icon-container {
-            width: 72px; height: 72px; background: #ecfdf5; color: #10b981;
+            width: 72px; height: 72px; background: var(--k-success-soft); color: var(--k-success-text);
             border-radius: 24px; display: flex; align-items: center; justify-content: center;
             margin: 0 auto 1.5rem;
         }
     </style>
     <link rel="stylesheet" href="sidebar-lock.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="kylrx-theme.css">
 </head>
 <body>
 
@@ -333,7 +338,7 @@
             <div class="success-icon-container">
                 <i data-lucide="check-circle" size="32"></i>
             </div>
-            <h2 style="font-weight: 800; margin-bottom: 8px; color: #1e293b;">Workflow Published</h2>
+            <h2 style="font-weight: 800; margin-bottom: 8px; color: var(--k-text);">Workflow Published</h2>
             <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 2rem;">The onboarding journey has been updated and synchronized across all regional nodes.</p>
             <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="closeModal()">Continue</button>
         </div>
@@ -409,7 +414,7 @@
                     <h4 style="font-weight: 800;">${data.title}</h4>
                     <p style="font-size: 0.75rem; color: var(--text-muted);">${data.desc}</p>
                 </div>
-                <button class="icon-btn" onclick="this.parentElement.remove(); window.updateStepNumbers();" style="background: none; border: none; cursor: pointer; color: #ef4444;"><i data-lucide="trash-2"></i></button>
+                <button class="icon-btn" onclick="this.parentElement.remove(); window.updateStepNumbers();" style="background: none; border: none; cursor: pointer; color: var(--k-danger-text);"><i data-lucide="trash-2"></i></button>
             `;
             canvas.appendChild(step);
             lucide.createIcons();
@@ -483,27 +488,27 @@
                 justify-content: center;
             }
             #customAppsModal .modal {
-                background: #ffffff !important;
-                color: #0f172a !important;
+                background: var(--k-surface) !important;
+                color: var(--k-text) !important;
                 padding: 2rem;
                 border-radius: 24px;
                 width: 90%;
                 max-width: 500px;
                 box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-                border: 1px solid #e2e8f0;
+                border: 1px solid var(--k-border);
                 position: relative;
                 text-align: left;
             }
             #customAppsModal .modal h2 {
                 font-weight: 800;
                 font-size: 1.25rem;
-                color: #0f172a !important;
+                color: var(--k-text) !important;
                 margin-bottom: 4px;
                 margin-top: 0;
             }
             #customAppsModal .modal p {
                 font-size: 0.75rem;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 margin: 0;
             }
             #customAppsModal .modal .form-group {
@@ -515,7 +520,7 @@
             #customAppsModal .modal label {
                 font-size: 0.7rem;
                 font-weight: 800;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 text-transform: uppercase;
                 display: block;
                 margin-bottom: 4px;
@@ -524,9 +529,9 @@
                 width: 100%;
                 padding: 12px 16px;
                 border-radius: 12px;
-                border: 1px solid #cbd5e1 !important;
-                background: #ffffff !important;
-                color: #0f172a !important;
+                border: 1px solid var(--k-border) !important;
+                background: var(--k-surface) !important;
+                color: var(--k-text) !important;
                 outline: none;
                 margin-top: 4px;
                 font-family: inherit;
@@ -534,15 +539,15 @@
                 transition: border-color 0.2s, box-shadow 0.2s;
             }
             #customAppsModal .modal input:focus {
-                border-color: #3b82f6 !important;
+                border-color: var(--k-accent) !important;
                 box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
             }
             #customAppsModal .modal input::placeholder {
-                color: #94a3b8 !important;
+                color: var(--k-muted) !important;
                 opacity: 0.8;
             }
             #customAppsModal .modal button.map-btn {
-                background: #3b82f6;
+                background: var(--k-accent);
                 color: white !important;
                 border: none;
                 border-radius: 12px;
@@ -556,13 +561,13 @@
                 margin-top: 0.5rem;
             }
             #customAppsModal .modal button.map-btn:hover {
-                background: #2563eb;
+                background: var(--k-accent);
                 transform: translateY(-1px);
             }
             #customAppsModal .modal h3 {
                 font-size: 0.7rem;
                 font-weight: 800;
-                color: #64748b !important;
+                color: var(--k-muted) !important;
                 text-transform: uppercase;
                 margin-bottom: 10px;
                 margin-top: 0;
@@ -574,8 +579,8 @@
                 width: 36px;
                 height: 36px;
                 border-radius: 10px;
-                background: #f8fafc;
-                color: #64748b !important;
+                background: var(--k-subtle);
+                color: var(--k-muted) !important;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -584,8 +589,8 @@
                 border: none;
             }
             #customAppsModal .close-modal:hover {
-                color: #ef4444 !important;
-                background: #fee2e2;
+                color: var(--k-danger-text) !important;
+                background: var(--k-danger-soft);
             }
         </style>
         <div class="modal">
@@ -609,7 +614,7 @@
                 <button class="map-btn" onclick="addCustomApp()">Map Tool Link</button>
             </div>
 
-            <div style="border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
+            <div style="border-top: 1px solid var(--k-border); padding-top: 1.25rem;">
                 <h3>Mapped Connections</h3>
                 <div id="registryAppsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;">
                     <!-- Mapped apps inside the registry panel -->

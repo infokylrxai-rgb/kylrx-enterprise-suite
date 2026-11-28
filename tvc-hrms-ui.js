@@ -39,7 +39,7 @@ function injectStatusBar() {
     const pill = document.createElement('div');
     pill.id = 'hrmsStatusPill';
     pill.style.cssText = 'display:flex;align-items:center;gap:8px;background:rgba(16,185,129,0.1);padding:4px 12px;border-radius:20px;font-size:0.75rem;font-weight:700;color:#10b981;border:1px solid rgba(16,185,129,0.2);';
-    pill.innerHTML = `<span style="width:6px;height:6px;border-radius:50%;background:#10b981;box-shadow:0 0 6px #10b981;"></span><span id="hrmsScorePill">SCORE: --</span>`;
+    pill.innerHTML = `<span style="width:6px;height:6px;border-radius:50%;background:var(--k-success);box-shadow:0 0 6px #10b981;"></span><span id="hrmsScorePill">SCORE: --</span>`;
     topControls.insertBefore(pill, topControls.firstChild);
 }
 
@@ -83,11 +83,11 @@ function buildHRMSViewHTML() {
         <div class="fin-stat-cards">
             <div class="fin-card" style="border-left:4px solid #10b981;">
                 <span class="fin-card-label">Productivity Score</span>
-                <span class="fin-card-value" id="hrmsScoreVal" style="color:#10b981;">--</span>
+                <span class="fin-card-value" id="hrmsScoreVal" style="color:var(--k-success-text);">--</span>
             </div>
             <div class="fin-card" style="border-left:4px solid #f59e0b;">
                 <span class="fin-card-label">Warnings Today</span>
-                <span class="fin-card-value" id="hrmsWarnCount" style="color:#f59e0b;">0</span>
+                <span class="fin-card-value" id="hrmsWarnCount" style="color:var(--k-warning-text);">0</span>
             </div>
             <div class="fin-card" style="border-left:4px solid #0ea5e9;">
                 <span class="fin-card-label">Active Time</span>
@@ -101,7 +101,7 @@ function buildHRMSViewHTML() {
         <div class="fin-stat-cards" style="grid-column:1/3;">
             <div class="fin-card" style="border-left:4px solid #ef4444;">
                 <span class="fin-card-label">Idle Time</span>
-                <span class="fin-card-value" id="hrmsIdleTime" style="color:#ef4444;font-size:1.5rem;">0m</span>
+                <span class="fin-card-value" id="hrmsIdleTime" style="color:var(--k-danger-text);font-size:1.5rem;">0m</span>
             </div>
             <div class="fin-card" style="border-left:4px solid #06b6d4;">
                 <span class="fin-card-label">Break Time</span>
@@ -135,11 +135,11 @@ function buildPayrollViewHTML() {
             </div>
             <div class="fin-card" style="border-left:4px solid #ef4444;">
                 <span class="fin-card-label">Penalty</span>
-                <span class="fin-card-value" id="payPenalty" style="color:#ef4444;">0%</span>
+                <span class="fin-card-value" id="payPenalty" style="color:var(--k-danger-text);">0%</span>
             </div>
             <div class="fin-card" style="border-left:4px solid #10b981;">
                 <span class="fin-card-label">Bonus</span>
-                <span class="fin-card-value" id="payBonus" style="color:#10b981;">0%</span>
+                <span class="fin-card-value" id="payBonus" style="color:var(--k-success-text);">0%</span>
             </div>
             <div class="fin-card" style="border-left:4px solid #8b5cf6;">
                 <span class="fin-card-label">Final Salary</span>
@@ -153,7 +153,7 @@ function buildPayrollViewHTML() {
             <div style="overflow-y:auto;max-height:320px;" id="payrollTableWrap">
                 <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
                     <thead>
-                        <tr style="background:#f8fafc;text-transform:uppercase;font-size:0.7rem;font-weight:700;color:var(--text-muted);letter-spacing:1px;">
+                        <tr style="background:var(--k-subtle);text-transform:uppercase;font-size:0.7rem;font-weight:700;color:var(--text-muted);letter-spacing:1px;">
                             <th style="padding:10px;text-align:left;">Employee</th>
                             <th style="padding:10px;text-align:left;">Dept</th>
                             <th style="padding:10px;text-align:center;">Score</th>
@@ -292,13 +292,13 @@ function renderPayrollTable(sessions) {
         const score = s.productivityScore || 0;
         const scoreColor = score > 80 ? '#10b981' : score > 50 ? '#f59e0b' : '#ef4444';
         return `
-            <tr style="border-bottom:1px solid var(--surface-border,#e2e8f0);">
+            <tr style="border-bottom:1px solid var(--surface-border,var(--k-border));">
                 <td style="padding:10px;font-weight:600;">${s.userName || 'Unknown'}</td>
                 <td style="padding:10px;color:var(--text-muted);text-transform:uppercase;font-size:0.75rem;font-weight:600;">${s.departmentId || '-'}</td>
                 <td style="padding:10px;text-align:center;"><span style="background:${scoreColor}15;color:${scoreColor};padding:3px 10px;border-radius:12px;font-weight:700;font-size:0.8rem;">${score}</span></td>
                 <td style="padding:10px;text-align:center;font-weight:600;">${s.focusLossCount || 0}</td>
-                <td style="padding:10px;text-align:right;color:#ef4444;font-weight:600;">${((s.penalty||0)*100).toFixed(1)}%</td>
-                <td style="padding:10px;text-align:right;color:#10b981;font-weight:600;">${((s.bonus||0)*100).toFixed(1)}%</td>
+                <td style="padding:10px;text-align:right;color:var(--k-danger-text);font-weight:600;">${((s.penalty||0)*100).toFixed(1)}%</td>
+                <td style="padding:10px;text-align:right;color:var(--k-success-text);font-weight:600;">${((s.bonus||0)*100).toFixed(1)}%</td>
                 <td style="padding:10px;text-align:right;font-weight:700;font-family:'Roboto Mono',monospace;">₹${Math.round(s.finalSalary||s.baseSalary||0).toLocaleString()}</td>
             </tr>`;
     }).join('');
@@ -317,7 +317,7 @@ function injectStyles() {
         }
         @keyframes hrmsOverlayIn { from{opacity:0} to{opacity:1} }
         .hrms-warn-box {
-            background:#ffffff;padding:2.5rem;border-radius:24px;width:90%;max-width:480px;
+            background:var(--k-surface);padding:2.5rem;border-radius:24px;width:90%;max-width:480px;
             text-align:center;box-shadow:0 25px 60px rgba(0,0,0,0.25);
             border-top:6px solid #f59e0b;
             animation:hrmsBoxIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
@@ -325,8 +325,8 @@ function injectStyles() {
         @keyframes hrmsBoxIn { from{transform:scale(0.85);opacity:0} to{transform:scale(1);opacity:1} }
         .hrms-warn-icon { font-size:3rem;margin-bottom:1rem; }
         .hrms-warn-box h2 { font-size:1.5rem;font-weight:800;margin-bottom:0.75rem; }
-        .hrms-warn-box p { color:#64748b;font-size:1rem;line-height:1.6;margin-bottom:1rem; }
-        .hrms-warn-meta { font-family:'Roboto Mono',monospace;font-size:0.75rem;color:#94a3b8;margin-bottom:1.5rem;background:#f8fafc;padding:8px 16px;border-radius:8px; }
+        .hrms-warn-box p { color:var(--k-muted);font-size:1rem;line-height:1.6;margin-bottom:1rem; }
+        .hrms-warn-meta { font-family:'Roboto Mono',monospace;font-size:0.75rem;color:var(--k-muted);margin-bottom:1.5rem;background:var(--k-subtle);padding:8px 16px;border-radius:8px; }
         #hrmsWarnDismiss {
             background:#0f172a;color:#fff;border:none;padding:0.85rem 2.5rem;
             border-radius:14px;font-weight:700;font-size:0.95rem;cursor:pointer;

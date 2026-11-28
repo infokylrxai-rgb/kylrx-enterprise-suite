@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="kylrx-theme-init.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Super Admin Notification & Broadcast Center | Kylrx AI Enterprise Suite">
@@ -65,7 +66,7 @@
 
         .sidebar {
             width: var(--sidebar-width);
-            background: #ffffff;
+            background: var(--k-surface);
             border-right: 1px solid var(--border);
             padding: 1.5rem 1rem 1rem;
             display: flex;
@@ -100,11 +101,11 @@
         .sidebar-bottom {
             padding-top: 0.75rem;
             margin-top: auto;
-            border-top: 1px solid #f1f5f9;
+            border-top: 1px solid var(--k-border);
             display: flex;
             flex-direction: column;
             gap: 2px;
-            background: #ffffff;
+            background: var(--k-surface);
         }
 
         .main-content {
@@ -112,7 +113,7 @@
             flex: 1;
             padding: 2rem 2rem;
             min-height: 100vh;
-            background: var(--bg-soft, #f8fafc);
+            background: var(--bg-soft, var(--k-subtle));
             overflow-y: auto;
         }
 
@@ -125,17 +126,17 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            color: #475569 !important;
+            color: var(--k-text-2) !important;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
         }
         .sidebar .nav-link:hover {
-            background: #eff6ff !important;
-            color: #2563eb !important;
+            background: var(--k-accent-soft) !important;
+            color: var(--k-accent-text) !important;
         }
         .sidebar .nav-link.active {
-            background: #eff6ff !important;
-            color: #2563eb !important;
+            background: var(--k-accent-soft) !important;
+            color: var(--k-accent-text) !important;
             font-weight: 700;
         }
         .sidebar .nav-link.active::before {
@@ -145,7 +146,7 @@
             top: 15%;
             bottom: 15%;
             width: 3.5px;
-            background: #2563eb;
+            background: var(--k-accent);
             border-radius: 0 4px 4px 0;
         }
 
@@ -157,7 +158,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: white;
+            background: var(--k-surface);
             border: 1px solid var(--border);
             border-radius: 10px;
             color: var(--text-muted);
@@ -174,7 +175,7 @@
             position: absolute;
             top: -3px;
             right: -3px;
-            background: #ef4444;
+            background: var(--k-danger);
             color: white;
             font-size: 0.7rem;
             font-weight: 800;
@@ -201,7 +202,7 @@
             border-radius: 20px;
             font-size: 0.8rem;
             font-weight: 700;
-            background: white;
+            background: var(--k-surface);
             border: 1px solid var(--border);
             color: var(--text-muted);
             cursor: pointer;
@@ -211,14 +212,14 @@
             gap: 6px;
         }
         .filter-tab:hover {
-            border-color: #93c5fd;
+            border-color: var(--k-accent-border);
             color: var(--primary);
-            background: #f0fdf4;
+            background: var(--k-success-soft);
         }
         .filter-tab.active {
-            background: #2563eb;
+            background: var(--k-accent);
             color: white;
-            border-color: #2563eb;
+            border-color: var(--k-accent);
             box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
         }
         .filter-tab .tab-count {
@@ -234,7 +235,7 @@
 
         /* Notifications Card & Items */
         .notif-card-container {
-            background: white;
+            background: var(--k-surface);
             border-radius: 20px;
             border: 1px solid var(--border);
             box-shadow: var(--shadow-sm);
@@ -242,7 +243,7 @@
         }
         .notif-item {
             padding: 1.25rem 1.5rem;
-            border-bottom: 1px solid #f1f5f9;
+            border-bottom: 1px solid var(--k-border);
             display: flex;
             gap: 1.25rem;
             align-items: flex-start;
@@ -253,11 +254,11 @@
             border-bottom: none;
         }
         .notif-item:hover {
-            background: #f8fafc;
+            background: var(--k-subtle);
         }
         .notif-item.unread {
             background: #f0f7ff;
-            border-left: 4px solid #2563eb;
+            border-left: 4px solid var(--k-accent);
         }
         .notif-icon {
             width: 44px;
@@ -291,7 +292,7 @@
         }
         .notif-desc {
             font-size: 0.875rem;
-            color: #475569;
+            color: var(--k-text-2);
             line-height: 1.5;
             margin-bottom: 8px;
         }
@@ -313,16 +314,16 @@
             text-transform: uppercase;
             letter-spacing: 0.4px;
         }
-        .tag-critical { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
+        .tag-critical { background: var(--k-danger-soft); color: var(--k-danger-text); border: 1px solid var(--k-danger-border); }
         .tag-high { background: #ffedd5; color: #ea580c; border: 1px solid #fed7aa; }
         .tag-normal { background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; }
-        .tag-success { background: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0; }
-        .tag-target { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+        .tag-success { background: var(--k-success-soft); color: var(--k-success-text); border: 1px solid var(--k-success-border); }
+        .tag-target { background: var(--k-subtle); color: var(--k-text-2); border: 1px solid var(--k-border); }
 
         /* Broadcast Button */
         .btn-broadcast {
             background: linear-gradient(135deg, #2563eb, #1d4ed8);
-            color: white;
+            color: var(--k-on-accent);
             border: none;
             padding: 8px 16px;
             border-radius: 10px;
@@ -356,7 +357,7 @@
             padding: 1rem;
         }
         .modal-card {
-            background: white;
+            background: var(--k-surface);
             border-radius: 20px;
             border: 1px solid var(--border);
             width: 100%;
@@ -379,7 +380,7 @@
         .form-label {
             font-size: 0.7rem;
             font-weight: 800;
-            color: #64748b;
+            color: var(--k-muted);
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
@@ -387,16 +388,16 @@
             width: 100%;
             padding: 10px 14px;
             border-radius: 10px;
-            border: 1px solid #cbd5e1;
+            border: 1px solid var(--k-border);
             font-family: inherit;
             font-size: 0.875rem;
             outline: none;
             transition: border-color 0.2s, box-shadow 0.2s;
-            background: white;
-            color: #0f172a;
+            background: var(--k-surface);
+            color: var(--k-text);
         }
         .form-input:focus, .form-select:focus, .form-textarea:focus {
-            border-color: #2563eb;
+            border-color: var(--k-accent);
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
         }
 
@@ -433,6 +434,10 @@
         }
         .config-sidebar.active { right: 0; }
     </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="kylrx-theme.css">
 </head>
 <body>
     <div class="dashboard-container">
@@ -537,7 +542,7 @@
 
                 <!-- Search Input -->
                 <div style="position: relative; width: 280px;">
-                    <input type="text" id="notifSearchInput" placeholder="Filter alerts or target..." style="width: 100%; padding: 8px 14px 8px 36px; border-radius: 12px; border: 1px solid var(--border); outline: none; font-family: inherit; font-size: 0.875rem; background: white;" oninput="window.applyNotifFilter()">
+                    <input type="text" id="notifSearchInput" placeholder="Filter alerts or target..." style="width: 100%; padding: 8px 14px 8px 36px; border-radius: 12px; border: 1px solid var(--border); outline: none; font-family: inherit; font-size: 0.875rem; background: var(--k-surface);" oninput="window.applyNotifFilter()">
                     <i data-lucide="search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); width: 15px; height: 15px;"></i>
                 </div>
 
@@ -553,18 +558,18 @@
                         <span class="action-icon-badge" id="headerMsgBadge"></span>
                     </button>
 
-                    <button class="action-icon" title="Notifications" onclick="window.location.href='admin-notifications.html'" style="border-color: #93c5fd; background: #eff6ff; color: #2563eb;">
+                    <button class="action-icon" title="Notifications" onclick="window.location.href='admin-notifications.html'" style="border-color: var(--k-accent-border); background: var(--k-accent-soft); color: var(--k-accent-text);">
                         <i data-lucide="bell" style="width: 18px; height: 18px;"></i>
                         <span class="action-icon-badge" id="headerNotifBadge"></span>
                     </button>
 
-                    <button class="action-icon" title="Clear All Visible Notifications" onclick="window.clearAllNotifications()" style="color: #ef4444;">
+                    <button class="action-icon" title="Clear All Visible Notifications" onclick="window.clearAllNotifications()" style="color: var(--k-danger-text);">
                         <i data-lucide="trash-2" style="width: 18px; height: 18px;"></i>
                     </button>
 
                     <!-- Super Admin Badge Pill -->
-                    <div style="display: flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 20px; background: linear-gradient(135deg, #eff6ff, #dbeafe); border: 1.5px solid #93c5fd; color: #1d4ed8; font-weight: 800; font-size: 0.7rem; letter-spacing: 0.5px;">
-                        <i data-lucide="shield-check" style="width: 14px; height: 14px; color: #2563eb;"></i>
+                    <div style="display: flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 20px; background: linear-gradient(135deg, #eff6ff, #dbeafe); border: 1.5px solid var(--k-accent-border); color: var(--k-accent-text); font-weight: 800; font-size: 0.7rem; letter-spacing: 0.5px;">
+                        <i data-lucide="shield-check" style="width: 14px; height: 14px; color: var(--k-accent-text);"></i>
                         <span>SUPER ADMIN</span>
                     </div>
 
@@ -576,7 +581,7 @@
             <!-- Page Title Section -->
             <div style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
                 <div>
-                    <h1 style="font-size: 1.875rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; color: #0f172a;">Administrative Alerts & Broadcasts</h1>
+                    <h1 style="font-size: 1.875rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; color: var(--k-text);">Administrative Alerts & Broadcasts</h1>
                     <p style="color: var(--text-muted); font-size: 0.875rem; font-weight: 500;">Monitor live system audits, employee actions, and dispatch announcements enterprise-wide</p>
                 </div>
             </div>
@@ -589,7 +594,7 @@
                     <span class="tab-count" id="countAll">0</span>
                 </button>
                 <button class="filter-tab" data-filter="critical" onclick="window.setFilter('critical', this)">
-                    <i data-lucide="alert-triangle" style="width: 14px; height: 14px; color: #ef4444;"></i>
+                    <i data-lucide="alert-triangle" style="width: 14px; height: 14px; color: var(--k-danger-text);"></i>
                     <span>Critical & High</span>
                     <span class="tab-count" id="countCritical">0</span>
                 </button>
@@ -615,7 +620,7 @@
                 <div id="notifList">
                     <!-- Loading Skeleton -->
                     <div style="padding: 2rem; text-align: center; color: var(--text-muted);">
-                        <div class="spinner" style="width: 28px; height: 28px; border: 3px solid #e2e8f0; border-top-color: #2563eb; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px;"></div>
+                        <div class="spinner" style="width: 28px; height: 28px; border: 3px solid var(--k-border); border-top-color: var(--k-accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px;"></div>
                         <p style="font-size: 0.875rem; font-weight: 600;">Connecting to enterprise notification stream...</p>
                     </div>
                 </div>
@@ -627,15 +632,15 @@
             <div class="modal-card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                     <div style="display: flex; align-items: center; gap: 10px;">
-                        <div style="width: 36px; height: 36px; border-radius: 10px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                        <div style="width: 36px; height: 36px; border-radius: 10px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center;">
                             <i data-lucide="megaphone" style="width: 20px; height: 20px;"></i>
                         </div>
                         <div>
-                            <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: #0f172a;">Broadcast Alert</h2>
-                            <p style="font-size: 0.75rem; color: #64748b; margin: 0;">Publish instantaneous alerts to staff or leadership</p>
+                            <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: var(--k-text);">Broadcast Alert</h2>
+                            <p style="font-size: 0.75rem; color: var(--k-muted); margin: 0;">Publish instantaneous alerts to staff or leadership</p>
                         </div>
                     </div>
-                    <button onclick="window.closeBroadcastModal()" style="background: none; border: none; cursor: pointer; color: #64748b; padding: 4px;">
+                    <button onclick="window.closeBroadcastModal()" style="background: none; border: none; cursor: pointer; color: var(--k-muted); padding: 4px;">
                         <i data-lucide="x" style="width: 18px; height: 18px;"></i>
                     </button>
                 </div>
@@ -681,8 +686,8 @@
                 </div>
 
                 <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 1.5rem;">
-                    <button onclick="window.closeBroadcastModal()" style="padding: 10px 18px; border-radius: 10px; border: 1px solid #cbd5e1; background: white; color: #475569; font-weight: 600; cursor: pointer; font-family: inherit;">Cancel</button>
-                    <button id="btnPublishBc" onclick="window.publishBroadcast()" style="padding: 10px 20px; border-radius: 10px; border: none; background: #2563eb; color: white; font-weight: 700; cursor: pointer; font-family: inherit; display: flex; align-items: center; gap: 8px;">
+                    <button onclick="window.closeBroadcastModal()" style="padding: 10px 18px; border-radius: 10px; border: 1px solid var(--k-border); background: var(--k-surface); color: var(--k-text-2); font-weight: 600; cursor: pointer; font-family: inherit;">Cancel</button>
+                    <button id="btnPublishBc" onclick="window.publishBroadcast()" style="padding: 10px 20px; border-radius: 10px; border: none; background: var(--k-accent); color: white; font-weight: 700; cursor: pointer; font-family: inherit; display: flex; align-items: center; gap: 8px;">
                         <i data-lucide="send" style="width: 16px; height: 16px;"></i>
                         <span>Publish Broadcast</span>
                     </button>
@@ -695,10 +700,10 @@
             <div class="modal-card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                     <div>
-                        <h2 style="font-weight: 800; font-size: 1.25rem; color: #0f172a; margin: 0;">Custom App Registry</h2>
-                        <p style="font-size: 0.75rem; color: #64748b; margin: 0;">Custom-map external tools in real time to the sidebar</p>
+                        <h2 style="font-weight: 800; font-size: 1.25rem; color: var(--k-text); margin: 0;">Custom App Registry</h2>
+                        <p style="font-size: 0.75rem; color: var(--k-muted); margin: 0;">Custom-map external tools in real time to the sidebar</p>
                     </div>
-                    <button style="background: none; border: none; cursor: pointer; color: #64748b;" onclick="document.getElementById('customAppsModal').style.display='none'"><i data-lucide="x"></i></button>
+                    <button style="background: none; border: none; cursor: pointer; color: var(--k-muted);" onclick="document.getElementById('customAppsModal').style.display='none'"><i data-lucide="x"></i></button>
                 </div>
                 
                 <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
@@ -713,8 +718,8 @@
                     <button class="btn-broadcast" style="justify-content: center; width: 100%; padding: 12px;" onclick="window.addCustomApp()">Map Tool Link</button>
                 </div>
 
-                <div style="border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
-                    <h3 style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 10px;">Mapped Connections</h3>
+                <div style="border-top: 1px solid var(--k-border); padding-top: 1.25rem;">
+                    <h3 style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase; margin-bottom: 10px;">Mapped Connections</h3>
                     <div id="registryAppsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;"></div>
                 </div>
             </div>
@@ -741,7 +746,7 @@
 
         <!-- Toast Feedback -->
         <div class="toast-notif" id="toastNotif">
-            <i data-lucide="check-circle" style="color: #10b981; width: 18px; height: 18px;"></i>
+            <i data-lucide="check-circle" style="color: var(--k-success-text); width: 18px; height: 18px;"></i>
             <span id="toastNotifText">Operation completed successfully</span>
         </div>
     </div>
@@ -849,7 +854,7 @@
             allNotifications = [];
             if (notifContainer) {
                 const safe = String(message).replace(/[<>&]/g, '');
-                notifContainer.innerHTML = `<div style="padding: 2rem 2rem; text-align: center; color: #991b1b;"><h3 style="font-weight: 700; font-size: 1rem; margin-bottom: 6px;">Could not load notifications</h3><p style="font-size: 0.875rem;">${safe}</p></div>`;
+                notifContainer.innerHTML = `<div style="padding: 2rem 2rem; text-align: center; color: var(--k-danger-text);"><h3 style="font-weight: 700; font-size: 1rem; margin-bottom: 6px;">Could not load notifications</h3><p style="font-size: 0.875rem;">${safe}</p></div>`;
             }
             if (window.showToast) window.showToast('Could not load notifications: ' + message, true);
         }
@@ -921,10 +926,10 @@
             if (filtered.length === 0) {
                 notifContainer.innerHTML = `
                     <div style="padding: 2rem 2rem; text-align: center; color: var(--text-muted);">
-                        <div style="width: 56px; height: 56px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: #94a3b8;">
+                        <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--k-subtle); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: var(--k-muted);">
                             <i data-lucide="bell-off" style="width: 28px; height: 28px;"></i>
                         </div>
-                        <h3 style="font-weight: 700; font-size: 1.125rem; color: #1e293b; margin-bottom: 4px;">No Notifications Found</h3>
+                        <h3 style="font-weight: 700; font-size: 1.125rem; color: var(--k-text); margin-bottom: 4px;">No Notifications Found</h3>
                         <p style="font-size: 0.875rem; max-width: 340px; margin: 0 auto 1.5rem;">There are no alerts matching the selected filter or search criteria.</p>
                         <button class="btn-broadcast" onclick="window.openBroadcastModal()" style="margin: 0 auto;">
                             <i data-lucide="plus" style="width: 15px; height: 15px;"></i>

@@ -193,14 +193,9 @@ async function fetchSampleEmployees() {
         // Backend offline - use resilient fallback employees
     }
     
-    // Fallback catalog
-    const fallbackEmployees = [
-        { id: 'emp_01', name: 'Aarav Sharma', role: 'Senior Full Stack Engineer', department: 'Engineering' },
-        { id: 'emp_02', name: 'Priya Nair', role: 'Product Operations Lead', department: 'Product' },
-        { id: 'emp_03', name: 'Rohan Gupta', role: 'DevOps & Cloud Specialist', department: 'Infrastructure' }
-    ];
-    state.sampleEmployees = fallbackEmployees;
-    populateEmployeeSelector(fallbackEmployees);
+    // No invented people: if the directory could not be read, the picker is empty.
+    state.sampleEmployees = [];
+    populateEmployeeSelector([]);
 }
 
 function populateEmployeeSelector(employees) {
@@ -853,7 +848,7 @@ function renderConfigPanel() {
     // Zero-Code Assurance Banner
     let formHtml = `
         <div class="no-code-indicator">
-            <i class="fas fa-shield-alt" style="color:#10b981; font-size:14px;"></i>
+            <i class="fas fa-shield-alt" style="color:var(--k-success-text); font-size:14px;"></i>
             <div>
                 <strong>HR No-Code Mode Active</strong>
                 <div style="font-size:10px; color:var(--text-muted);">Visual configuration only. No Firebase, Python, JS or API code.</div>
@@ -1234,16 +1229,16 @@ function renderConfigPanel() {
     const qCount = stageQConfig?.questions?.length || 0;
 
     formHtml += `
-        <div class="stage-question-customizer-box" style="margin-top: 16px; padding: 14px; background: #f0f7ff; border: 1.5px dashed #93c5fd; border-radius: 12px;">
+        <div class="stage-question-customizer-box" style="margin-top: 16px; padding: 14px; background: #f0f7ff; border: 1.5px dashed var(--k-accent-border); border-radius: 12px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
-                <span style="font-size: 11px; font-weight: 800; color: #1e40af; text-transform: uppercase; letter-spacing: 0.5px;">
+                <span style="font-size: 11px; font-weight: 800; color: var(--k-accent-text); text-transform: uppercase; letter-spacing: 0.5px;">
                     <i class="fas fa-clipboard-question" style="margin-right: 4px;"></i> Question Customization (PRD §9)
                 </span>
-                <span class="status-badge" style="font-size: 10px; background: #dbeafe; color: #1e40af; font-weight: 700;">
+                <span class="status-badge" style="font-size: 10px; background: var(--k-accent-soft); color: var(--k-accent-text); font-weight: 700;">
                     ${qCount} ${qCount === 1 ? 'Question' : 'Questions'}
                 </span>
             </div>
-            <p style="font-size: 11px; color: #475569; margin-bottom: 12px; line-height: 1.4;">
+            <p style="font-size: 11px; color: var(--k-text-2); margin-bottom: 12px; line-height: 1.4;">
                 Configure dynamic questions, prompts, response types, ratings, and options for this stage without altering workflow routing.
             </p>
             <button type="button" class="btn btn-primary" style="width: 100%; font-size: 12px; padding: 8px 12px; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="window.openQuestionCustomizationDrawer('${node.id}')">
@@ -1259,19 +1254,19 @@ function renderConfigPanel() {
     const aActionType = stageAConfig?.automationConfig?.actionType || stageAConfig?.actionType || 'NOTIFY_AND_ROUTE';
 
     formHtml += `
-        <div class="stage-automation-customizer-box" style="margin-top: 14px; padding: 14px; background: #f0fdf4; border: 1.5px dashed #86efac; border-radius: 12px;">
+        <div class="stage-automation-customizer-box" style="margin-top: 14px; padding: 14px; background: var(--k-success-soft); border: 1.5px dashed var(--k-success-border); border-radius: 12px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
-                <span style="font-size: 11px; font-weight: 800; color: #166534; text-transform: uppercase; letter-spacing: 0.5px;">
+                <span style="font-size: 11px; font-weight: 800; color: var(--k-success-text); text-transform: uppercase; letter-spacing: 0.5px;">
                     <i class="fas fa-bolt" style="margin-right: 4px;"></i> Automation Integration (PRD §12)
                 </span>
-                <span class="status-badge" style="font-size: 10px; background: ${hasAutomation ? '#dcfce7' : '#f1f5f9'}; color: ${hasAutomation ? '#15803d' : '#64748b'}; font-weight: 700;">
+                <span class="status-badge" style="font-size: 10px; background: ${hasAutomation ? 'var(--k-success-soft)' : 'var(--k-subtle)'}; color: ${hasAutomation ? 'var(--k-success-text)' : 'var(--k-muted)'}; font-weight: 700;">
                     ${hasAutomation ? escapeHtml(aActionType) : 'None'}
                 </span>
             </div>
-            <p style="font-size: 11px; color: #166534; margin-bottom: 12px; line-height: 1.4;">
+            <p style="font-size: 11px; color: var(--k-success-text); margin-bottom: 12px; line-height: 1.4;">
                 Configure targeted automation actions, alert triggers, L1/L2 approval routing, payload templates, and SLA rules.
             </p>
-            <button type="button" class="btn btn-outline" style="width: 100%; font-size: 12px; padding: 8px 12px; display: flex; align-items: center; justify-content: center; gap: 8px; border-color: #86efac; color: #15803d; background: #ffffff; font-weight: 700;" onclick="window.openAutomationDrawer('${node.id}')">
+            <button type="button" class="btn btn-outline" style="width: 100%; font-size: 12px; padding: 8px 12px; display: flex; align-items: center; justify-content: center; gap: 8px; border-color: var(--k-success-border); color: var(--k-success-text); background: var(--k-surface); font-weight: 700;" onclick="window.openAutomationDrawer('${node.id}')">
                 <i class="fas fa-bolt"></i> ${hasAutomation ? 'Edit Stage Automation' : 'Configure Automation'}
             </button>
         </div>
@@ -2717,7 +2712,7 @@ window.renderDrawerQuestionsList = function() {
 
     if (questionState.stagedQuestions.length === 0) {
         container.innerHTML = `
-            <div style="text-align:center; padding: 24px; color: var(--text-muted); font-size: 12px; background: #ffffff; border: 1px dashed #cbd5e1; border-radius: 10px;">
+            <div style="text-align:center; padding: 24px; color: var(--text-muted); font-size: 12px; background: var(--k-surface); border: 1px dashed var(--k-border); border-radius: 10px;">
                 <i class="fas fa-clipboard-question" style="font-size: 28px; color: #93c5fd; margin-bottom: 8px; display:block;"></i>
                 No questions configured yet for this stage.<br>
                 Use the form above to add a question or choose an Enterprise Preset.
@@ -2740,7 +2735,7 @@ window.renderDrawerQuestionsList = function() {
 
         let metaHtml = '';
         if (q.placeholder) {
-            metaHtml += `<div style="font-style:italic; color:#64748b; margin-top:2px;">Placeholder: "${escapeHtml(q.placeholder)}"</div>`;
+            metaHtml += `<div style="font-style:italic; color:var(--k-muted); margin-top:2px;">Placeholder: "${escapeHtml(q.placeholder)}"</div>`;
         }
         if (q.options && q.options.length > 0) {
             metaHtml += `<div style="margin-top:4px; display:flex; flex-wrap:wrap; gap:4px;">
@@ -2756,7 +2751,7 @@ window.renderDrawerQuestionsList = function() {
                     <span class="qd-q-req-badge ${q.required ? 'qd-req-yes' : 'qd-req-no'}">
                         ${q.required ? '* MANDATORY' : 'OPTIONAL'}
                     </span>
-                    <span style="font-size:10px; color:#94a3b8; font-family:monospace;">${q.questionId}</span>
+                    <span style="font-size:10px; color:var(--k-muted); font-family:monospace;">${q.questionId}</span>
                 </div>
                 <div class="qd-q-prompt">${escapeHtml(q.prompt)}</div>
                 ${metaHtml}
@@ -2792,7 +2787,7 @@ window.renderQuestionLivePreview = function() {
     container.innerHTML = '';
 
     if (questionState.stagedQuestions.length === 0) {
-        container.innerHTML = '<div style="text-align:center; padding: 20px; color:#64748b; font-size:12px;">No questions to preview. Add questions in the Question Builder tab.</div>';
+        container.innerHTML = '<div style="text-align:center; padding: 20px; color:var(--k-muted); font-size:12px;">No questions to preview. Add questions in the Question Builder tab.</div>';
         return;
     }
 
@@ -2801,9 +2796,9 @@ window.renderQuestionLivePreview = function() {
         itemWrap.className = 'qd-preview-field-group';
 
         const labelHtml = `
-            <label style="display:block; font-size:12px; font-weight:700; color:#0f172a; margin-bottom: 6px;">
+            <label style="display:block; font-size:12px; font-weight:700; color:var(--k-text); margin-bottom: 6px;">
                 ${idx + 1}. ${escapeHtml(q.prompt)}
-                ${q.required ? '<span style="color:#ef4444; margin-left:3px;">*</span>' : '<span style="font-weight:400; font-size:10.5px; color:#64748b; margin-left:4px;">(Optional)</span>'}
+                ${q.required ? '<span style="color:var(--k-danger-text); margin-left:3px;">*</span>' : '<span style="font-weight:400; font-size:10.5px; color:var(--k-muted); margin-left:4px;">(Optional)</span>'}
             </label>
         `;
 
@@ -2820,7 +2815,7 @@ window.renderQuestionLivePreview = function() {
             }
             controlHtml = `
                 <div class="qd-sim-rating-grid">${ratingButtons}</div>
-                <div style="font-size:10.5px; color:#64748b; margin-top:4px;">${escapeHtml(q.placeholder || `Rating on a 1 to ${scaleCount} scale`)}</div>
+                <div style="font-size:10.5px; color:var(--k-muted); margin-top:4px;">${escapeHtml(q.placeholder || `Rating on a 1 to ${scaleCount} scale`)}</div>
             `;
         } else if (q.type === 'select') {
             const optionsHtml = (q.options && q.options.length > 0)
@@ -2835,9 +2830,9 @@ window.renderQuestionLivePreview = function() {
         } else if (q.type === 'multiselect') {
             const options = q.options && q.options.length > 0 ? q.options : ['Option 1', 'Option 2'];
             controlHtml = `
-                <div style="display:flex; flex-direction:column; gap:6px; background:#f8fafc; padding:10px; border-radius:8px; border:1px solid #e2e8f0;">
+                <div style="display:flex; flex-direction:column; gap:6px; background:var(--k-subtle); padding:10px; border-radius:8px; border:1px solid var(--k-border);">
                     ${options.map((opt, oIdx) => `
-                        <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:#334155; cursor:pointer;">
+                        <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:var(--k-text-2); cursor:pointer;">
                             <input type="checkbox" style="cursor:pointer;" />
                             <span>${escapeHtml(opt)}</span>
                         </label>
@@ -2849,7 +2844,7 @@ window.renderQuestionLivePreview = function() {
                 <div class="qd-sim-file-drop">
                     <i class="fas fa-cloud-arrow-up" style="font-size:22px; margin-bottom:4px; display:block;"></i>
                     <strong style="font-size:12px;">Click to browse or drag & drop documents</strong>
-                    <div style="font-size:10.5px; color:#64748b; margin-top:2px;">${escapeHtml(q.placeholder || 'Supported formats: PDF, DOCX, PNG, JPG (Max 25MB)')}</div>
+                    <div style="font-size:10.5px; color:var(--k-muted); margin-top:2px;">${escapeHtml(q.placeholder || 'Supported formats: PDF, DOCX, PNG, JPG (Max 25MB)')}</div>
                 </div>
             `;
         }
@@ -2875,17 +2870,17 @@ window.renderPresetsList = function() {
         card.innerHTML = `
             <div class="qd-preset-header">
                 <div class="qd-preset-title">
-                    <i class="fas ${preset.icon}" style="color: #2563eb;"></i>
+                    <i class="fas ${preset.icon}" style="color: var(--k-accent-text);"></i>
                     ${escapeHtml(preset.title)}
                 </div>
-                <button type="button" class="btn btn-outline" style="padding: 2px 8px; font-size: 10.5px; border-color:#93c5fd; color:#2563eb;">
+                <button type="button" class="btn btn-outline" style="padding: 2px 8px; font-size: 10.5px; border-color:var(--k-accent-border); color:var(--k-accent-text);">
                     Apply Preset
                 </button>
             </div>
             <div class="qd-preset-desc">${escapeHtml(preset.desc)}</div>
             <div class="qd-preset-tags">
-                <span class="qd-chip" style="font-size:10px; background:#eff6ff; color:#1d4ed8;">${preset.questions.length} Questions</span>
-                ${preset.tags.map(t => `<span class="qd-chip" style="font-size:10px; background:#f1f5f9; color:#475569; border-color:#e2e8f0;">${t}</span>`).join('')}
+                <span class="qd-chip" style="font-size:10px; background:var(--k-accent-soft); color:var(--k-accent-text);">${preset.questions.length} Questions</span>
+                ${preset.tags.map(t => `<span class="qd-chip" style="font-size:10px; background:var(--k-subtle); color:var(--k-text-2); border-color:var(--k-border);">${t}</span>`).join('')}
             </div>
         `;
         container.appendChild(card);

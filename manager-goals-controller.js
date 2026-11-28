@@ -162,8 +162,8 @@
                 if (Array.isArray(parsed) && parsed.length > 0) return parsed;
             }
         } catch (e) {}
-        saveLocalGoals(SEED_GOALS);
-        return [...SEED_GOALS];
+        // Nothing saved means no goals yet, not someone else's goals.
+        return [];
     }
 
     function saveLocalGoals(goals) {
@@ -307,19 +307,19 @@
 
         if (state.filteredGoals.length === 0) {
             container.innerHTML = `
-                <div style="grid-column: 1 / -1; background: white; border: 1.5px dashed var(--border, #e2e8f0); border-radius: 20px; padding: 3rem 1.5rem; text-align: center;">
-                    <div style="width: 54px; height: 54px; border-radius: 16px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                <div style="grid-column: 1 / -1; background: var(--k-surface); border: 1.5px dashed var(--border, var(--k-border)); border-radius: 20px; padding: 3rem 1.5rem; text-align: center;">
+                    <div style="width: 54px; height: 54px; border-radius: 16px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
                         <i data-lucide="target" style="width: 28px; height: 28px;"></i>
                     </div>
-                    <h3 style="font-size: 1.1rem; font-weight: 800; color: #0f172a; margin-bottom: 6px;">No Strategic Goals Found</h3>
-                    <p style="font-size: 0.85rem; color: #64748b; max-width: 420px; margin: 0 auto 1.5rem;">
+                    <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--k-text); margin-bottom: 6px;">No Strategic Goals Found</h3>
+                    <p style="font-size: 0.85rem; color: var(--k-muted); max-width: 420px; margin: 0 auto 1.5rem;">
                         No goals match the selected filter criteria. You can create your own goal or choose an existing template to get started.
                     </p>
                     <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-                        <button onclick="window.openCreateGoalModal()" class="alert-btn" style="background: var(--primary, #2563eb); color: white; width: auto; padding: 10px 20px; margin: 0;">
+                        <button onclick="window.openCreateGoalModal()" class="alert-btn" style="background: var(--primary, var(--k-accent)); color: white; width: auto; padding: 10px 20px; margin: 0;">
                             + Create First Goal
                         </button>
-                        <button onclick="window.openTemplatePickerModal('goals')" class="alert-btn" style="background: #f1f5f9; color: #334155; width: auto; padding: 10px 20px; margin: 0;">
+                        <button onclick="window.openTemplatePickerModal('goals')" class="alert-btn" style="background: var(--k-subtle); color: var(--k-text-2); width: auto; padding: 10px 20px; margin: 0;">
                             Browse Goal Templates
                         </button>
                     </div>
@@ -346,11 +346,11 @@
                 const now = new Date();
                 const diffDays = Math.ceil((target - now) / (1000 * 60 * 60 * 24));
                 if (goal.status === 'completed') {
-                    scheduleBadge = `<span style="font-size: 0.72rem; color: #16a34a; font-weight: 700;">Completed on schedule</span>`;
+                    scheduleBadge = `<span style="font-size: 0.72rem; color: var(--k-success-text); font-weight: 700;">Completed on schedule</span>`;
                 } else if (diffDays < 0) {
-                    scheduleBadge = `<span style="font-size: 0.72rem; color: #dc2626; font-weight: 800;">${Math.abs(diffDays)}d overdue</span>`;
+                    scheduleBadge = `<span style="font-size: 0.72rem; color: var(--k-danger-text); font-weight: 800;">${Math.abs(diffDays)}d overdue</span>`;
                 } else {
-                    scheduleBadge = `<span style="font-size: 0.72rem; color: #2563eb; font-weight: 700;">${diffDays} days remaining</span>`;
+                    scheduleBadge = `<span style="font-size: 0.72rem; color: var(--k-accent-text); font-weight: 700;">${diffDays} days remaining</span>`;
                 }
             }
 
@@ -358,11 +358,11 @@
             const completedMilestones = milestones.filter(m => m.completed).length;
 
             return `
-                <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.2s, box-shadow 0.2s; position: relative; border-top: 4px solid ${goal.status === 'completed' ? '#10b981' : (goal.status === 'paused' ? '#f59e0b' : 'var(--primary, #2563eb)')};">
+                <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.2s, box-shadow 0.2s; position: relative; border-top: 4px solid ${goal.status === 'completed' ? '#10b981' : (goal.status === 'paused' ? '#f59e0b' : 'var(--primary, var(--k-accent))')};">
                     <div>
                         <!-- Header Badges -->
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; gap: 8px;">
-                            <span style="font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; background: #f8fafc; color: #475569; padding: 4px 8px; border-radius: 8px; border: 1px solid var(--border);">
+                            <span style="font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; background: var(--k-subtle); color: var(--k-text-2); padding: 4px 8px; border-radius: 8px; border: 1px solid var(--border);">
                                 ${goal.category || 'Strategic Goal'}
                             </span>
                             <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.7rem; font-weight: 800; background: ${statusConfig.bg}; color: ${statusConfig.color}; padding: 4px 10px; border-radius: 20px;">
@@ -372,26 +372,26 @@
                         </div>
 
                         <!-- Title & Outcome -->
-                        <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main, #0f172a); margin: 0 0 8px; line-height: 1.35;">
+                        <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main, var(--k-text)); margin: 0 0 8px; line-height: 1.35;">
                             ${escapeHtml(goal.title)}
                         </h3>
-                        <p style="font-size: 0.82rem; color: var(--text-muted, #64748b); line-height: 1.5; margin: 0 0 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                        <p style="font-size: 0.82rem; color: var(--text-muted, var(--k-muted)); line-height: 1.5; margin: 0 0 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
                             <strong>Outcome:</strong> ${escapeHtml(goal.outcome || goal.description || 'No outcome statement defined.')}
                         </p>
 
                         <!-- Measurement & Target Metric Box -->
-                        <div style="background: #f8fafc; border: 1px solid var(--border, #e2e8f0); border-radius: 12px; padding: 12px; margin-bottom: 14px;">
+                        <div style="background: var(--k-subtle); border: 1px solid var(--border, var(--k-border)); border-radius: 12px; padding: 12px; margin-bottom: 14px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                                <span style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: #64748b;">
+                                <span style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: var(--k-muted);">
                                     Measurement (${goal.measurement?.method || 'Target'})
                                 </span>
-                                <span style="font-size: 0.95rem; font-weight: 800; color: var(--primary, #2563eb);">
-                                    ${goal.measurement?.current !== undefined ? goal.measurement.current : '--'} / ${goal.measurement?.target || 100} <span style="font-size: 0.75rem; color: #64748b;">${goal.measurement?.unit || '%'}</span>
+                                <span style="font-size: 0.95rem; font-weight: 800; color: var(--primary, var(--k-accent-text));">
+                                    ${goal.measurement?.current !== undefined ? goal.measurement.current : '--'} / ${goal.measurement?.target || 100} <span style="font-size: 0.75rem; color: var(--k-muted);">${goal.measurement?.unit || '%'}</span>
                                 </span>
                             </div>
                             ${goal.measurement?.completionCriteria ? `
-                                <div style="font-size: 0.75rem; color: #475569; line-height: 1.4; border-top: 1px dashed var(--border); padding-top: 6px; margin-top: 4px;">
-                                    <span style="font-weight: 700; color: #334155;">Criteria:</span> ${escapeHtml(goal.measurement.completionCriteria)}
+                                <div style="font-size: 0.75rem; color: var(--k-text-2); line-height: 1.4; border-top: 1px dashed var(--border); padding-top: 6px; margin-top: 4px;">
+                                    <span style="font-weight: 700; color: var(--k-text-2);">Criteria:</span> ${escapeHtml(goal.measurement.completionCriteria)}
                                 </div>
                             ` : ''}
                         </div>
@@ -399,14 +399,14 @@
                         <!-- Progress Bar & Slider Controller -->
                         <div style="margin-bottom: 14px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                                <span style="font-size: 0.72rem; font-weight: 800; color: #475569; text-transform: uppercase;">Overall Progress</span>
-                                <span style="font-size: 0.85rem; font-weight: 800; color: ${goal.progress >= 100 ? '#10b981' : 'var(--primary, #2563eb)'};">${goal.progress || 0}%</span>
+                                <span style="font-size: 0.72rem; font-weight: 800; color: var(--k-text-2); text-transform: uppercase;">Overall Progress</span>
+                                <span style="font-size: 0.85rem; font-weight: 800; color: ${goal.progress >= 100 ? 'var(--k-success-text)' : 'var(--primary, var(--k-accent-text))'};">${goal.progress || 0}%</span>
                             </div>
-                            <div style="width: 100%; height: 8px; background: #e2e8f0; border-radius: 100px; overflow: hidden; margin-bottom: 6px;">
-                                <div style="width: ${goal.progress || 0}%; height: 100%; background: ${goal.progress >= 100 ? '#10b981' : (goal.status === 'paused' ? '#f59e0b' : 'var(--primary, #2563eb)')}; border-radius: 100px; transition: width 0.3s ease;"></div>
+                            <div style="width: 100%; height: 8px; background: var(--k-border); border-radius: 100px; overflow: hidden; margin-bottom: 6px;">
+                                <div style="width: ${goal.progress || 0}%; height: 100%; background: ${goal.progress >= 100 ? 'var(--k-success)' : (goal.status === 'paused' ? 'var(--k-warning)' : 'var(--primary, var(--k-accent))')}; border-radius: 100px; transition: width 0.3s ease;"></div>
                             </div>
                             <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <button onclick="window.openUpdateProgressModal('${goal.id}')" style="background: none; border: none; padding: 0; color: var(--primary, #2563eb); font-size: 0.72rem; font-weight: 700; cursor: pointer; text-decoration: underline;">
+                                <button onclick="window.openUpdateProgressModal('${goal.id}')" style="background: none; border: none; padding: 0; color: var(--primary, var(--k-accent-text)); font-size: 0.72rem; font-weight: 700; cursor: pointer; text-decoration: underline;">
                                     Quick Check-in / Log Progress
                                 </button>
                                 ${scheduleBadge}
@@ -415,15 +415,15 @@
 
                         <!-- Milestones Checklist (PRD 1.1 Measure) -->
                         ${milestones.length > 0 ? `
-                            <div style="margin-bottom: 14px; border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; background: white;">
+                            <div style="margin-bottom: 14px; border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; background: var(--k-surface);">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                    <span style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: #64748b;">
+                                    <span style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: var(--k-muted);">
                                         Milestones Checklist (${completedMilestones}/${milestones.length})
                                     </span>
                                 </div>
                                 <div style="display: flex; flex-direction: column; gap: 6px; max-height: 120px; overflow-y: auto;">
                                     ${milestones.map(m => `
-                                        <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 0.78rem; cursor: pointer; color: ${m.completed ? '#94a3b8' : '#1e293b'}; text-decoration: ${m.completed ? 'line-through' : 'none'};">
+                                        <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 0.78rem; cursor: pointer; color: ${m.completed ? 'var(--k-muted)' : 'var(--k-text)'}; text-decoration: ${m.completed ? 'line-through' : 'none'};">
                                             <input type="checkbox" ${m.completed ? 'checked' : ''} onchange="window.toggleGoalMilestone('${goal.id}', '${m.id}')" style="margin-top: 2px; accent-color: var(--primary, #2563eb); cursor: pointer;">
                                             <span style="flex: 1;">${escapeHtml(m.title)}</span>
                                         </label>
@@ -433,7 +433,7 @@
                         ` : ''}
 
                         <!-- Schedule & Owner Details -->
-                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: #64748b; margin-bottom: 1rem; border-top: 1px solid var(--border); padding-top: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: var(--k-muted); margin-bottom: 1rem; border-top: 1px solid var(--border); padding-top: 10px;">
                             <span><strong>Start:</strong> ${goal.schedule?.startDate || '—'}</span>
                             <span><strong>Target:</strong> ${goal.schedule?.targetCompletionDate || '—'}</span>
                             <span><strong>Owner:</strong> ${escapeHtml(goal.owner?.name || 'Manager')}</span>
@@ -442,42 +442,42 @@
 
                     <!-- Manage Actions Bar (PRD 1.1 Manage: edited, paused, completed, archived, history) -->
                     <div style="display: flex; gap: 6px; border-top: 1px solid var(--border); padding-top: 12px; flex-wrap: wrap;">
-                        <button onclick="window.openEditGoalModal('${goal.id}')" class="btn-ghost" title="Edit Goal Details" style="flex: 1; min-width: 60px; height: 36px; border-radius: 10px; border: 1px solid var(--border); background: white; font-size: 0.75rem; font-weight: 700; color: #334155; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                        <button onclick="window.openEditGoalModal('${goal.id}')" class="btn-ghost" title="Edit Goal Details" style="flex: 1; min-width: 60px; height: 36px; border-radius: 10px; border: 1px solid var(--border); background: var(--k-surface); font-size: 0.75rem; font-weight: 700; color: var(--k-text-2); display: flex; align-items: center; justify-content: center; gap: 4px;">
                             <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i>
                             <span>Edit</span>
                         </button>
 
                         ${goal.status === 'paused' ? `
-                            <button onclick="window.executeGoalAction('${goal.id}', 'resume')" class="btn-ghost" title="Resume Goal" style="flex: 1; min-width: 70px; height: 36px; border-radius: 10px; border: 1px solid #bbf7d0; background: #f0fdf4; font-size: 0.75rem; font-weight: 700; color: #15803d; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                            <button onclick="window.executeGoalAction('${goal.id}', 'resume')" class="btn-ghost" title="Resume Goal" style="flex: 1; min-width: 70px; height: 36px; border-radius: 10px; border: 1px solid var(--k-success-border); background: var(--k-success-soft); font-size: 0.75rem; font-weight: 700; color: var(--k-success-text); display: flex; align-items: center; justify-content: center; gap: 4px;">
                                 <i data-lucide="play" style="width: 14px; height: 14px;"></i>
                                 <span>Resume</span>
                             </button>
                         ` : (goal.status !== 'completed' && goal.status !== 'archived' ? `
-                            <button onclick="window.promptPauseGoal('${goal.id}')" class="btn-ghost" title="Pause Goal Execution" style="flex: 1; min-width: 70px; height: 36px; border-radius: 10px; border: 1px solid #fed7aa; background: #fffbeb; font-size: 0.75rem; font-weight: 700; color: #b45309; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                            <button onclick="window.promptPauseGoal('${goal.id}')" class="btn-ghost" title="Pause Goal Execution" style="flex: 1; min-width: 70px; height: 36px; border-radius: 10px; border: 1px solid #fed7aa; background: var(--k-warning-soft); font-size: 0.75rem; font-weight: 700; color: var(--k-warning-text); display: flex; align-items: center; justify-content: center; gap: 4px;">
                                 <i data-lucide="pause" style="width: 14px; height: 14px;"></i>
                                 <span>Pause</span>
                             </button>
                         ` : '')}
 
                         ${goal.status !== 'completed' && goal.status !== 'archived' ? `
-                            <button onclick="window.executeGoalAction('${goal.id}', 'complete')" class="btn-ghost" title="Mark Goal as Completed" style="flex: 1; min-width: 75px; height: 36px; border-radius: 10px; border: 1px solid #bfdbfe; background: #eff6ff; font-size: 0.75rem; font-weight: 700; color: #2563eb; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                            <button onclick="window.executeGoalAction('${goal.id}', 'complete')" class="btn-ghost" title="Mark Goal as Completed" style="flex: 1; min-width: 75px; height: 36px; border-radius: 10px; border: 1px solid var(--k-accent-border); background: var(--k-accent-soft); font-size: 0.75rem; font-weight: 700; color: var(--k-accent-text); display: flex; align-items: center; justify-content: center; gap: 4px;">
                                 <i data-lucide="check" style="width: 14px; height: 14px;"></i>
                                 <span>Complete</span>
                             </button>
                         ` : ''}
 
                         ${goal.status !== 'archived' ? `
-                            <button onclick="window.executeGoalAction('${goal.id}', 'archive')" class="btn-ghost" title="Archive Goal" style="width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border); background: white; color: #64748b; display: flex; align-items: center; justify-content: center;">
+                            <button onclick="window.executeGoalAction('${goal.id}', 'archive')" class="btn-ghost" title="Archive Goal" style="width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border); background: var(--k-surface); color: var(--k-muted); display: flex; align-items: center; justify-content: center;">
                                 <i data-lucide="archive" style="width: 14px; height: 14px;"></i>
                             </button>
                         ` : `
-                            <button onclick="window.executeGoalAction('${goal.id}', 'resume')" class="btn-ghost" title="Restore Goal" style="flex: 1; height: 36px; border-radius: 10px; border: 1px solid var(--border); background: white; font-size: 0.75rem; font-weight: 700; color: #2563eb; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                            <button onclick="window.executeGoalAction('${goal.id}', 'resume')" class="btn-ghost" title="Restore Goal" style="flex: 1; height: 36px; border-radius: 10px; border: 1px solid var(--border); background: var(--k-surface); font-size: 0.75rem; font-weight: 700; color: var(--k-accent-text); display: flex; align-items: center; justify-content: center; gap: 4px;">
                                 <i data-lucide="rotate-ccw" style="width: 14px; height: 14px;"></i>
                                 <span>Restore</span>
                             </button>
                         `}
 
-                        <button onclick="window.openGoalHistoryModal('${goal.id}')" class="btn-ghost" title="View Full Audit History Trail" style="width: 36px; height: 36px; border-radius: 10px; border: 1px solid #cbd5e1; background: #f8fafc; color: #0f172a; display: flex; align-items: center; justify-content: center;">
+                        <button onclick="window.openGoalHistoryModal('${goal.id}')" class="btn-ghost" title="View Full Audit History Trail" style="width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--k-border); background: var(--k-subtle); color: var(--k-text); display: flex; align-items: center; justify-content: center;">
                             <i data-lucide="history" style="width: 14px; height: 14px;"></i>
                         </button>
                     </div>
@@ -536,15 +536,15 @@
 
         if (state.filteredTemplates.length === 0) {
             container.innerHTML = `
-                <div style="grid-column: 1 / -1; background: white; border: 1.5px dashed var(--border, #e2e8f0); border-radius: 20px; padding: 3rem 1.5rem; text-align: center;">
-                    <div style="width: 54px; height: 54px; border-radius: 16px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                <div style="grid-column: 1 / -1; background: var(--k-surface); border: 1.5px dashed var(--border, var(--k-border)); border-radius: 20px; padding: 3rem 1.5rem; text-align: center;">
+                    <div style="width: 54px; height: 54px; border-radius: 16px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
                         <i data-lucide="layout-template" style="width: 28px; height: 28px;"></i>
                     </div>
-                    <h3 style="font-size: 1.1rem; font-weight: 800; color: #0f172a; margin-bottom: 6px;">No Module Templates Found</h3>
-                    <p style="font-size: 0.85rem; color: #64748b; max-width: 440px; margin: 0 auto 1.5rem;">
+                    <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--k-text); margin-bottom: 6px;">No Module Templates Found</h3>
+                    <p style="font-size: 0.85rem; color: var(--k-muted); max-width: 440px; margin: 0 auto 1.5rem;">
                         No templates match the selected module, scope, or status criteria. Shared templates can be provided by administrators, and managers can create personal copies anytime.
                     </p>
-                    <button onclick="window.openCreateTemplateModal()" class="alert-btn" style="background: var(--primary, #2563eb); color: white; width: auto; padding: 10px 20px; margin: 0 auto;">
+                    <button onclick="window.openCreateTemplateModal()" class="alert-btn" style="background: var(--primary, var(--k-accent)); color: white; width: auto; padding: 10px 20px; margin: 0 auto;">
                         + Create New Template
                     </button>
                 </div>
@@ -561,7 +561,7 @@
             // Scope Badge
             const scopeBadge = isPersonal
                 ? `<span style="background: #fdf4ff; color: #9333ea; border: 1px solid #f0abfc; font-size: 0.65rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; text-transform: uppercase;">Personal Copy (${escapeHtml(tpl.ownerName || 'Manager')})</span>`
-                : `<span style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; font-size: 0.65rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; text-transform: uppercase;">Shared Admin Template</span>`;
+                : `<span style="background: var(--k-accent-soft); color: var(--k-accent-text); border: 1px solid var(--k-accent-border); font-size: 0.65rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; text-transform: uppercase;">Shared Admin Template</span>`;
 
             // Status Badge and Expected Behavior note (PRD 1.3)
             let statusBadge = '';
@@ -573,12 +573,12 @@
                 behaviorNote = `<div style="font-size: 0.72rem; color: #be123c; font-weight: 700; margin-top: 4px;">• Retained for history; unavailable for new use</div>`;
                 borderAccent = '#e11d48';
             } else if (isDraft) {
-                statusBadge = `<span style="background: #fef3c7; color: #b45309; border: 1px solid #fde68a; font-size: 0.68rem; font-weight: 800; padding: 3px 8px; border-radius: 20px; text-transform: uppercase;">Draft (${tpl.version})</span>`;
-                behaviorNote = `<div style="font-size: 0.72rem; color: #b45309; font-weight: 700; margin-top: 4px;">• Editable; not available for general use</div>`;
+                statusBadge = `<span style="background: var(--k-warning-soft); color: var(--k-warning-text); border: 1px solid var(--k-warning-border); font-size: 0.68rem; font-weight: 800; padding: 3px 8px; border-radius: 20px; text-transform: uppercase;">Draft (${tpl.version})</span>`;
+                behaviorNote = `<div style="font-size: 0.72rem; color: var(--k-warning-text); font-weight: 700; margin-top: 4px;">• Editable; not available for general use</div>`;
                 borderAccent = '#f59e0b';
             } else {
-                statusBadge = `<span style="background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; font-size: 0.68rem; font-weight: 800; padding: 3px 8px; border-radius: 20px; text-transform: uppercase;">Published (${tpl.version})</span>`;
-                behaviorNote = `<div style="font-size: 0.72rem; color: #166534; font-weight: 700; margin-top: 4px;">• Available to permitted users</div>`;
+                statusBadge = `<span style="background: var(--k-success-soft); color: var(--k-success-text); border: 1px solid var(--k-success-border); font-size: 0.68rem; font-weight: 800; padding: 3px 8px; border-radius: 20px; text-transform: uppercase;">Published (${tpl.version})</span>`;
+                behaviorNote = `<div style="font-size: 0.72rem; color: var(--k-success-text); font-weight: 700; margin-top: 4px;">• Available to permitted users</div>`;
                 borderAccent = '#10b981';
             }
 
@@ -590,7 +590,7 @@
                 <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; border-top: 4px solid ${borderAccent};">
                     <div>
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <span style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; background: #f8fafc; color: #475569; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--border);">
+                            <span style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; background: var(--k-subtle); color: var(--k-text-2); padding: 3px 8px; border-radius: 6px; border: 1px solid var(--border);">
                                 Module: ${tpl.module.toUpperCase()}
                             </span>
                             ${statusBadge}
@@ -600,22 +600,22 @@
                             ${scopeBadge}
                         </div>
 
-                        <h3 style="font-size: 1.1rem; font-weight: 800; color: #0f172a; margin: 0 0 6px;">
+                        <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--k-text); margin: 0 0 6px;">
                             ${escapeHtml(tpl.name)}
                         </h3>
-                        <p style="font-size: 0.8rem; color: #64748b; line-height: 1.4; margin: 0 0 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                        <p style="font-size: 0.8rem; color: var(--k-muted); line-height: 1.4; margin: 0 0 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
                             ${escapeHtml(tpl.description || 'Standard module template.')}
                         </p>
 
                         ${behaviorNote}
 
                         <!-- Permitted Fields & Instructions Preview Box -->
-                        <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; margin: 10px 0 12px;">
-                            <div style="display: flex; justify-content: space-between; font-size: 0.72rem; font-weight: 700; color: #334155; margin-bottom: 4px;">
-                                <span>Permitted Fields: <strong style="color: #2563eb;">${permittedCount} Editable</strong></span>
-                                <span>Locked: <strong style="color: #64748b;">${lockedCount}</strong></span>
+                        <div style="background: var(--k-subtle); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; margin: 10px 0 12px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.72rem; font-weight: 700; color: var(--k-text-2); margin-bottom: 4px;">
+                                <span>Permitted Fields: <strong style="color: var(--k-accent-text);">${permittedCount} Editable</strong></span>
+                                <span>Locked: <strong style="color: var(--k-muted);">${lockedCount}</strong></span>
                             </div>
-                            <p style="font-size: 0.75rem; color: #64748b; margin: 0; font-style: italic;">
+                            <p style="font-size: 0.75rem; color: var(--k-muted); margin: 0; font-style: italic;">
                                 " ${escapeHtml(tpl.instructions || 'Standard instructions for permitted fields.')} "
                             </p>
                         </div>
@@ -628,25 +628,25 @@
                                 🔒 Retained for History — Unavailable for New Records
                             </div>
                             <div style="display: flex; gap: 6px;">
-                                <button onclick="window.openTemplateVersionHistoryModal('${tpl.id}')" class="btn-ghost" title="View Version Snapshots" style="flex: 1; border: 1px solid var(--border); background: white; padding: 8px 12px; border-radius: 10px; font-size: 0.78rem; font-weight: 700; color: #334155; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                                <button onclick="window.openTemplateVersionHistoryModal('${tpl.id}')" class="btn-ghost" title="View Version Snapshots" style="flex: 1; border: 1px solid var(--border); background: var(--k-surface); padding: 8px 12px; border-radius: 10px; font-size: 0.78rem; font-weight: 700; color: var(--k-text-2); display: flex; align-items: center; justify-content: center; gap: 4px;">
                                     <i data-lucide="git-branch" style="width: 14px; height: 14px;"></i>
                                     <span>Version History (${tpl.versions?.length || 1})</span>
                                 </button>
-                                <button onclick="window.openTemplatePreviewModal('${tpl.id}')" class="btn-ghost" title="Live Preview" style="border: 1px solid var(--border); background: white; padding: 8px 12px; border-radius: 10px; font-size: 0.78rem; font-weight: 700; color: #334155;">
+                                <button onclick="window.openTemplatePreviewModal('${tpl.id}')" class="btn-ghost" title="Live Preview" style="border: 1px solid var(--border); background: var(--k-surface); padding: 8px 12px; border-radius: 10px; font-size: 0.78rem; font-weight: 700; color: var(--k-text-2);">
                                     Preview
                                 </button>
                             </div>
                         ` : `
                             <div style="display: flex; gap: 6px;">
-                                <button onclick="window.useTemplateToCreateGoal('${tpl.id}')" class="alert-btn" style="background: var(--primary, #2563eb); color: white; margin: 0; padding: 8px 12px; font-size: 0.78rem; flex: 2; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                                <button onclick="window.useTemplateToCreateGoal('${tpl.id}')" class="alert-btn" style="background: var(--primary, var(--k-accent)); color: white; margin: 0; padding: 8px 12px; font-size: 0.78rem; flex: 2; display: flex; align-items: center; justify-content: center; gap: 6px;">
                                     <i data-lucide="play" style="width: 14px; height: 14px;"></i>
                                     <span>Use Template</span>
                                 </button>
-                                <button onclick="window.openTemplatePreviewModal('${tpl.id}')" class="btn-ghost" title="Live Preview" style="border: 1px solid var(--border); background: white; padding: 8px 12px; border-radius: 10px; font-size: 0.78rem; font-weight: 700; color: #334155; display: flex; align-items: center; gap: 4px;">
+                                <button onclick="window.openTemplatePreviewModal('${tpl.id}')" class="btn-ghost" title="Live Preview" style="border: 1px solid var(--border); background: var(--k-surface); padding: 8px 12px; border-radius: 10px; font-size: 0.78rem; font-weight: 700; color: var(--k-text-2); display: flex; align-items: center; gap: 4px;">
                                     <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
                                     <span>Preview</span>
                                 </button>
-                                <button onclick="window.location.href='bulk-trigger-dashboard.html?templateId=${encodeURIComponent(tpl.id)}&templateName=${encodeURIComponent(tpl.name)}'" class="btn-ghost" title="Bulk Trigger & Dispatch (PRD §2)" style="border: 1px solid #bfdbfe; background: #eff6ff; padding: 8px 12px; border-radius: 10px; font-size: 0.78rem; font-weight: 700; color: #1d4ed8; display: flex; align-items: center; gap: 4px;">
+                                <button onclick="window.location.href='bulk-trigger-dashboard.html?templateId=${encodeURIComponent(tpl.id)}&templateName=${encodeURIComponent(tpl.name)}'" class="btn-ghost" title="Bulk Trigger & Dispatch (PRD §2)" style="border: 1px solid var(--k-accent-border); background: var(--k-accent-soft); padding: 8px 12px; border-radius: 10px; font-size: 0.78rem; font-weight: 700; color: var(--k-accent-text); display: flex; align-items: center; gap: 4px;">
                                     <i data-lucide="zap" style="width: 14px; height: 14px;"></i>
                                     <span>Bulk Trigger</span>
                                 </button>
@@ -660,22 +660,22 @@
                                     </button>
                                 ` : ''}
 
-                                <button onclick="window.openTemplateVersionModal('${tpl.id}')" class="btn-ghost" title="Publish New Version" style="flex: 1; border: 1px solid #bfdbfe; background: #eff6ff; padding: 6px 10px; border-radius: 8px; font-size: 0.72rem; font-weight: 700; color: #2563eb; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                                <button onclick="window.openTemplateVersionModal('${tpl.id}')" class="btn-ghost" title="Publish New Version" style="flex: 1; border: 1px solid var(--k-accent-border); background: var(--k-accent-soft); padding: 6px 10px; border-radius: 8px; font-size: 0.72rem; font-weight: 700; color: var(--k-accent-text); display: flex; align-items: center; justify-content: center; gap: 4px;">
                                     <i data-lucide="git-commit" style="width: 12px; height: 12px;"></i>
                                     <span>New Ver</span>
                                 </button>
 
-                                <button onclick="window.openTemplateVersionHistoryModal('${tpl.id}')" class="btn-ghost" title="Version Snapshots" style="border: 1px solid var(--border); background: #f8fafc; padding: 6px 8px; border-radius: 8px; font-size: 0.72rem; font-weight: 700; color: #475569; display: flex; align-items: center; justify-content: center; gap: 3px;">
+                                <button onclick="window.openTemplateVersionHistoryModal('${tpl.id}')" class="btn-ghost" title="Version Snapshots" style="border: 1px solid var(--border); background: var(--k-subtle); padding: 6px 8px; border-radius: 8px; font-size: 0.72rem; font-weight: 700; color: var(--k-text-2); display: flex; align-items: center; justify-content: center; gap: 3px;">
                                     <i data-lucide="git-branch" style="width: 12px; height: 12px;"></i>
                                     <span>${tpl.version}</span>
                                 </button>
 
-                                <button onclick="window.openCustomizeTemplateModal('${tpl.id}')" class="btn-ghost" title="Customize Fields" style="border: 1px solid var(--border); background: #f8fafc; padding: 6px 8px; border-radius: 8px; font-size: 0.72rem; font-weight: 700; color: #475569; display: flex; align-items: center; justify-content: center;">
+                                <button onclick="window.openCustomizeTemplateModal('${tpl.id}')" class="btn-ghost" title="Customize Fields" style="border: 1px solid var(--border); background: var(--k-subtle); padding: 6px 8px; border-radius: 8px; font-size: 0.72rem; font-weight: 700; color: var(--k-text-2); display: flex; align-items: center; justify-content: center;">
                                     <i data-lucide="sliders" style="width: 12px; height: 12px;"></i>
                                 </button>
 
                                 ${isDraft ? `
-                                    <button onclick="window.publishTemplateAction('${tpl.id}')" class="btn-ghost" title="Publish Template" style="border: 1px solid #bbf7d0; background: #f0fdf4; padding: 6px 8px; border-radius: 8px; font-size: 0.72rem; font-weight: 700; color: #166534; display: flex; align-items: center; justify-content: center;">
+                                    <button onclick="window.publishTemplateAction('${tpl.id}')" class="btn-ghost" title="Publish Template" style="border: 1px solid var(--k-success-border); background: var(--k-success-soft); padding: 6px 8px; border-radius: 8px; font-size: 0.72rem; font-weight: 700; color: var(--k-success-text); display: flex; align-items: center; justify-content: center;">
                                         <i data-lucide="upload-cloud" style="width: 12px; height: 12px;"></i>
                                     </button>
                                 ` : ''}
@@ -684,7 +684,7 @@
                                     <i data-lucide="archive" style="width: 12px; height: 12px;"></i>
                                 </button>
 
-                                <button onclick="window.openTemplatePermissionsModal('${tpl.id}')" class="btn-ghost" title="Manage Permissions" style="border: 1px solid var(--border); background: #f8fafc; padding: 6px 8px; border-radius: 8px; color: #64748b; display: flex; align-items: center; justify-content: center;">
+                                <button onclick="window.openTemplatePermissionsModal('${tpl.id}')" class="btn-ghost" title="Manage Permissions" style="border: 1px solid var(--border); background: var(--k-subtle); padding: 6px 8px; border-radius: 8px; color: var(--k-muted); display: flex; align-items: center; justify-content: center;">
                                     <i data-lucide="shield" style="width: 12px; height: 12px;"></i>
                                 </button>
                             </div>
@@ -826,9 +826,9 @@
 
         container.innerHTML = milestones.map((m, idx) => `
             <div class="milestone-row" style="display: flex; gap: 8px; align-items: center; margin-bottom: 6px;">
-                <span style="font-size: 0.75rem; font-weight: 800; color: #64748b; width: 20px;">#${idx + 1}</span>
-                <input type="text" class="milestone-input" value="${escapeHtml(m.title || '')}" placeholder="Milestone outcome or deliverable..." style="flex: 1; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border); font-size: 0.82rem; outline: none; background: #f8fafc;">
-                <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 4px;">
+                <span style="font-size: 0.75rem; font-weight: 800; color: var(--k-muted); width: 20px;">#${idx + 1}</span>
+                <input type="text" class="milestone-input" value="${escapeHtml(m.title || '')}" placeholder="Milestone outcome or deliverable..." style="flex: 1; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border); font-size: 0.82rem; outline: none; background: var(--k-subtle);">
+                <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: var(--k-danger-text); cursor: pointer; padding: 4px;">
                     <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
                 </button>
             </div>
@@ -844,9 +844,9 @@
         row.className = 'milestone-row';
         row.style.cssText = 'display: flex; gap: 8px; align-items: center; margin-bottom: 6px;';
         row.innerHTML = `
-            <span style="font-size: 0.75rem; font-weight: 800; color: #64748b; width: 20px;">#${count}</span>
-            <input type="text" class="milestone-input" placeholder="Milestone outcome or deliverable..." style="flex: 1; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border); font-size: 0.82rem; outline: none; background: #f8fafc;">
-            <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 4px;">
+            <span style="font-size: 0.75rem; font-weight: 800; color: var(--k-muted); width: 20px;">#${count}</span>
+            <input type="text" class="milestone-input" placeholder="Milestone outcome or deliverable..." style="flex: 1; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border); font-size: 0.82rem; outline: none; background: var(--k-subtle);">
+            <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: var(--k-danger-text); cursor: pointer; padding: 4px;">
                 <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
             </button>
         `;
@@ -1173,7 +1173,7 @@
 
         document.getElementById('goalHistoryTitle').textContent = `Audit Trail: ${goal.title}`;
         const container = document.getElementById('goalHistoryTimeline');
-        container.innerHTML = '<div style="text-align:center; padding:2rem; color:#64748b;">Loading audit history...</div>';
+        container.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--k-muted);">Loading audit history...</div>';
         document.getElementById('goalHistoryModal').style.display = 'flex';
 
         let history = [];
@@ -1192,7 +1192,7 @@
         }
 
         if (history.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding:2rem; color:#64748b;">No audit entries found.</div>';
+            container.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--k-muted);">No audit entries found.</div>';
             return;
         }
 
@@ -1213,19 +1213,19 @@
 
             return `
                 <div style="display: flex; gap: 14px; position: relative; margin-bottom: 20px;">
-                    <div style="width: 36px; height: 36px; border-radius: 50%; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 2px solid #bfdbfe;">
+                    <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 2px solid var(--k-accent-border);">
                         <i data-lucide="${icon}" style="width: 18px; height: 18px;"></i>
                     </div>
-                    <div style="flex: 1; background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px;">
+                    <div style="flex: 1; background: var(--k-subtle); border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                            <strong style="font-size: 0.85rem; color: #0f172a;">${escapeHtml(entry.summary)}</strong>
-                            <span style="font-size: 0.72rem; color: #64748b;">${dateStr}</span>
+                            <strong style="font-size: 0.85rem; color: var(--k-text);">${escapeHtml(entry.summary)}</strong>
+                            <span style="font-size: 0.72rem; color: var(--k-muted);">${dateStr}</span>
                         </div>
-                        <div style="font-size: 0.78rem; color: #475569; margin-bottom: 4px;">
+                        <div style="font-size: 0.78rem; color: var(--k-text-2); margin-bottom: 4px;">
                             Actor: <strong>${escapeHtml(entry.actor?.name || 'Manager')}</strong> (${escapeHtml(entry.actor?.role || 'Department Lead')})
                         </div>
                         ${entry.notes ? `
-                            <div style="font-size: 0.75rem; color: #334155; background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 6px 10px; margin-top: 6px; font-style: italic;">
+                            <div style="font-size: 0.75rem; color: var(--k-text-2); background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 8px; padding: 6px 10px; margin-top: 6px; font-style: italic;">
                                 "${escapeHtml(entry.notes)}"
                             </div>
                         ` : ''}
@@ -1251,19 +1251,19 @@
         const filtered = state.templates.filter(t => moduleFilter === 'all' || t.module === moduleFilter);
 
         listContainer.innerHTML = filtered.map(t => `
-            <div style="background: white; border: 1.5px solid var(--border); border-radius: 14px; padding: 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; transition: border-color 0.2s;">
+            <div style="background: var(--k-surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; transition: border-color 0.2s;">
                 <div style="flex: 1;">
                     <div style="display: flex; gap: 6px; align-items: center; margin-bottom: 4px;">
-                        <span style="font-size: 0.65rem; font-weight: 800; background: #eff6ff; color: #2563eb; padding: 2px 6px; border-radius: 6px;">${t.category}</span>
-                        <h4 style="font-size: 0.95rem; font-weight: 800; color: #0f172a; margin: 0;">${escapeHtml(t.name)}</h4>
+                        <span style="font-size: 0.65rem; font-weight: 800; background: var(--k-accent-soft); color: var(--k-accent-text); padding: 2px 6px; border-radius: 6px;">${t.category}</span>
+                        <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--k-text); margin: 0;">${escapeHtml(t.name)}</h4>
                     </div>
-                    <p style="font-size: 0.78rem; color: #64748b; margin: 0; line-height: 1.4;">${escapeHtml(t.description)}</p>
+                    <p style="font-size: 0.78rem; color: var(--k-muted); margin: 0; line-height: 1.4;">${escapeHtml(t.description)}</p>
                 </div>
                 <div style="display: flex; gap: 6px;">
-                    <button onclick="window.useTemplateToCreateGoal('${t.id}')" class="alert-btn" style="background: var(--primary, #2563eb); color: white; margin: 0; padding: 8px 14px; font-size: 0.75rem; white-space: nowrap;">
+                    <button onclick="window.useTemplateToCreateGoal('${t.id}')" class="alert-btn" style="background: var(--primary, var(--k-accent)); color: white; margin: 0; padding: 8px 14px; font-size: 0.75rem; white-space: nowrap;">
                         Choose Template
                     </button>
-                    <button onclick="window.openTemplatePreviewModal('${t.id}')" class="btn-ghost" style="border: 1px solid var(--border); background: #f8fafc; padding: 8px 10px; border-radius: 8px; font-size: 0.75rem;">
+                    <button onclick="window.openTemplatePreviewModal('${t.id}')" class="btn-ghost" style="border: 1px solid var(--border); background: var(--k-subtle); padding: 8px 10px; border-radius: 8px; font-size: 0.75rem;">
                         Preview
                     </button>
                 </div>
@@ -1387,21 +1387,21 @@
         fieldsContainer.innerHTML = (tpl.permittedFields || []).map(f => {
             const isLocked = !f.isPermittedToEdit || (tpl.lockedFields || []).includes(f.fieldKey);
             return `
-                <div style="background: ${isLocked ? '#f8fafc' : 'white'}; border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 8px;">
+                <div style="background: ${isLocked ? 'var(--k-subtle)' : 'var(--k-surface)'}; border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 8px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                        <span style="font-size: 0.82rem; font-weight: 800; color: #1e293b;">${escapeHtml(f.label || f.fieldKey)}</span>
+                        <span style="font-size: 0.82rem; font-weight: 800; color: var(--k-text);">${escapeHtml(f.label || f.fieldKey)}</span>
                         ${isLocked ? `
-                            <span style="font-size: 0.68rem; font-weight: 800; background: #fee2e2; color: #dc2626; padding: 2px 6px; border-radius: 6px; display: flex; align-items: center; gap: 4px;">
+                            <span style="font-size: 0.68rem; font-weight: 800; background: var(--k-danger-soft); color: var(--k-danger-text); padding: 2px 6px; border-radius: 6px; display: flex; align-items: center; gap: 4px;">
                                 <i data-lucide="lock" style="width: 10px; height: 10px;"></i> Locked
                             </span>
                         ` : `
-                            <span style="font-size: 0.68rem; font-weight: 800; background: #dcfce7; color: #15803d; padding: 2px 6px; border-radius: 6px; display: flex; align-items: center; gap: 4px;">
+                            <span style="font-size: 0.68rem; font-weight: 800; background: var(--k-success-soft); color: var(--k-success-text); padding: 2px 6px; border-radius: 6px; display: flex; align-items: center; gap: 4px;">
                                 <i data-lucide="unlock" style="width: 10px; height: 10px;"></i> Permitted
                             </span>
                         `}
                     </div>
-                    <input type="text" class="cust-field-val" data-key="${f.fieldKey}" value="${escapeHtml(String(f.defaultValue || ''))}" ${isLocked ? 'disabled' : ''} style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.82rem; background: ${isLocked ? '#f1f5f9' : 'white'}; outline: none;">
-                    ${f.instructions ? `<div style="font-size: 0.7rem; color: #64748b; margin-top: 4px;">${escapeHtml(f.instructions)}</div>` : ''}
+                    <input type="text" class="cust-field-val" data-key="${f.fieldKey}" value="${escapeHtml(String(f.defaultValue || ''))}" ${isLocked ? 'disabled' : ''} style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.82rem; background: ${isLocked ? 'var(--k-subtle)' : 'var(--k-surface)'}; outline: none;">
+                    ${f.instructions ? `<div style="font-size: 0.7rem; color: var(--k-muted); margin-top: 4px;">${escapeHtml(f.instructions)}</div>` : ''}
                 </div>
             `;
         }).join('');
@@ -1731,7 +1731,7 @@
 
         const listContainer = document.getElementById('templateVersionHistoryList');
         if (listContainer) {
-            listContainer.innerHTML = '<div style="text-align: center; padding: 2rem; color: #64748b;">Loading immutable version history...</div>';
+            listContainer.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--k-muted);">Loading immutable version history...</div>';
         }
 
         const modal = document.getElementById('templateVersionHistoryModal');
@@ -1745,7 +1745,7 @@
             const history = json.data?.versions || [];
 
             if (history.length === 0) {
-                listContainer.innerHTML = '<div style="text-align: center; padding: 2rem; color: #64748b;">No version history records found.</div>';
+                listContainer.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--k-muted);">No version history records found.</div>';
                 return;
             }
 
@@ -1755,22 +1755,22 @@
                 const hashSnippet = ver.integrityHash ? ver.integrityHash.slice(0, 16) + '...' : 'SHA-256 Verified';
 
                 return `
-                    <div style="background: ${isCurrent ? '#eff6ff' : '#f8fafc'}; border: 1.5px solid ${isCurrent ? '#93c5fd' : '#e2e8f0'}; border-radius: 14px; padding: 14px; position: relative;">
+                    <div style="background: ${isCurrent ? 'var(--k-accent-soft)' : 'var(--k-subtle)'}; border: 1.5px solid ${isCurrent ? 'var(--k-accent-border)' : 'var(--k-border)'}; border-radius: 14px; padding: 14px; position: relative;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <span style="font-size: 0.85rem; font-weight: 800; color: #1e40af; background: white; padding: 2px 8px; border-radius: 6px; border: 1px solid #bfdbfe;">
+                                <span style="font-size: 0.85rem; font-weight: 800; color: var(--k-accent-text); background: var(--k-surface); padding: 2px 8px; border-radius: 6px; border: 1px solid var(--k-accent-border);">
                                     ${escapeHtml(ver.version)}
                                 </span>
-                                ${isCurrent ? '<span style="font-size: 0.65rem; font-weight: 800; background: #2563eb; color: white; padding: 2px 6px; border-radius: 4px; text-transform: uppercase;">Active Current</span>' : ''}
+                                ${isCurrent ? '<span style="font-size: 0.65rem; font-weight: 800; background: var(--k-accent); color: white; padding: 2px 6px; border-radius: 4px; text-transform: uppercase;">Active Current</span>' : ''}
                             </div>
-                            <span style="font-size: 0.72rem; color: #64748b;">${dateStr}</span>
+                            <span style="font-size: 0.72rem; color: var(--k-muted);">${dateStr}</span>
                         </div>
 
-                        <div style="font-size: 0.82rem; color: #1e293b; font-weight: 700; margin-bottom: 4px;">
+                        <div style="font-size: 0.82rem; color: var(--k-text); font-weight: 700; margin-bottom: 4px;">
                             ${escapeHtml(ver.changeNotes || 'Initial baseline snapshot')}
                         </div>
 
-                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; color: #64748b; margin-top: 6px; border-top: 1px dashed #cbd5e1; padding-top: 6px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; color: var(--k-muted); margin-top: 6px; border-top: 1px dashed var(--k-border); padding-top: 6px;">
                             <span>Author: <strong>${escapeHtml(ver.actor?.name || 'Administrator')}</strong> (${escapeHtml(ver.actor?.role || 'System')})</span>
                             <span style="font-family: monospace; color: #0284c7;" title="Cryptographic Snapshot Integrity Hash">
                                 🔒 ${escapeHtml(hashSnippet)}
@@ -1783,7 +1783,7 @@
             if (window.lucide) window.lucide.createIcons();
         } catch (err) {
             if (listContainer) {
-                listContainer.innerHTML = `<div style="color: #ef4444; padding: 1rem; text-align: center;">Error loading history: ${err.message}</div>`;
+                listContainer.innerHTML = `<div style="color: var(--k-danger-text); padding: 1rem; text-align: center;">Error loading history: ${err.message}</div>`;
             }
         }
     };
@@ -1855,7 +1855,7 @@
     function showGoalNotification(message) {
         const toast = document.createElement('div');
         toast.style.cssText = 'position: fixed; bottom: 24px; right: 24px; background: #0f172a; color: white; padding: 14px 22px; border-radius: 14px; font-size: 0.85rem; font-weight: 700; box-shadow: 0 10px 30px rgba(0,0,0,0.25); z-index: 10000; animation: alertPop 0.3s ease; display: flex; align-items: center; gap: 8px; border: 1px solid #334155;';
-        toast.innerHTML = `<span style="color:#10b981;">✓</span> <span>${escapeHtml(message)}</span>`;
+        toast.innerHTML = `<span style="color:var(--k-success-text);">✓</span> <span>${escapeHtml(message)}</span>`;
         document.body.appendChild(toast);
         setTimeout(() => {
             toast.style.opacity = '0';
