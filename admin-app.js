@@ -2786,7 +2786,7 @@ function setupEventListeners() {
                                         <a href="${window.location.origin}/index.html" style="background: #2563eb; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">Log In to Kylrx Enterprise</a>
                                     </div>
                                     <p style="font-size: 12px; color: #94a3b8; text-align: center; margin-top: 32px; border-top: 1px solid #f1f5f9; padding-top: 16px;">
-                                        This is an automated system email from Kylrx.ai Super Admin Console.
+                                        This is an automated message. Please do not reply to this email.
                                     </p>
                                 </div>
                             `,

@@ -225,7 +225,7 @@ export async function rolloutPMSCycle(cycleId) {
                                     <a href="${typeof window !== 'undefined' ? window.location.origin : ''}/employee-appraisal.html?cycle=${cycleId}" style="display: inline-block; padding: 14px 28px; background: #2563eb; color: #ffffff; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 14px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);">Open PMS Dashboard &rarr;</a>
                                 </div>
                                 <p style="font-size: 12px; color: #94a3b8; text-align: center; margin: 0; border-top: 1px solid #f1f5f9; padding-top: 16px;">
-                                    Automated dispatch from Kylrx.ai Enterprise PMS Cycle Engine.
+                                    This is an automated message. Please do not reply to this email.
                                 </p>
                             </div>
                         `,
