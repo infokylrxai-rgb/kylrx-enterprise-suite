@@ -27,6 +27,14 @@ router.post("/employees/:id/trigger-invite", adminController.triggerEmailInvite)
 // employees writes Firestore documents only, so without this those people cannot sign in.
 // Idempotent: anyone who already has a login is skipped.
 router.post("/employees/provision-logins", adminController.provisionEmployeeLogins);
+
+// Role management for the caller's own organisation. The whole file is already behind
+// verifyToken + authorize('Admin', 'Super Admin'); the guards that matter - own tenant
+// only, never your own role, never the last super admin - are in the controller, where
+// they can see who the target is.
+const orgRolesController = require("../controllers/orgRolesController");
+router.get("/org-members", orgRolesController.listOrgMembers);
+router.patch("/org-members/:uid/role", orgRolesController.updateMemberRole);
 router.put("/employees/:id", adminController.updateEmployee);
 router.delete("/employees/:id", adminController.deleteEmployee);
 router.post("/managers", validateEmployee, adminController.createManager);
