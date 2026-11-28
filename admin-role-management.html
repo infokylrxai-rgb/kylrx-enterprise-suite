@@ -56,6 +56,39 @@
   </div>
 
   <p class="muted" id="footnote"></p>
+
+  <details id="matrix" style="margin-top:22px">
+    <summary style="cursor:pointer;font-weight:600;font-size:15px;padding:6px 0">What each role can do</summary>
+    <div class="card" style="margin-top:12px">
+      <table>
+        <thead><tr>
+          <th>Role</th><th>View</th><th>Run payroll</th><th>Approve &amp; pay</th><th>Payment account</th><th>Manage roles</th>
+        </tr></thead>
+        <tbody>
+          <tr><td><b>Super Admin</b><div class="em">full control</div></td>
+              <td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+          <tr><td><b>HR Admin</b><div class="em">day-to-day HR</div></td>
+              <td>Yes</td><td>Yes</td><td>Yes</td><td>No</td><td>No</td></tr>
+          <tr><td><b>Payroll Specialist</b><div class="em">payroll operations</div></td>
+              <td>Yes</td><td>Yes</td><td>Yes</td><td>No</td><td>No</td></tr>
+          <tr><td><b>Reporting Manager</b><div class="em">their own team</div></td>
+              <td>Team only</td><td>No</td><td>No</td><td>No</td><td>No</td></tr>
+          <tr><td><b>Auditor</b><div class="em">view only</div></td>
+              <td>Yes</td><td>No</td><td>No</td><td>No</td><td>No</td></tr>
+          <tr><td><b>Employee</b><div class="em">themselves</div></td>
+              <td>Own record</td><td>No</td><td>No</td><td>No</td><td>No</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="muted">
+      <b>Auditor</b> can open every admin screen but is refused on anything that changes
+      something, so it is safe for an accountant or an external reviewer.
+      <b>Payment account</b> decides which bank account salaries are paid from, which is why
+      it is Super Admin only and not part of ordinary payroll work.
+      Approving and paying is also governed by maker-checker: the same person cannot both
+      create and approve one disbursement, whatever their role.
+    </p>
+  </details>
 </div>
 
 <script type="module">
