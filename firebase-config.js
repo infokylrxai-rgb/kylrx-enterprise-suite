@@ -230,10 +230,21 @@ function isQuotaActive() {
 // the same boundary server-side, so this layer keeps queries rule-compliant.
 // ─────────────────────────────────────────────────────────────────────────────
 const GLOBAL_COLLECTIONS = new Set(['organizations', 'system_config']);
-// Read filtering goes live together with the orgId data migration + rules deploy
-// (scripts/migrate-tenant-orgid.js). Until then existing documents have no orgId, so
-// filtering would hide them; new documents are stamped with orgId either way.
-const TENANT_READ_SCOPING = false;
+// Read filtering. This was held back until the orgId migration, on the grounds that
+// filtering would hide documents that had no orgId yet. That no longer applies, and
+// leaving it off was what broke the app:
+//
+//  - firestore.rules already require resource.data.orgId == the caller's org, so a
+//    document with no orgId is invisible to every browser whether or not this is on.
+//    Production was checked: its 30 untagged documents all sit under that rule.
+//  - With this off, 110 reads across 26 files fetched whole collections. Firestore
+//    refuses a query it cannot prove safe rather than filtering it, so each failed
+//    outright and its screen rendered empty.
+//
+// So turning this on hides nothing that was visible, and turns each rejected read into
+// one that returns the caller's own data. tests/tenant-read-scoping.rules.test.mjs
+// proves both halves against the real rules.
+const TENANT_READ_SCOPING = true;
 // The active organization comes only from the verified token claims (or the server-written profile),
 // resolved by tenantReady; it is never read from localStorage.
 let activeOrgId = null;

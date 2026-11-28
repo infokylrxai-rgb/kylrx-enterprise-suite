@@ -8,7 +8,8 @@ const EMULATOR_ONLY = new Set([
     'tests/firestore-rules.test.mjs',
     'tests/tenant-leak.test.mjs',
     'tests/firestore-users-security.test.mjs',
-    'tests/storage-rules.test.mjs'
+    'tests/storage-rules.test.mjs',
+    'tests/tenant-read-scoping.rules.test.mjs'
 ]);
 
 const args = process.argv.slice(2);
