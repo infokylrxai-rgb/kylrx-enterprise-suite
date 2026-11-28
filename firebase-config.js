@@ -40,10 +40,12 @@ function isQuotaOrBackoffMessage(...args) {
          text.includes('RESOURCE_EXHAUSTED') ||
          text.includes('Quota exceeded') || 
          text.includes('maximum backoff delay') ||
-         text.includes('@firebase/firestore: Firestore') ||
+           // '@firebase/firestore: Firestore' used to be listed here. It is the prefix of
+           // EVERY Firestore SDK log line, so every Firestore error - permission-denied
+           // included - was classed as quota and silenced. 'documents:commit' likewise
+           // matched the URL of every write, so failed writes vanished too.
          text.includes('429') ||
          text.includes('Too Many Requests') ||
-         text.includes('documents:commit') ||
          text.includes('QUIC_PROTOCOL_ERROR') ||
          text.includes('QUIC_TOO_MANY_RTOS') ||
          text.includes('ERR_QUIC_PROTOCOL_ERROR');
@@ -97,15 +99,19 @@ console.error = function (...args) {
   if (isCoopOrPopupMessage(...args)) {
     return;
   }
+  // A permission error is almost always a query the security rules rejected - usually
+  // a whole-collection read with no orgId predicate, which Firestore refuses outright
+  // rather than filtering. The screen then renders empty. That is a bug, not noise, so it
+  // stays an error and is checked before the quota branch can swallow it.
+  if (isPermissionOrQuotaMessage(...args)) {
+    _origConsoleError.apply(console, ['[Firestore] query rejected by security rules - check it is scoped by orgId:', ...args]);
+    return;
+  }
   if (isQuotaOrBackoffMessage(...args)) {
     if (!_quotaNoticeShown) {
       _quotaNoticeShown = true;
       _origConsoleWarn.call(console, "⚡ [Kylrx Architecture] Firebase Firestore quota limit reached. Local persistent cache active.");
     }
-    return;
-  }
-  if (isPermissionOrQuotaMessage(...args)) {
-    _origConsoleWarn.apply(console, ["[Firestore Permission Mode]", ...args]);
     return;
   }
   _origConsoleError.apply(console, args);
@@ -224,10 +230,21 @@ function isQuotaActive() {
 // the same boundary server-side, so this layer keeps queries rule-compliant.
 // ─────────────────────────────────────────────────────────────────────────────
 const GLOBAL_COLLECTIONS = new Set(['organizations', 'system_config']);
-// Read filtering goes live together with the orgId data migration + rules deploy
-// (scripts/migrate-tenant-orgid.js). Until then existing documents have no orgId, so
-// filtering would hide them; new documents are stamped with orgId either way.
-const TENANT_READ_SCOPING = false;
+// Read filtering. This was held back until the orgId migration, on the grounds that
+// filtering would hide documents that had no orgId yet. That no longer applies, and
+// leaving it off was what broke the app:
+//
+//  - firestore.rules already require resource.data.orgId == the caller's org, so a
+//    document with no orgId is invisible to every browser whether or not this is on.
+//    Production was checked: its 30 untagged documents all sit under that rule.
+//  - With this off, 110 reads across 26 files fetched whole collections. Firestore
+//    refuses a query it cannot prove safe rather than filtering it, so each failed
+//    outright and its screen rendered empty.
+//
+// So turning this on hides nothing that was visible, and turns each rejected read into
+// one that returns the caller's own data. tests/tenant-read-scoping.rules.test.mjs
+// proves both halves against the real rules.
+const TENANT_READ_SCOPING = true;
 // The active organization comes only from the verified token claims (or the server-written profile),
 // resolved by tenantReady; it is never read from localStorage.
 let activeOrgId = null;
