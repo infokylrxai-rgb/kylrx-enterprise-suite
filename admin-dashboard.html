@@ -1628,10 +1628,6 @@
                                     <label>System UUID / Rego No</label>
                                     <input type="text" id="displayEmpId" readonly style="background: var(--k-border); cursor: not-allowed; font-family: monospace;">
                                 </div>
-                                <div class="form-group">
-                                    <label>Access Key / Password</label>
-                                    <input type="text" id="displayPassword" readonly style="background: var(--k-border); cursor: not-allowed; font-family: monospace;">
-                                </div>
                             </div>
                         </div>
 
@@ -1664,14 +1660,6 @@
                                 </div>
                             </div>
 
-                            <div class="form-group">
-                                <label>Set Password / Temporary Password *</label>
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <input type="text" name="password" id="empGenPassword" placeholder="Auto-generated" style="flex: 1;" required>
-                                    <button type="button" class="btn btn-secondary" id="btnRegenPass" title="Regenerate Password" style="padding: 10px; border-radius: 8px; background: var(--k-border); color: var(--k-text); border: none; cursor: pointer; flex-shrink: 0;"><i data-lucide="refresh-cw"></i></button>
-                                    <button type="button" class="btn btn-secondary" id="btnCopyPass" title="Copy Password" style="padding: 10px; border-radius: 8px; background: var(--k-border); color: var(--k-text); border: none; cursor: pointer; flex-shrink: 0;"><i data-lucide="copy"></i></button>
-                                </div>
-                            </div>
                         </div>
 
                         <!-- Card B: Complete Job Information (Templates.xlsx Schema) -->
@@ -2038,12 +2026,12 @@
                                         <span id="decentroVerificationBadge" style="display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; background: var(--k-success); color: white;">VERIFIED</span>
                                     </div>
                                     <p style="font-size: 0.75rem; color: var(--k-success-text); margin: 2px 0 0 0;">
-                                        Penny drop validation and automated salary disbursement gateway (PRD §4). ID: <span id="decentroBenIdDisplay" style="font-family: monospace; font-weight: 700;">ben_hdfc_7890</span>
+                                        Checks the account number and IFSC format. It does not contact the bank. ID: <span id="decentroBenIdDisplay" style="font-family: monospace; font-weight: 700;">ben_hdfc_7890</span>
                                     </p>
                                 </div>
                             </div>
                             <button type="button" id="btnTriggerDecentroVerify" style="padding: 8px 16px; border-radius: 10px; font-size: 0.8rem; font-weight: 700; background: var(--k-success); color: white; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(5,150,105,0.2);">
-                                <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> Run Penny Drop Test
+                                <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> Check Account Format
                             </button>
                         </div>
 
@@ -2371,28 +2359,6 @@
         </div>
     </div>
 
-    <!-- Modal: Bulk CSV Upload -->
-    <div class="modal-overlay" id="csvModal">
-        <div class="modal" style="max-width: 450px;">
-            <div class="close-modal" data-close="csvModal"><i data-lucide="x"></i></div>
-            <div class="modal-header">
-                <h2>Bulk Onboard</h2>
-                <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Upload employee credentials CSV for bulk user provisioning</p>
-            </div>
-            <form id="csvForm">
-                <div class="form-group" style="border: 2px dashed var(--border); padding: 2rem; border-radius: 16px; text-align: center; cursor: pointer; transition: 0.2s;" onclick="document.getElementById('csvFileInput').click()">
-                    <i data-lucide="upload-cloud" style="width: 40px; height: 40px; color: var(--primary); margin: 0 auto 10px;"></i>
-                    <p id="csvFileName" style="font-size: 0.875rem; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">Choose CSV File</p>
-                    <p style="font-size: 0.7rem; color: var(--text-muted);">or drag and drop here</p>
-                    <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
-                </div>
-                <div style="display: flex; gap: 10px; margin-top: 1.5rem;">
-                    <button type="button" class="btn btn-outline" id="btnDownloadSampleCSV" style="flex: 1; justify-content: center;"><i data-lucide="download"></i> Sample CSV</button>
-                    <button type="submit" class="btn btn-primary" id="btnUploadCsv" style="flex: 1; justify-content: center;"><i data-lucide="upload"></i> Upload</button>
-                </div>
-            </form>
-        </div>
-    </div>
 
     
 

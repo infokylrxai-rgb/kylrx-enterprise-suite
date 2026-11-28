@@ -242,22 +242,27 @@
         const accSuffix = cleanAcc.slice(-4);
         const decentroBeneficiaryId = `ben_${bankPrefix}_${accSuffix}`;
 
-        // Return verified beneficiary payload compliant with PRD Section 4
+        /*
+         * Only the FORMAT has been checked: no bank or payout provider was contacted.
+         * This used to return VERIFIED, a successful penny drop and a matched account
+         * holder, and the profile then announced "Cashfree Penny Drop Successful!" -
+         * telling HR an account was confirmed with the bank when nothing had been sent.
+         */
         return {
             success: true,
-            verificationStatus: 'VERIFIED',
+            formatValid: true,
+            verificationStatus: 'NOT_VERIFIED',
             decentroBeneficiaryId: decentroBeneficiaryId,
-            pennyDropStatus: 'SUCCESS',
-            beneficiaryNameMatch: true,
-            accountHolderMatch: true,
+            pennyDropStatus: 'NOT_PERFORMED',
+            beneficiaryNameMatch: null,
+            accountHolderMatch: null,
             accountHolderName: cleanHolder,
             maskedAccountNumber: maskAccountNumber(cleanAcc),
             accountNumber: cleanAcc,
             ifsc: cleanIfsc,
             bankName: bankName || `${cleanIfsc.slice(0, 4)} Bank`,
-            gateway: 'Decentro Fabric (Staging)',
-            decentroBaseUrl: 'https://staging.dashboard.decentro.tech/fabric',
-            verifiedAt: new Date().toISOString()
+            gateway: 'none (format check only)',
+            checkedAt: new Date().toISOString()
         };
     }
 
@@ -289,8 +294,8 @@
             decentro_beneficiary_id: benId,
             decentroBeneficiaryId: benId,
             beneficiaryId: benId,
-            verification_status: b.verificationStatus || 'VERIFIED',
-            verificationStatus: b.verificationStatus || 'VERIFIED',
+            verification_status: b.verificationStatus || 'NOT_VERIFIED',
+            verificationStatus: b.verificationStatus || 'NOT_VERIFIED',
             transferType: 'NEFT_IMPS_RTGS'
         };
     }
@@ -408,7 +413,8 @@
         const bankPrefix = rawIfsc.slice(0, 4).toLowerCase();
         const accSuffix = rawAccNumber.slice(-4);
         const decentroBeneficiaryId = bankingInput.decentroBeneficiaryId || `ben_${bankPrefix}_${accSuffix}`;
-        const verificationStatus = bankingInput.verificationStatus || 'VERIFIED';
+        // A saved account is not a verified one; only a real check may say otherwise.
+        const verificationStatus = bankingInput.verificationStatus || 'NOT_VERIFIED';
         const maskedAccountNumber = maskAccountNumber(rawAccNumber);
 
         // Document Construction
@@ -748,7 +754,7 @@
                                         <td style="padding: 12px 14px;">
                                             <div style="display: flex; align-items: center; gap: 5px;">
                                                 <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--k-success);"></span>
-                                                <span style="font-size: 0.75rem; font-weight: 700; color: var(--k-success-text);">${b.verificationStatus || 'VERIFIED'}</span>
+                                                <span style="font-size: 0.75rem; font-weight: 700; color: ${b.verificationStatus === 'VERIFIED' ? 'var(--k-success-text)' : 'var(--k-warning-text)'};">${b.verificationStatus === 'VERIFIED' ? 'VERIFIED' : 'NOT VERIFIED'}</span>
                                             </div>
                                             <div style="font-size: 0.68rem; color: var(--k-muted); font-family: monospace;">${b.decentroBeneficiaryId || ''}</div>
                                         </td>
@@ -803,7 +809,9 @@
                 btn.disabled = true;
                 btn.innerHTML = 'Verifying...';
                 const res = await validateBankAccountWithDecentro(rec.banking);
-                alert(`Decentro Fabric Verification:\nStatus: ${res.verificationStatus}\nBeneficiary ID: ${res.decentroBeneficiaryId}\nPenny Drop: ${res.pennyDropStatus}\nGateway: ${res.gateway}`);
+                alert(res.success
+                    ? 'The account number and IFSC are in a valid format.\n\nThe account has NOT been checked with the bank: no penny drop is run from here.'
+                    : 'This account cannot be used:\n' + res.error);
                 btn.disabled = false;
                 btn.innerHTML = 'Verify';
             };

@@ -1035,7 +1035,7 @@
                 }
 
                 verifyBtn.disabled = true;
-                verifyBtn.innerHTML = '<i data-lucide="loader" class="animate-spin" style="width: 14px; height: 14px;"></i> Verifying...';
+                verifyBtn.innerHTML = '<i data-lucide="loader" class="animate-spin" style="width: 14px; height: 14px;"></i> Checking...';
 
                 if (window.KylrxEmployeeFinanceService && typeof window.KylrxEmployeeFinanceService.validateBankAccountWithDecentro === 'function') {
                     const res = await window.KylrxEmployeeFinanceService.validateBankAccountWithDecentro({
@@ -1048,16 +1048,17 @@
                     if (res.success) {
                         const benIdDisplay = document.getElementById('decentroBenIdDisplay');
                         if (benIdDisplay) benIdDisplay.textContent = res.decentroBeneficiaryId;
+                        // Only the format was checked; nothing was sent to a bank or to Cashfree.
                         const decBadge = document.getElementById('decentroVerificationBadge');
-                        if (decBadge) decBadge.textContent = 'VERIFIED';
-                        alert(`Cashfree Penny Drop Successful!\n\nBeneficiary ID: ${res.decentroBeneficiaryId}\nAccount Holder: ${res.accountHolderName}\nIFSC: ${res.ifsc}\nGateway: ${res.gateway}\nStatus: VERIFIED`);
+                        if (decBadge) decBadge.textContent = 'FORMAT OK - NOT VERIFIED';
+                        alert('The account number and IFSC are in a valid format.\n\nThe account has NOT been checked with the bank: no penny drop is run from here.');
                     } else {
-                        alert(`Cashfree Verification Failed:\n${res.error}`);
+                        alert(`This account cannot be used:\n${res.error}`);
                     }
                 }
 
                 verifyBtn.disabled = false;
-                verifyBtn.innerHTML = '<i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> Run Penny Drop Test';
+                verifyBtn.innerHTML = '<i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> Check Account Format';
                 if (window.lucide) lucide.createIcons();
             });
         }
