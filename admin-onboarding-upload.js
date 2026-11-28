@@ -108,6 +108,11 @@ const state = {
 const statusBadge = document.getElementById('statusBadge');
 const tabManual = document.getElementById('tabManual');
 const tabBulk = document.getElementById('tabBulk');
+// The three bulk tabs: buttons present in the markup, never looked up here, so they
+// could not be registered and clicking them did nothing.
+const tabUnifiedJobRoster = document.getElementById('tabUnifiedJobRoster');
+const tabUnifiedEmployeeFinance = document.getElementById('tabUnifiedEmployeeFinance');
+const tabUnifiedOrgCompliance = document.getElementById('tabUnifiedOrgCompliance');
 const tabBusinessUnits = document.getElementById('tabBusinessUnits');
 const manualView = document.getElementById('manualView');
 const uploadView = document.getElementById('uploadView');
@@ -344,6 +349,12 @@ const wfModulesCoveredDisplay = document.getElementById('wfModulesCoveredDisplay
 // Payroll Components Catalog Elements (PRD Sections 1 & 4)
 const tabPayrollComponents = document.getElementById('tabPayrollComponents');
 const payrollComponentsManagementView = document.getElementById('payrollComponentsManagementView');
+
+// These three panels are fully present in the markup but were never looked up, so they
+// were never registered as tabs and clicking their buttons did nothing at all.
+const unifiedJobRosterView = document.getElementById('unifiedJobRosterView');
+const unifiedEmployeeFinanceView = document.getElementById('unifiedEmployeeFinanceView');
+const unifiedOrgComplianceView = document.getElementById('unifiedOrgComplianceView');
 const payrollComponentsParseResultsContainer = document.getElementById('payrollComponentsParseResultsContainer');
 const payrollComponentsParseResultTitle = document.getElementById('payrollComponentsParseResultTitle');
 const payrollComponentsParseResultMeta = document.getElementById('payrollComponentsParseResultMeta');
@@ -488,6 +499,12 @@ function setupNavigationTabs() {
     const TABS = {
         manual: [tabManual, manualView],
         bulk: [tabBulk, uploadView],
+        // Registered so the tabs open. The panels themselves are markup only - none of
+        // their controls has ever been wired - so each says so rather than presenting a
+        // file picker that silently does nothing.
+        unifiedJobRoster: [tabUnifiedJobRoster, unifiedJobRosterView, () => markBulkPanelUnavailable('jobRoster', 'Job & Rosters')],
+        unifiedEmployeeFinance: [tabUnifiedEmployeeFinance, unifiedEmployeeFinanceView, () => markBulkPanelUnavailable('employeeFinance', 'Finance & Statutory IDs')],
+        unifiedOrgCompliance: [tabUnifiedOrgCompliance, unifiedOrgComplianceView, () => markBulkPanelUnavailable('orgCompliance', 'Org Statutory Registrations')],
         businessUnits: [tabBusinessUnits, buManagementView, () => window.KylrxBuRules && typeof window.KylrxBuRules.renderAdminRulesTable === 'function' && window.KylrxBuRules.renderAdminRulesTable('onboardingBuTableContainer')],
         costCenters: [tabCostCenters, ccManagementView, () => window.KylrxCostCenterService && typeof window.KylrxCostCenterService.renderAdminConsole === 'function' && window.KylrxCostCenterService.renderAdminConsole('onboardingCcTableContainer')],
         subDepartments: [tabSubDepartments, subDeptManagementView, () => window.KylrxSubDepartmentService && typeof window.KylrxSubDepartmentService.renderAdminConsole === 'function' && window.KylrxSubDepartmentService.renderAdminConsole('onboardingSubDeptTableContainer')],
@@ -506,6 +523,44 @@ function setupNavigationTabs() {
         statutoryCompliance: [tabStatutoryCompliance, statutoryComplianceManagementView, () => window.KylrxStatutoryComplianceUIController && typeof window.KylrxStatutoryComplianceUIController.renderAdminConsole === 'function' && window.KylrxStatutoryComplianceUIController.renderAdminConsole('onboardingStatutoryComplianceTableContainer', state.orgId)],
         payrollComponents: [tabPayrollComponents, payrollComponentsManagementView, () => window.KylrxPayrollComponentsUIController && typeof window.KylrxPayrollComponentsUIController.renderAdminConsole === 'function' && window.KylrxPayrollComponentsUIController.renderAdminConsole('onboardingPayrollComponentsTableContainer', state.orgId)]
     };
+
+    /**
+     * These three bulk panels were built as markup and never implemented: the template
+     * button, the drop zone, the file input and the ingest button exist in the HTML and
+     * are referenced nowhere in script. Opening the tab used to be impossible; now that
+     * it opens, a dead file picker would be worse than the dead tab, because a person
+     * would drop a file in and wait for something to happen.
+     *
+     * The controls are disabled and the panel says where to do the same work today.
+     */
+    function markBulkPanelUnavailable(prefix, label) {
+        const dropZone = document.getElementById(prefix + 'DropZone');
+        const fileInput = document.getElementById(prefix + 'FileInput');
+        const confirmBtn = document.getElementById('btnConfirm' + prefix.charAt(0).toUpperCase() + prefix.slice(1) + 'Ingest');
+        const templateBtn = document.getElementById('btnDownload' + prefix.charAt(0).toUpperCase() + prefix.slice(1) + 'Template');
+
+        for (const el of [confirmBtn, templateBtn]) {
+            if (!el) continue;
+            el.disabled = true;
+            el.style.opacity = '0.5';
+            el.style.cursor = 'not-allowed';
+            el.title = label + ' bulk import is not available yet';
+        }
+        if (fileInput) fileInput.disabled = true;
+
+        if (dropZone && !dropZone.dataset.unavailableShown) {
+            dropZone.dataset.unavailableShown = 'true';
+            dropZone.style.opacity = '0.55';
+            dropZone.style.pointerEvents = 'none';
+            const note = document.createElement('div');
+            note.setAttribute('role', 'status');
+            note.style.cssText = 'margin: 0 0 1rem; padding: 0.75rem 1rem; border-radius: 12px;' +
+                'background: #fffbeb; color: #b45309; border: 1px solid #fde68a; font-size: 0.875rem; font-weight: 600;';
+            note.textContent = label + ' bulk import is not built yet. Use the Bulk File Upload tab for the sheets it supports, ' +
+                'or the matching console tab to enter these records directly.';
+            dropZone.parentElement.insertBefore(note, dropZone);
+        }
+    }
 
     function showTab(key) {
         if (!TABS[key] || !TABS[key][0]) return;
