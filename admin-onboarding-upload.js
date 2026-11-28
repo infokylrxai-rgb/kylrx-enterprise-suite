@@ -38,6 +38,7 @@ import {
     serverTimestamp
 } from "./firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+import { kindForSheet, parseReferenceRows, saveReferenceRecords, previewHtml, REFERENCE_KINDS } from "./onboarding-reference-import.js";
 
 // Exact 21 Attributes Schema Definition (PRD Section 1 & 'Organization' Sheet)
 export const ORGANIZATION_ATTRIBUTES = [
@@ -720,6 +721,16 @@ function validateOrganizationAttributes(data) {
  * Sets up Tab B: Bulk File Upload (.xlsx / .csv parser)
  */
 function setupFileUpload() {
+    // Save buttons rendered inside the Departments / Designations / Locations / Employees previews.
+    const referenceContainer = document.getElementById('referenceImportResults');
+    if (referenceContainer) {
+        referenceContainer.onclick = async (e) => {
+            const btn = e && e.target && typeof e.target.closest === 'function' ? e.target.closest('[data-reference-save]') : null;
+            if (!btn || btn.disabled) return;
+            const kind = btn.getAttribute('data-reference-save');
+            await saveReference(kind, btn);
+        };
+    }
     if (dropZone && fileInput) {
         // A div is not reachable by keyboard; this makes the drop zone a real button.
         dropZone.setAttribute('role', 'button');
@@ -2050,6 +2061,20 @@ function handleUploadedFile(file) {
                 }
             }
 
+            // Departments, Designations, Locations and Employees (onboarding-reference-import.js).
+            const referenceContainer = document.getElementById('referenceImportResults');
+            if (referenceContainer) referenceContainer.innerHTML = '';
+            state.referenceParsed = {};
+            for (const kind of Object.keys(REFERENCE_KINDS)) {
+                const sheetName = pickSheet(n => kindForSheet(n) === kind);
+                if (!sheetName || !hasRows(sheetName)) continue;
+                const parsedRef = parseReferenceRows(kind, XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: '', raw: true }));
+                state.referenceParsed[kind] = parsedRef.records;
+                if (referenceContainer) referenceContainer.innerHTML += previewHtml(kind, sheetName, parsedRef);
+                if (parsedRef.records.length > 0) parsedAny = true;
+                else rejectedSheets.push({ sheet: sheetName, errors: parsedRef.errors });
+            }
+
             /*
              * What the person is told once the file has been read. Everything goes into one
              * message, because a second alert replaces the first one on screen.
@@ -2107,6 +2132,38 @@ function handleUploadedFile(file) {
         }
     };
     reader.readAsArrayBuffer(file);
+}
+
+/**
+ * Saves one of the reference sheets parsed into state.referenceParsed.
+ */
+async function saveReference(kind, btn) {
+    const records = (state.referenceParsed && state.referenceParsed[kind]) || [];
+    const label = REFERENCE_KINDS[kind].title;
+    if (!records.length) return;
+    if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+    let result;
+    try {
+        result = await saveReferenceRecords(kind, records, {
+            db, doc, setDoc, getDocs, collection, serverTimestamp,
+            orgId: state.orgId || getActiveOrgId() || missingOrg()
+        });
+    } catch (err) {
+        console.error('[ONBOARDING] ' + label + ' could not be saved:', err);
+        window.showCustomAlert('Nothing Was Saved', label + ' could not be saved: ' + err.message, 'error');
+        if (btn) { btn.disabled = false; btn.textContent = 'Try Again'; }
+        return;
+    }
+    const errs = result.errors || [];
+    const next = kind === 'employees' && result.saved ? '\n\nUse Issue Logins & Invites to give them access.' : '';
+    if (!result.saved) {
+        window.showCustomAlert('Nothing Was Saved', 'None of the ' + label.toLowerCase() + ' could be saved.\n\n' + errs.slice(0, 10).join('\n'), 'error');
+    } else if (errs.length) {
+        window.showCustomAlert('Partial Ingest', 'Saved ' + result.saved + ' of ' + records.length + ' ' + label.toLowerCase() + '.\n\nNot saved:\n' + errs.slice(0, 10).join('\n') + next, 'warning');
+    } else {
+        window.showCustomAlert(label + ' Saved', 'Saved all ' + result.saved + ' ' + label.toLowerCase() + '.' + next, 'success');
+    }
+    if (btn) { btn.disabled = false; btn.textContent = errs.length ? 'Try Again' : 'Saved'; }
 }
 
 /**

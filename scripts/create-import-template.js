@@ -25,9 +25,13 @@ const OUT = path.resolve(__dirname, '../assets/Kylrx-Import-Template.xlsx');
 // [sheet in this template, sheet its headers come from, what it holds, notes]
 const SHEETS = [
   ['Organization', 'Organization', 'Your company\'s legal and contact details.', 'One row.'],
+  ['Locations', 'Locations_Branches', 'Offices and branches.', 'Is_Headquarters: Yes for one location.'],
   ['Business Unit', 'Business Unit', 'Business units.', 'Head_Employee_ID can be left empty until employees exist.'],
   ['Cost Center', 'Cost Center', 'Cost centres.', ''],
+  ['Departments', 'Departments', 'Departments.', 'Cost_Center_Code should be a cost centre from the Cost Center sheet.'],
+  ['Designations', 'Designations', 'Job titles offered on the employee form.', 'Department_Code is optional.'],
   ['Sub-Departments', 'Sub-Departments', 'Sub-departments.', 'Cost_Center_Code must be a cost centre from the Cost Center sheet or already saved.'],
+  ['Employees', 'Employees_Master', 'Your people, one row each.', 'Department must exist (this file or already saved). Role: Employee, Manager or HR. Reporting Manager: an email or employee ID. Logins are issued afterwards with Issue Logins & Invites.'],
   ['Employee Type', 'Employee Type', 'Employee categories, probation and notice periods.', ''],
   ['Shifts & Week-offs', 'Shifts & Week-offs', 'Shift timings and weekly offs.', 'Times as HH:MM, 24-hour.'],
   ['Attendance Rules', 'Attendance Rules', 'Late, early-leaving, regularisation and overtime rules.', ''],

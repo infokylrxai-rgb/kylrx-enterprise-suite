@@ -56,6 +56,15 @@ function sampleRows(fromSheet, headers) {
 
 let page;
 const shown = (id) => page.el(id).innerText || page.el(id).textContent || '';
+
+// Departments, Designations, Locations and Employees preview into one container, by title.
+const REFERENCE = { 'Departments': 'Departments', 'Designations': 'Designations', 'Locations': 'Locations', 'Employees': 'Employees' };
+const referenceShown = (title) => (page.el('referenceImportResults').innerHTML || '').includes('>' + title + ' (');
+/** Every sheet kind that produced a preview. */
+const previewsShown = () => [
+  ...Object.entries(TITLES).filter(([, id]) => shown(id)).map(([sheet]) => sheet),
+  ...Object.keys(REFERENCE).filter(referenceShown)
+];
 before(async () => { page = await onboardingPage(); });
 beforeEach(() => page.reset());
 
@@ -79,7 +88,8 @@ describe('the template customers download', () => {
     }
     await page.upload('Kylrx-Import-Template.xlsx', tpl);
 
-    const missing = Object.entries(TITLES).filter(([, id]) => !shown(id)).map(([sheet]) => sheet);
+    const got = previewsShown();
+    const missing = [...Object.keys(TITLES), ...Object.keys(REFERENCE)].filter(sheet => !got.includes(sheet));
     assert.deepEqual(missing, [], 'these sheets produced no preview');
     assert.deepEqual(page.alerts, [], 'a correctly filled template should raise nothing');
   });
@@ -155,7 +165,7 @@ describe('a sheet is read by its own importer and no other', () => {
     it(name, async () => {
       const headers = XLSX.utils.sheet_to_json(XLSX.readFile(CUSTOMER_TEMPLATE).Sheets[name], { header: 1 })[0];
       await page.upload(name + '.xlsx', workbook({ [name]: sampleRows(from, headers) }));
-      const previews = Object.entries(TITLES).filter(([, id]) => shown(id)).map(([sheet]) => sheet);
+      const previews = previewsShown();
       assert.deepEqual(previews, [name]);
     });
   }

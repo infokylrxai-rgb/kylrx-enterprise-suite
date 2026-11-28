@@ -2,6 +2,7 @@ import { auth, db, onSnapshot, registerListener, tenantReady, getActiveOrgId } f
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 import { collection, getDocs, setDoc, doc, getDoc, runTransaction, serverTimestamp, updateDoc, query, where } from "./firebase-config.js";
 import { allocateAtomicEmployeeIds } from "./services/atomic-counter-service.js";
+import { fillEmployeeFormOptions } from "./employee-form-options.js";
 
 function escapeHtml(str) {
     if (!str && str !== 0) return '';
@@ -2003,6 +2004,8 @@ function setupEventListeners() {
                 }
             }
         }
+        // Designation, location, shift and cost centre from this organisation's own records.
+        fillEmployeeFormOptions(document.getElementById('empForm'), { db, collection, getDocs, orgId: getActiveOrgId() });
         openModal('empModal');
         if (window.EmployeeProfileController && typeof window.EmployeeProfileController.resetProfileModal === 'function') {
             window.EmployeeProfileController.resetProfileModal();
@@ -2995,6 +2998,12 @@ window.openEditModal = async (id) => {
         }
     }
 
+    fillEmployeeFormOptions(document.getElementById('empForm'), { db, collection, getDocs, orgId: getActiveOrgId() }, {
+        designation: emp.designation || emp.designationCode || emp['Designation_Code'] || '',
+        locationCode: emp.locationCode || emp.Location_Code || emp.jobDetails?.locationCode || '',
+        shiftCode: emp.shiftCode || emp.Shift_Code || emp.jobDetails?.shiftCode || '',
+        costCenterCode: emp.costCenterCode || emp.Cost_Center_Code || emp.jobDetails?.costCenterCode || ''
+    });
     openModal('empModal');
     if (window.EmployeeProfileController && typeof window.EmployeeProfileController.openProfileModal === 'function') {
         await window.EmployeeProfileController.openProfileModal(id);
