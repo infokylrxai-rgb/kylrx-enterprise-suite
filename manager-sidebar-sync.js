@@ -39,7 +39,7 @@ export function initManagerSidebar() {
     window.updateManagerProfileUI = updateManagerUI;
 
     window.logout = async () => {
-        try { if (auth && auth.signOut) await auth.signOut(); } catch(e){}
+        try { if (auth && auth.signOut) await auth.signOut(); } catch (err) { console.error('[manager-sidebar-sync] if (auth && auth.signOut) await auth.signOut(); failed:', err); }
         localStorage.clear();
         window.location.href = 'index.html';
     };

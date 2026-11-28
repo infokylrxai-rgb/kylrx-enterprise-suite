@@ -1737,7 +1737,7 @@
                     try {
                         const mSnap = await getDoc(doc(db, 'users', currentUser.managerId));
                         if (mSnap.exists()) managerName = mSnap.data().name || managerName;
-                    } catch(e) {}
+                    } catch (err) { console.error('[employee-dashboard] const mSnap = await getDoc(doc(db, users, curr failed:', err); }
                 } else if (currentUser && currentUser.managerName) {
                     managerName = currentUser.managerName;
                 }

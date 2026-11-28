@@ -419,37 +419,90 @@
             updatedAt: now
         };
 
+        /*
+         * This used to report success whatever happened. A Firestore failure was logged as a
+         * "notice", the API call swallowed every error and never checked res.ok - so a 403 or
+         * 500 counted as saved - and the screen was updated and "successfully updated with
+         * audit trail" shown regardless. A reassignment could fail at both stores and every
+         * audit write, and the admin would be told it had worked.
+         *
+         * Each step now records whether it actually succeeded, and the message says exactly
+         * that. Nothing on screen changes unless at least one store accepted the change.
+         */
+        let firestoreSaved = false;
+        let apiSaved = false;
+        let auditSaved = 0;
+        let auditFailed = 0;
+        const failures = [];
+
         try {
             // 1. Write to Firestore employees/{empId} and users/{empId}
             const fb = await import('./firebase-config.js');
             if (fb && fb.db && fb.doc && fb.setDoc) {
                 await fb.setDoc(fb.doc(fb.db, 'employees', empId), updatePayload, { merge: true });
                 await fb.setDoc(fb.doc(fb.db, 'users', empId), updatePayload, { merge: true });
+                firestoreSaved = true;
 
-                // Also persist to audit_logs collection
+                // An audit write failing must be visible: otherwise a reporting-line change
+                // stands with no record of who made it.
                 if (fb.addDoc && fb.collection) {
                     for (const entry of auditLogEntries) {
                         try {
                             await fb.addDoc(fb.collection(fb.db, 'audit_logs'), entry);
-                        } catch (_) {}
+                            auditSaved++;
+                        } catch (auditErr) {
+                            auditFailed++;
+                            console.error('[ManagerAssignment] audit log write failed for ' + empId + ':', auditErr);
+                        }
                     }
                 }
             }
         } catch (fsErr) {
-            console.warn('[Firestore] Manager assignment write notice:', fsErr.message);
+            failures.push('database');
+            console.error('[ManagerAssignment] Firestore write failed for ' + empId + ':', fsErr);
         }
 
-        // 2. Dual-save to backend API
+        // 2. Dual-save to backend API. A response that is not ok is a failure, not a save.
         try {
             const token = (typeof window !== 'undefined' && window.auth && window.auth.currentUser) ? await window.auth.currentUser.getIdToken() : localStorage.getItem('access_token');
-            await fetch(`${typeof API_BASE !== 'undefined' ? API_BASE : (typeof window !== 'undefined' && window.API_BASE ? window.API_BASE : (typeof window !== 'undefined' && window.location ? window.location.origin : ''))}/api/admin/employees/${empId}/managers`, {
+            const base = typeof API_BASE !== 'undefined' ? API_BASE : (typeof window !== 'undefined' && window.API_BASE ? window.API_BASE : (typeof window !== 'undefined' && window.location ? window.location.origin : ''));
+            const res = await fetch(base + '/api/admin/employees/' + encodeURIComponent(empId) + '/managers', {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
+                headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': 'Bearer ' + token } : {}) },
                 body: JSON.stringify({ l1ManagerId: newL1, l2ManagerId: newL2, changedBy: assignedBy })
             });
-        } catch (_) {}
+            if (res.ok) {
+                apiSaved = true;
+            } else {
+                failures.push('server (HTTP ' + res.status + ')');
+                console.error('[ManagerAssignment] API rejected the change for ' + empId + ': HTTP ' + res.status);
+            }
+        } catch (apiErr) {
+            failures.push('server');
+            console.error('[ManagerAssignment] API call failed for ' + empId + ':', apiErr);
+        }
 
-        // 3. Update in-memory state and refresh directory table immediately
+        const notify = (kind, title, message) => {
+            if (kind === 'error' && window.showError) window.showError(title, message);
+            else if (kind !== 'error' && window.showSuccess) window.showSuccess(title, message);
+            else if (window.showToast) window.showToast(message, kind);
+            else alert(title + ': ' + message);
+        };
+        const who = currentEmp.fullName || currentEmp.name || empId;
+
+        // Neither store took the change: say so, keep the modal open so nothing typed is
+        // lost, and leave the screen showing what is actually saved.
+        if (!firestoreSaved && !apiSaved) {
+            notify('error', 'Hierarchy not updated',
+                'The reporting line for ' + who + ' could not be saved (' + failures.join(', ') + '). Nothing was changed - please try again.');
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i data-lucide="check"></i> Save &amp; Update Hierarchy';
+            }
+            return;
+        }
+
+        // 3. Update in-memory state and refresh directory table, now that it is saved
         if (window.state && Array.isArray(window.state.employees)) {
             window.state.employees = window.state.employees.map(e => {
                 if (e.id === empId || e.uid === empId || e.employeeId === empId) {
@@ -472,15 +525,19 @@
             window.EmployeeProfileController.updateManagerBadges();
         }
 
-        // Success notification & close
         closeAssignmentModal();
 
-        if (window.showSuccess) {
-            window.showSuccess('Hierarchy Updated', `Reporting hierarchy for ${currentEmp.fullName || currentEmp.name || empId} successfully updated with audit trail.`);
-        } else if (window.showToast) {
-            window.showToast('✅ Manager assignments updated successfully!', 'success');
+        // Claim only what happened. "With audit trail" is said only when every entry saved.
+        if (auditFailed > 0) {
+            notify('warning', 'Hierarchy updated - audit record incomplete',
+                'The reporting line for ' + who + ' was saved, but ' + auditFailed + ' of ' + (auditSaved + auditFailed) +
+                ' audit entries could not be recorded. Note this change manually.');
+        } else if (failures.length) {
+            notify('warning', 'Hierarchy updated - partly saved',
+                'The reporting line for ' + who + ' was saved, but the ' + failures.join(', ') + ' did not accept it and may show the old value until it is retried.');
         } else {
-            alert('Manager assignments updated successfully.');
+            notify('success', 'Hierarchy updated',
+                'Reporting hierarchy for ' + who + ' updated' + (auditSaved ? ' with audit trail.' : '.'));
         }
 
         if (saveBtn) {

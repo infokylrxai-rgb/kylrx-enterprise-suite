@@ -17,10 +17,14 @@ import {
 // @ts-ignore
 import { getStorage } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-storage.js";
 
-// 1. Completely silence internal Firebase logger chatter
+// 1. Quieten the Firebase SDK's own logging, but not completely.
+//    'silent' suppressed the SDK's errors along with its debug and retry chatter, which
+//    hides real failures. 'error' keeps the chatter out and lets errors through; the
+//    console.error override below then sorts them (permission errors stay errors, a
+//    genuine quota error is reported once).
 try {
-  setLogLevel('silent');
-  setFirestoreLogLevel('silent');
+  setLogLevel('error');
+  setFirestoreLogLevel('error');
 } catch (_) {}
 
 // 2. Global console filter for Firebase Quota & backoff warnings
@@ -349,6 +353,55 @@ function reportPermissionDenied(target, err) {
   try {
     window.dispatchEvent(new CustomEvent('firestore-permission-denied', { detail: { target: name, error: err } }));
   } catch (_) {}
+}
+
+/*
+ * Tell the person when data could not be loaded.
+ *
+ * When a read is refused, the wrappers below return an empty snapshot so the page does
+ * not crash - and they announce it with the 'firestore-permission-denied' event and a
+ * permissionDenied flag. Nothing listened for either. So a refused read and a genuinely
+ * empty collection looked identical: a dashboard reading zero, with no way to tell it was
+ * broken rather than quiet.
+ *
+ * One listener here covers every page that uses Firestore. The message is deliberately
+ * plain - which collection failed and why is internal detail, and stays in the console.
+ */
+let _dataNoticeShown = false;
+function showDataUnavailableNotice() {
+  if (_dataNoticeShown || typeof document === 'undefined') return;
+  const render = () => {
+    if (_dataNoticeShown || !document.body) return;
+    _dataNoticeShown = true;
+    const bar = document.createElement('div');
+    bar.setAttribute('role', 'alert');
+    bar.id = 'kylrxDataUnavailableNotice';
+    bar.style.cssText = 'position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:100000;' +
+      'max-width:min(560px,calc(100vw - 32px));display:flex;align-items:center;gap:12px;' +
+      'padding:12px 16px;border-radius:12px;background:#fffbeb;color:#92400e;border:1px solid #fde68a;' +
+      'box-shadow:0 8px 24px -8px rgba(0,0,0,.18);font:600 14px/1.4 system-ui,-apple-system,sans-serif;';
+    const text = document.createElement('span');
+    text.textContent = "Some information on this page couldn't be loaded, so parts of it may look empty.";
+    const retry = document.createElement('button');
+    retry.type = 'button';
+    retry.textContent = 'Retry';
+    retry.style.cssText = 'margin-left:auto;padding:6px 12px;border-radius:8px;border:1px solid #f59e0b;' +
+      'background:#fff;color:#92400e;font:inherit;cursor:pointer;';
+    retry.addEventListener('click', () => window.location.reload());
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.setAttribute('aria-label', 'Dismiss');
+    close.textContent = '×';
+    close.style.cssText = 'padding:2px 8px;border:none;background:none;color:#92400e;font-size:18px;cursor:pointer;';
+    close.addEventListener('click', () => bar.remove());
+    bar.append(text, retry, close);
+    document.body.appendChild(bar);
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', render);
+  else render();
+}
+if (typeof window !== 'undefined') {
+  window.addEventListener('firestore-permission-denied', showDataUnavailableNotice);
 }
 
 // Quota-safe wrappers to ensure the application never crashes when quota is reached

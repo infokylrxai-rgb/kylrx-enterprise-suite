@@ -530,7 +530,7 @@
         if (service && typeof service.getEmployeeNpsDetails === 'function') {
             try {
                 npsDetails = await service.getEmployeeNpsDetails(orgId, employeeId);
-            } catch (e) {}
+            } catch (err) { console.error('[npsProfileUIController] npsDetails = await service.getEmployeeNpsDetails failed:', err); }
         }
 
         if (!npsDetails) {

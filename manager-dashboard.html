@@ -739,7 +739,7 @@
         lucide.createIcons();
 
         window.logout = async () => {
-            try { await signOut(auth); } catch(e){}
+            try { await signOut(auth); } catch (err) { console.error('[manager-dashboard] await signOut(auth); failed:', err); }
             localStorage.clear();
             window.location.href = 'index.html';
         };

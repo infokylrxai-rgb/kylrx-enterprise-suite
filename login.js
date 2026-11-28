@@ -161,7 +161,7 @@ async function finishSignIn(userCredential, email) {
       const tokenResult = await userCredential.user.getIdTokenResult();
       claimRole = tokenResult.claims.role || (tokenResult.claims.super_admin ? 'super_admin' : null);
       claimOrgId = tokenResult.claims.orgId || null;
-    } catch (_) {}
+    } catch (err) { console.error('[login] const tokenResult = await userCredential.user.ge failed:', err); }
 
     // The role comes only from those claims or from the user's Firestore profile, never from the email text
     let userData = null;
@@ -182,7 +182,7 @@ async function finishSignIn(userCredential, email) {
     }
     if (!userData && claimRole) userData = { uid: finalUid, email: email, name: email, status: 'Active' };
     if (!userData) {
-      try { await signOut(auth); } catch (_) {}
+      try { await signOut(auth); } catch (err) { console.error('[login] await signOut(auth); failed:', err); }
       throw new Error("Access Denied: no profile or role is assigned to this account. Please contact your administrator.");
     }
     if (claimRole) userData.role = claimRole;
@@ -312,16 +312,16 @@ if (googleLoginBtn) {
             });
             link = await resp.json().catch(() => ({}));
             if (!resp.ok || !link.success) {
-                try { await signOut(auth); } catch (_) {}
+                try { await signOut(auth); } catch (err) { console.error('[login] await signOut(auth); failed:', err); }
                 throw new Error(link.error || 'Google sign-in could not be completed.');
             }
         } catch (err) {
-            try { await signOut(auth); } catch (_) {}
+            try { await signOut(auth); } catch (err) { console.error('[login] await signOut(auth); failed:', err); }
             throw err;
         }
 
         // Claims were just written server-side; refresh so this session actually carries them.
-        try { await userAuth.getIdToken(true); } catch (_) {}
+        try { await userAuth.getIdToken(true); } catch (err) { console.error('[login] await userAuth.getIdToken(true); failed:', err); }
 
         const userData = Object.assign({}, link.profile || {}, {
             uid: link.uid, role: link.role, orgId: link.orgId, email

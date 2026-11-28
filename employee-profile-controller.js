@@ -642,7 +642,7 @@
             if (id && (typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null) && window.KylrxEmployeeFinanceService && typeof window.KylrxEmployeeFinanceService.getEmployeeFinance === 'function') {
                 try {
                     finRec = await window.KylrxEmployeeFinanceService.getEmployeeFinance((typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null), id);
-                } catch (_) {}
+                } catch (err) { console.error('[employee-profile-controller] finRec = await window.KylrxEmployeeFinanceServic failed:', err); }
             }
             const banking = finRec?.banking || emp.banking || {};
             const finStatutory = finRec?.statutory || statutory;

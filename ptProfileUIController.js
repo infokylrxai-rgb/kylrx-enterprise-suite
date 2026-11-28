@@ -316,7 +316,7 @@
         if (service && typeof service.getEmployeePtDetails === 'function') {
             try {
                 ptDetails = await service.getEmployeePtDetails(orgId, employeeId);
-            } catch (e) {}
+            } catch (err) { console.error('[ptProfileUIController] ptDetails = await service.getEmployeePtDetails(o failed:', err); }
         }
 
         if (!ptDetails) {

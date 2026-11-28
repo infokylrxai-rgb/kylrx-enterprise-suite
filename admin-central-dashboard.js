@@ -106,7 +106,7 @@ async function refreshDashboardData() {
         try {
             if (auth && typeof auth.authStateReady === 'function') await auth.authStateReady();
             if (auth && auth.currentUser) firebaseToken = await auth.currentUser.getIdToken();
-        } catch (_) {}
+        } catch (err) { console.error('[admin-central-dashboard] if (auth && typeof auth.authStateReady === func failed:', err); }
         const token = firebaseToken || localStorage.getItem('token') || localStorage.getItem('kylrx_auth_token');
         if (!token) return redirectToLogin();
         // The server decides the widget set from the verified token, so no role is sent

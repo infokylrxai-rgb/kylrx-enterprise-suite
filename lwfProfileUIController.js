@@ -514,7 +514,7 @@
         if (service && typeof service.getEmployeeLwfDetails === 'function') {
             try {
                 lwfDetails = await service.getEmployeeLwfDetails(orgId, employeeId);
-            } catch (e) {}
+            } catch (err) { console.error('[lwfProfileUIController] lwfDetails = await service.getEmployeeLwfDetails failed:', err); }
         }
 
         if (!lwfDetails) {
