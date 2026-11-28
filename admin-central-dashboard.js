@@ -812,13 +812,63 @@ function renderRecentAutomationStream(logs = []) {
 /**
  * Reusable Chart.js instance generator
  */
+/**
+ * Draws a message in the chart's slot instead of the canvas.
+ *
+ * An empty canvas is a blank rectangle: the reader cannot tell a chart with no data from
+ * one that failed to load, or from a layout bug. Saying which costs one line.
+ */
+function showChartMessage(canvas, message) {
+    const slot = canvas.parentElement;
+    if (!slot) return;
+    canvas.style.display = 'none';
+    let note = slot.querySelector('.chart-empty-note');
+    if (!note) {
+        note = document.createElement('div');
+        note.className = 'chart-empty-note';
+        note.style.cssText = 'display:flex; align-items:center; justify-content:center; height:100%;' +
+            'text-align:center; font-size:0.78rem; color:#94a3b8; font-weight:600; padding:0 12px;';
+        slot.appendChild(note);
+    }
+    note.textContent = message;
+    note.style.display = 'flex';
+}
+
+function hideChartMessage(canvas) {
+    const slot = canvas.parentElement;
+    const note = slot && slot.querySelector('.chart-empty-note');
+    if (note) note.style.display = 'none';
+    canvas.style.display = '';
+}
+
 function renderChart(canvasId, type, chartData) {
     const canvas = document.getElementById(canvasId);
-    if (!canvas || !chartData) return;
+    if (!canvas) return;
 
     if (chartInstances[canvasId]) {
         chartInstances[canvasId].destroy();
+        chartInstances[canvasId] = null;
     }
+
+    // Nothing to plot is a normal state for a new organisation, not a failure, and it
+    // should read that way rather than as an empty box.
+    const series = (chartData && chartData.datasets) || [];
+    const values = series.reduce((all, d) => all.concat(d && d.data ? d.data : []), []);
+    const hasAnything = values.some(v => Number(v) > 0);
+
+    if (!chartData || !values.length) {
+        showChartMessage(canvas, 'No data yet');
+        return;
+    }
+    if (!hasAnything) {
+        showChartMessage(canvas, 'Nothing recorded for this period');
+        return;
+    }
+    if (typeof Chart === 'undefined') {
+        showChartMessage(canvas, 'Charts could not be loaded');
+        return;
+    }
+    hideChartMessage(canvas);
 
     chartInstances[canvasId] = new Chart(canvas, {
         type: type,

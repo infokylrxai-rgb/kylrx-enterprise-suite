@@ -99,7 +99,8 @@ describe('the command centre invents no organisation', () => {
 });
 
 describe('the greeting does not change under the reader', () => {
-  const theme = fs.readFileSync(path.join(ROOT, 'kylrx-theme.js'), 'utf8');
+  // The pre-paint greeting moved out of the theme layer when that was removed.
+  const theme = fs.readFileSync(path.join(ROOT, 'kylrx-greeting.js'), 'utf8');
 
   it('ships no placeholder word in the markup', () => {
     for (const f of ['admin-dashboard.html', 'admin-pms.html']) {
@@ -122,5 +123,44 @@ describe('the greeting does not change under the reader', () => {
     // Replacing the <h1> swaps the element out and the greeting visibly jumps.
     assert.ok(!/welcomeText\.innerHTML = \(firstName \?/.test(app),
       'the heading must not be rewritten on load');
+  });
+});
+
+describe('charts say what is going on', () => {
+  /**
+   * With nothing to plot, Chart.js draws an empty canvas - a blank rectangle the reader
+   * cannot tell apart from a chart that failed to load or a broken layout. For a new
+   * organisation that is the normal state, so it should read as such.
+   */
+  it('shows a message instead of a blank canvas', () => {
+    assert.match(central, /function showChartMessage/);
+    assert.match(central, /No data yet/);
+  });
+
+  it('separates having no data from having only zeroes', () => {
+    assert.match(central, /Nothing recorded for this period/);
+  });
+
+  it('says so when the charting library itself is missing', () => {
+    assert.match(central, /typeof Chart === 'undefined'/);
+    assert.match(central, /Charts could not be loaded/);
+  });
+
+  it('clears the message once there is something to draw', () => {
+    assert.match(central, /function hideChartMessage/);
+  });
+});
+
+describe('the theme layer is gone', () => {
+  it('no page loads it', () => {
+    const left = fs.readdirSync(ROOT)
+      .filter(f => /\.html$/.test(f))
+      .filter(f => fs.readFileSync(path.join(ROOT, f), 'utf8').includes('kylrx-theme'));
+    assert.deepEqual(left, [], 'these pages still reference the removed theme');
+  });
+
+  it('but the greeting fix it carried is kept', () => {
+    assert.ok(fs.existsSync(path.join(ROOT, 'kylrx-greeting.js')),
+      'the pre-paint greeting is not about appearance and should outlive the theme');
   });
 });
