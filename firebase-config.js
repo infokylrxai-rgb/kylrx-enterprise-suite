@@ -40,10 +40,12 @@ function isQuotaOrBackoffMessage(...args) {
          text.includes('RESOURCE_EXHAUSTED') ||
          text.includes('Quota exceeded') || 
          text.includes('maximum backoff delay') ||
-         text.includes('@firebase/firestore: Firestore') ||
+           // '@firebase/firestore: Firestore' used to be listed here. It is the prefix of
+           // EVERY Firestore SDK log line, so every Firestore error - permission-denied
+           // included - was classed as quota and silenced. 'documents:commit' likewise
+           // matched the URL of every write, so failed writes vanished too.
          text.includes('429') ||
          text.includes('Too Many Requests') ||
-         text.includes('documents:commit') ||
          text.includes('QUIC_PROTOCOL_ERROR') ||
          text.includes('QUIC_TOO_MANY_RTOS') ||
          text.includes('ERR_QUIC_PROTOCOL_ERROR');
@@ -97,15 +99,19 @@ console.error = function (...args) {
   if (isCoopOrPopupMessage(...args)) {
     return;
   }
+  // A permission error is almost always a query the security rules rejected - usually
+  // a whole-collection read with no orgId predicate, which Firestore refuses outright
+  // rather than filtering. The screen then renders empty. That is a bug, not noise, so it
+  // stays an error and is checked before the quota branch can swallow it.
+  if (isPermissionOrQuotaMessage(...args)) {
+    _origConsoleError.apply(console, ['[Firestore] query rejected by security rules - check it is scoped by orgId:', ...args]);
+    return;
+  }
   if (isQuotaOrBackoffMessage(...args)) {
     if (!_quotaNoticeShown) {
       _quotaNoticeShown = true;
       _origConsoleWarn.call(console, "⚡ [Kylrx Architecture] Firebase Firestore quota limit reached. Local persistent cache active.");
     }
-    return;
-  }
-  if (isPermissionOrQuotaMessage(...args)) {
-    _origConsoleWarn.apply(console, ["[Firestore Permission Mode]", ...args]);
     return;
   }
   _origConsoleError.apply(console, args);
