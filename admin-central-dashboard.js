@@ -131,8 +131,12 @@ async function refreshDashboardData() {
             }
             return;
         }
+        // Not available: say why (no organisation on the account, database unavailable, ...)
+        const body = await res.json().catch(() => ({}));
+        console.error('[admin-central-dashboard] overview refused:', res.status, body.error || '');
+        return renderFallbackLiveDashboard(body.error);
     } catch (e) {
-        console.warn('Error fetching dashboard overview from API:', e);
+        console.error('[admin-central-dashboard] overview could not be fetched:', e);
     }
     renderFallbackLiveDashboard();
 }
@@ -148,7 +152,7 @@ async function refreshDashboardData() {
  * There is no safe number to invent here. Everything reads zero, and the screen says the
  * figures could not be loaded, so nobody mistakes an outage for a quiet month.
  */
-function renderFallbackLiveDashboard() {
+function renderFallbackLiveDashboard(reason) {
     const emptySeries = { labels: [], datasets: [{ data: [], backgroundColor: [] }] };
     const emptyData = {
         workforce:  { totalHeadcount: 0, newHiresQTD: 0, attritionRate: '0.0%', buDistribution: emptySeries },
@@ -168,7 +172,7 @@ function renderFallbackLiveDashboard() {
     const notice = document.getElementById('dashboardUnavailableNotice');
     if (notice) {
         notice.style.display = 'block';
-        notice.textContent = 'Live figures could not be loaded just now. These are not your real numbers - refresh to try again.';
+        notice.textContent = (reason ? reason + ' ' : 'Live figures could not be loaded just now. ') + 'Everything below reads 0 until they can be - these are not your real numbers.';
     }
 }
 

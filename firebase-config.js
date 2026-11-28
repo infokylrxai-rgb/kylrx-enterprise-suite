@@ -404,9 +404,46 @@ if (typeof window !== 'undefined') {
   window.addEventListener('firestore-permission-denied', showDataUnavailableNotice);
 }
 
+/*
+ * A signed-in account with no organisation. Every tenant query it made went out
+ * unfiltered - scopeToTenant has no orgId to add - so the security rules refused all of
+ * them, and the page showed "Some information couldn't be loaded" without saying why.
+ * Such a query is not sent at all now: it returns nothing, and the person is told the
+ * actual problem, which only an administrator can fix.
+ */
+function isOrglessTenantQuery(target) {
+  return TENANT_READ_SCOPING && !activeOrgId && !!window.__kylrxUid &&
+    !!target && target.type !== 'document' && isTenantScoped(target) && !hasOrgFilter(target);
+}
+const EMPTY_QUERY_SNAPSHOT = () => ({ empty: true, docs: [], size: 0, forEach: () => {}, docChanges: () => [], metadata: { fromCache: false }, noOrganization: true });
+let _noOrgNoticeShown = false;
+function showNoOrganizationNotice() {
+  if (_noOrgNoticeShown || typeof document === 'undefined') return;
+  const render = () => {
+    if (_noOrgNoticeShown || !document.body) return;
+    _noOrgNoticeShown = true;
+    _dataNoticeShown = true;                 // this explains the empty page; the generic notice would not
+    const bar = document.createElement('div');
+    bar.setAttribute('role', 'alert');
+    bar.id = 'kylrxNoOrganizationNotice';
+    bar.style.cssText = 'position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:100000;' +
+      'max-width:min(560px,calc(100vw - 32px));padding:12px 16px;border-radius:12px;background:#fffbeb;color:#92400e;' +
+      'border:1px solid #fde68a;box-shadow:0 8px 24px -8px rgba(0,0,0,.18);font:600 14px/1.4 system-ui,-apple-system,sans-serif;';
+    bar.textContent = "Your account isn't linked to an organization yet, so there is no data to show. Ask your administrator to add you to your organization, then sign in again.";
+    document.body.appendChild(bar);
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', render);
+  else render();
+}
+
 // Quota-safe wrappers to ensure the application never crashes when quota is reached
 const getDocs = async (rawTarget) => {
   await tenantReady;
+  if (isOrglessTenantQuery(rawTarget)) {
+    _origConsoleError.call(console, '[Firestore] not sent: this account has no organization, so no tenant data can be read.');
+    showNoOrganizationNotice();
+    return EMPTY_QUERY_SNAPSHOT();
+  }
   const q = scopeToTenant(rawTarget);
   // Reads always go to Firestore: the write-quota circuit (isQuotaActive) must not turn reads
   // into cache-only lookups, which made existing accounts look missing at login
@@ -712,6 +749,12 @@ const onSnapshot = (target, ...args) => {
   registerListener(unsubscribe);
   tenantReady.then(() => {
     if (cancelled) return;
+    if (!isDocTarget && isOrglessTenantQuery(target)) {
+      // Same as getDocs: no organisation, so the listener is not opened at all.
+      showNoOrganizationNotice();
+      onNext(emptySnapshot());
+      return;
+    }
     try {
       const scopedTarget = isDocTarget ? target : scopeToTenant(target);
       const docGuard = isDocTarget

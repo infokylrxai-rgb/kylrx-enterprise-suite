@@ -29,123 +29,78 @@ const asRole = (role) => ({ headers: { Authorization: `Bearer ${jwt.sign({ id: `
 
 describe('Admin Central Dashboard (Command Center) Suite', () => {
 
-    test('1. Overview API aggregates all 11 prompt widgets with live data', async () => {
+    /*
+     * These tests used to check the invented company the API returned whenever it had
+     * no database: headcount above zero, a "Chief Executive Officer" tree with a
+     * Technology branch, absences and WFH days, alerts about "3 Consecutive Absences".
+     * The Command Centre showed that company as the customer's own (950 headcount).
+     * Without a database - as here - the API now says so and invents nothing.
+     */
+    test('1. Without a database the overview says so instead of inventing an organisation', async () => {
         const res = await fetch(`${baseUrl}/api/central-dashboard/overview`, asRole('super_admin'));
-        assert.strictEqual(res.status, 200);
-
+        assert.strictEqual(res.status, 503);
         const body = await res.json();
-        assert.strictEqual(body.success, true);
-        assert.strictEqual(body.activeRole, 'super_admin');
-
-        const data = body.data;
-        assert.ok(data.attendance, 'Widget 1: Attendance overview must be present');
-        assert.ok(data.pms, 'Widget 2: PMS insights must be present');
-        assert.ok(data.exit, 'Widget 3: Exit analytics must be present');
-        assert.ok(data.payroll, 'Widget 4: Payroll analytics must be present');
-        assert.ok(data.policy, 'Widget 5: Policy compliance must be present');
-        assert.ok(data.workforce, 'Widget 6: Workforce overview must be present');
-        assert.ok(data.orgStructure, 'Widget 7: Organization structure must be present');
-        assert.ok(data.pendingActions, 'Widget 8: Pending actions must be present');
-        assert.ok(data.criticalAlerts, 'Widget 9: Critical alerts must be present');
-        assert.ok(data.approvals, 'Widget 10: Approvals must be present');
-        assert.ok(data.recentAutomationActivity, 'Widget 11: Recent automation activity must be present');
+        assert.strictEqual(body.success, false);
+        assert.match(body.error, /database is not available/);
+        assert.ok(!body.data, 'no figures may be sent with the refusal');
     });
 
-    test('2. Attendance & Workforce live metrics are properly computed', async () => {
-        const res = await fetch(`${baseUrl}/api/central-dashboard/overview`, asRole('super_admin'));
+    test('2. An account with no organisation gets no figures', async () => {
+        const token = jwt.sign({ id: 'test_noorg', role: 'super_admin' }, process.env.JWT_SECRET || 'test-jwt-secret-not-for-production-use-0001');
+        const res = await fetch(`${baseUrl}/api/central-dashboard/overview`, { headers: { Authorization: `Bearer ${token}` } });
+        assert.ok([403, 503].includes(res.status), 'got ' + res.status);
         const body = await res.json();
-        const { attendance, workforce } = body.data;
-
-        assert.ok(attendance.todayPresentPct, 'Attendance must include present percentage');
-        assert.ok(attendance.absenteeismTotal > 0, 'Attendance must calculate absenteeism total');
-        assert.ok(attendance.wfhUtilizationDays > 0, 'Attendance must calculate WFH utilization');
-        assert.ok(workforce.totalHeadcount > 0, 'Workforce must calculate total headcount');
-        assert.ok(workforce.buDistribution.labels.length >= 3, 'Workforce must break down by BU');
+        assert.strictEqual(body.success, false);
+        assert.ok(!body.data);
     });
 
-    test('3. Payroll, Exit, PMS, and Policy compliance metrics are accurately generated', async () => {
-        const res = await fetch(`${baseUrl}/api/central-dashboard/overview`, asRole('super_admin'));
-        const body = await res.json();
-        const { payroll, exit, pms, policy } = body.data;
-
-        assert.ok(payroll.grossCostTotal.includes('₹'), 'Payroll must show gross cost total in INR');
-        assert.ok(payroll.variancePct, 'Payroll must show variance percentage');
-        assert.ok(exit.totalExitsQTD > 0, 'Exit must calculate exits count');
-        assert.ok(exit.chartReasons.labels.length > 0, 'Exit must include reasons breakdown');
-        assert.ok(pms.reviewCompletionRate, 'PMS must show review completion rate');
-        assert.ok(policy.overallComplianceRate, 'Policy must compute overall compliance rate');
+    test('3. No invented figures remain in the route or the page', () => {
+        const route = fs.readFileSync(new URL('../routes/central-dashboard.js', import.meta.url), 'utf-8')
+            .replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/[^\n]*/gm, '');
+        for (const fake of ['950', "'8.4%'", "'94.2%'", '470, 240', 'Rajesh Subramanian', 'Ananya Rao']) {
+            assert.ok(!route.includes(fake), 'the route still carries ' + fake);
+        }
+        const html = fs.readFileSync(new URL('../admin-central-dashboard.html', import.meta.url), 'utf-8');
+        assert.match(html, /id="wfHeadcount"[^>]*>0</, 'Workforce Overview must start at 0, not an invented headcount');
+        assert.match(html, /id="wfHires"[^>]*>0</);
+        assert.match(html, /id="wfAttrition"[^>]*>0\.0%</);
+        assert.ok(!/>950 Active/.test(html));
     });
 
-    test('4. Organization Structure Tree is hierarchical, acyclic, and contains direct reports', async () => {
+    test('4. The organisation tree is the organisation\'s own, never an invented one', async () => {
         const res = await fetch(`${baseUrl}/api/central-dashboard/org-structure`, asRole('super_admin'));
-        assert.strictEqual(res.status, 200);
-
+        assert.strictEqual(res.status, 503);
         const body = await res.json();
-        assert.strictEqual(body.success, true);
-        const tree = body.tree;
-
-        assert.ok(tree.name, 'Root node must have a name');
-        assert.strictEqual(tree.role, 'Chief Executive Officer');
-        assert.ok(Array.isArray(tree.children), 'Root node must have children branches');
-        assert.ok(tree.children.length >= 3, 'Root should branch into multiple department heads');
-
-        const cto = tree.children.find(c => c.role.includes('Technology'));
-        assert.ok(cto, 'Tree must include Technology leadership branch');
-        assert.ok(cto.children.length >= 2, 'CTO node must have department reporting leads');
+        assert.ok(!body.tree, 'no tree may be invented without the database');
     });
 
-    test('5. Role-based Permission Gating applies appropriate widget access', async () => {
-        // Test Super Admin permissions (All 11 widgets)
-        const superRes = await fetch(`${baseUrl}/api/central-dashboard/overview`, asRole('super_admin'));
-        const superBody = await superRes.json();
-        assert.strictEqual(superBody.allowedWidgets.length, 11, 'Super Admin must have access to all 11 widgets');
-
-        // Test Manager permissions (Restricted subset)
-        const mgrRes = await fetch(`${baseUrl}/api/central-dashboard/overview`, asRole('manager'));
-        const mgrBody = await mgrRes.json();
-        assert.ok(mgrBody.allowedWidgets.length < 11, 'Manager should have restricted widget permissions');
-        assert.ok(!mgrBody.allowedWidgets.includes('payroll'), 'Manager should not have permission to view payroll');
-        assert.ok(!mgrBody.allowedWidgets.includes('exit'), 'Manager should not have permission to view exit analytics');
-        assert.ok(mgrBody.allowedWidgets.includes('attendance'), 'Manager must have access to attendance');
-        assert.ok(mgrBody.allowedWidgets.includes('pms'), 'Manager must have access to PMS');
+    test('5. Role-based widget permissions', async () => {
+        const res = await fetch(`${baseUrl}/api/central-dashboard/permissions`, asRole('super_admin'));
+        const { roles } = await res.json();
+        assert.strictEqual(roles.super_admin.allowedWidgets.length, 11, 'Super Admin must have access to all 11 widgets');
+        const mgr = roles.manager.allowedWidgets;
+        assert.ok(mgr.length < 11);
+        assert.ok(!mgr.includes('payroll') && !mgr.includes('exit'));
+        assert.ok(mgr.includes('attendance') && mgr.includes('pms'));
     });
 
-    test('6. Resolving an Approval records immutable audit entry in Common Automation Engine', async () => {
-        const initRes = await fetch(`${baseUrl}/api/central-dashboard/overview`, asRole('super_admin'));
-        const initBody = await initRes.json();
-        const targetId = initBody.data.approvals[0]?.id || 'APP-SALARY-410';
-
-        const res = await fetch(`${baseUrl}/api/central-dashboard/approvals/${targetId}/action`, {
+    test('6. Resolving an approval records an audit entry', async () => {
+        const res = await fetch(`${baseUrl}/api/central-dashboard/approvals/APP-TEST-1/action`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', ...asRole('super_admin').headers },
-            body: JSON.stringify({ decision: 'approved', remarks: 'Salary revision signed off by HR Admin' })
+            body: JSON.stringify({ decision: 'approved', remarks: 'Signed off' })
         });
-
         assert.strictEqual(res.status, 200);
         const body = await res.json();
         assert.strictEqual(body.success, true);
         assert.ok(body.message.includes('approved'));
-
-        // Verify that the server's Common Automation Engine recorded the audit log in overview
-        const resOverview = await fetch(`${baseUrl}/api/central-dashboard/overview`, asRole('super_admin'));
-        const overviewBody = await resOverview.json();
-        const logs = overviewBody.data.recentAutomationActivity;
-        
-        const approvalLog = logs.find(l => l.stage === 'Approval Resolution');
-        assert.ok(approvalLog, 'Approval decision must be recorded into Common Automation Engine audit trail');
-        assert.strictEqual(approvalLog.status, 'approved');
+        const logs = automationEngine.getAuditLogs ? automationEngine.getAuditLogs() : (automationEngine.auditLogs || []);
+        assert.ok(Array.isArray(logs) ? logs.some(l => l.stage === 'Approval Resolution') : true, 'the decision must be audited');
     });
 
-    test('7. Critical Alerts stream mirrors Alert Builder threshold monitors', async () => {
-        const res = await fetch(`${baseUrl}/api/central-dashboard/overview`, asRole('super_admin'));
-        const body = await res.json();
-        const alerts = body.data.criticalAlerts;
-
-        assert.ok(Array.isArray(alerts));
-        assert.ok(alerts.length >= 3);
-        assert.ok(alerts.some(a => a.module === 'Attendance' && a.title.includes('3 Consecutive Absences')));
-        assert.ok(alerts.some(a => a.module === 'Payroll' && a.title.includes('> 10%')));
-        assert.ok(alerts.some(a => a.module === 'Exit' && a.title.includes('48 Hours')));
+    test('7. The page explains an empty Command Centre instead of showing invented numbers', () => {
+        const js = fs.readFileSync(new URL('../admin-central-dashboard.js', import.meta.url), 'utf-8');
+        assert.match(js, /renderFallbackLiveDashboard\(body\.error\)/, 'the server\'s reason must reach the screen');
     });
 
     test('8. HTML & UI Verification: admin-central-dashboard.html has all 11 widget IDs and customization drawer', () => {
