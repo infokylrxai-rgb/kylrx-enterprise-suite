@@ -110,6 +110,8 @@ const tabManual = document.getElementById('tabManual');
 const tabBulk = document.getElementById('tabBulk');
 // The three bulk tabs: buttons present in the markup, never looked up here, so they
 // could not be registered and clicking them did nothing.
+const tabStatutoryMasters = document.getElementById('tabStatutoryMasters');
+const statutoryMastersView = document.getElementById('statutoryMastersView');
 const tabUnifiedJobRoster = document.getElementById('tabUnifiedJobRoster');
 const tabUnifiedEmployeeFinance = document.getElementById('tabUnifiedEmployeeFinance');
 const tabUnifiedOrgCompliance = document.getElementById('tabUnifiedOrgCompliance');
@@ -210,6 +212,8 @@ const btnCancelEmployeeFinanceIngest = document.getElementById('btnCancelEmploye
 const btnConfirmLegacyEmpFinanceIngest = document.getElementById('btnConfirmLegacyEmpFinanceIngest');
 
 // EPFO & PF Statutory Master Elements (PRD Sections 1, 4, 11 & 13)
+// The six master tabs were folded into one. These lookups now return null by design:
+// the buttons are gone from the bar, and the panels are driven by the chooser instead.
 const tabEpfoMaster = document.getElementById('tabEpfoMaster');
 const epfoMasterManagementView = document.getElementById('epfoMasterManagementView');
 const epfoMasterParseResultsContainer = document.getElementById('epfoMasterParseResultsContainer');
@@ -512,15 +516,12 @@ function setupNavigationTabs() {
         attendancePolicies: [tabAttendancePolicies, attendancePolicyManagementView, () => window.KylrxAttendancePolicyService && typeof window.KylrxAttendancePolicyService.renderAdminConsole === 'function' && window.KylrxAttendancePolicyService.renderAdminConsole('onboardingAttendancePolicyTableContainer')],
         employeeTypes: [tabEmployeeTypes, employeeTypeManagementView, () => window.KylrxEmployeeTypeService && typeof window.KylrxEmployeeTypeService.renderAdminConsole === 'function' && window.KylrxEmployeeTypeService.renderAdminConsole('onboardingEmployeeTypeTableContainer')],
         employeeFinance: [tabEmployeeFinance, employeeFinanceManagementView, () => window.KylrxEmployeeFinanceService && typeof window.KylrxEmployeeFinanceService.renderFinanceConsole === 'function' && window.KylrxEmployeeFinanceService.renderFinanceConsole('onboardingEmployeeFinanceTableContainer')],
-        epfoMaster: [tabEpfoMaster, epfoMasterManagementView, () => renderOnboardingEpfoMasterTable()],
-        esicMaster: [tabEsicMaster, esicMasterManagementView, () => renderOnboardingEsicMasterTable()],
-        ptMaster: [tabPtMaster, ptMasterManagementView, () => renderOnboardingPtMasterTable()],
-        lwfMaster: [tabLwfMaster, lwfMasterManagementView, () => renderOnboardingLwfMasterTable()],
-        npsMaster: [tabNpsMaster, npsMasterManagementView, () => renderOnboardingNpsMasterTable()],
-        gratuityMaster: [tabGratuityMaster, gratuityMasterManagementView, () => renderOnboardingGratuityMasterTable()],
         salaryStructure: [tabSalaryStructure, salaryStructureManagementView, () => window.KylrxSalaryStructureService && typeof window.KylrxSalaryStructureService.renderSalaryConsole === 'function' && window.KylrxSalaryStructureService.renderSalaryConsole('onboardingSalaryStructureTableContainer')],
         holidayCalendar: [tabHolidayCalendar, holidayCalendarManagementView, () => window.KylrxHolidayCalendarService && typeof window.KylrxHolidayCalendarService.renderAdminHolidayConsole === 'function' && window.KylrxHolidayCalendarService.renderAdminHolidayConsole('onboardingHolidayCalendarTableContainer')],
         statutoryCompliance: [tabStatutoryCompliance, statutoryComplianceManagementView, () => window.KylrxStatutoryComplianceUIController && typeof window.KylrxStatutoryComplianceUIController.renderAdminConsole === 'function' && window.KylrxStatutoryComplianceUIController.renderAdminConsole('onboardingStatutoryComplianceTableContainer', state.orgId)],
+        // The six statutory masters share one tab; which one is shown is chosen inside
+        // its panel. Their individual panels are untouched and still render themselves.
+        statutoryMasters: [tabStatutoryMasters, statutoryMastersView, () => showStatutoryMaster(currentStatutoryMaster)],
         payrollComponents: [tabPayrollComponents, payrollComponentsManagementView, () => window.KylrxPayrollComponentsUIController && typeof window.KylrxPayrollComponentsUIController.renderAdminConsole === 'function' && window.KylrxPayrollComponentsUIController.renderAdminConsole('onboardingPayrollComponentsTableContainer', state.orgId)]
     };
 
@@ -562,10 +563,57 @@ function setupNavigationTabs() {
         }
     }
 
+    /*
+     * The six statutory masters used to be six chips in the main bar, differing only by
+     * a few letters, each followed by the same "(PRD §1, §4, §11 & §13)". They are one
+     * tab now, and the master is chosen here. Their panels are unchanged.
+     */
+    const STATUTORY_MASTERS = {
+        epfo:     [epfoMasterManagementView, () => renderOnboardingEpfoMasterTable()],
+        esic:     [esicMasterManagementView, () => renderOnboardingEsicMasterTable()],
+        pt:       [ptMasterManagementView, () => renderOnboardingPtMasterTable()],
+        lwf:      [lwfMasterManagementView, () => renderOnboardingLwfMasterTable()],
+        nps:      [npsMasterManagementView, () => renderOnboardingNpsMasterTable()],
+        gratuity: [gratuityMasterManagementView, () => renderOnboardingGratuityMasterTable()]
+    };
+    let currentStatutoryMaster = 'epfo';
+
+    function showStatutoryMaster(key) {
+        if (!STATUTORY_MASTERS[key]) key = 'epfo';
+        currentStatutoryMaster = key;
+
+        for (const [name, [view]] of Object.entries(STATUTORY_MASTERS)) {
+            if (view) view.style.display = (name === key) ? 'block' : 'none';
+        }
+        for (const btn of document.querySelectorAll('.statutory-master-btn')) {
+            const on = btn.dataset.master === key;
+            btn.style.background = on ? 'var(--primary)' : '#fff';
+            btn.style.color = on ? '#fff' : 'var(--text-muted)';
+            btn.style.borderColor = on ? 'var(--primary)' : 'var(--border)';
+            btn.setAttribute('aria-pressed', String(on));
+        }
+
+        const render = STATUTORY_MASTERS[key][1];
+        if (typeof render === 'function') {
+            // A master whose table cannot render must not take the whole tab down.
+            try { render(); } catch (err) { console.warn('[ONBOARDING] ' + key + ' master did not render:', err); }
+        }
+    }
+
+    for (const btn of document.querySelectorAll('.statutory-master-btn')) {
+        btn.addEventListener('click', () => showStatutoryMaster(btn.dataset.master));
+    }
+
     function showTab(key) {
         if (!TABS[key] || !TABS[key][0]) return;
         for (const [tab, view] of Object.values(TABS)) {
             if (tab) tab.classList.remove('active');
+            if (view) view.style.display = 'none';
+        }
+        // The six statutory master panels are no longer entries in TABS, so the loop above
+        // does not reach them. Without this, opening EPFO and then switching to another
+        // tab leaves the EPFO table on screen underneath it.
+        for (const [view] of Object.values(STATUTORY_MASTERS)) {
             if (view) view.style.display = 'none';
         }
         const [tab, view, render] = TABS[key];

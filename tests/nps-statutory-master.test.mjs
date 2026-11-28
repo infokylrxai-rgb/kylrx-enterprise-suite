@@ -632,7 +632,10 @@ test('PRD Sections 1, 4, 11 & 13: National Pension System (NPS) Statutory Master
             const htmlPath = path.join(rootDir, 'admin-onboarding-upload.html');
             const html = fs.readFileSync(htmlPath, 'utf8');
 
-            assert.ok(html.includes('id="tabNpsMaster"'), 'Must have #tabNpsMaster');
+            // The six statutory masters were six near-identical top-level tabs; they now share
+            // one tab and are chosen inside it. Still reachable, by a different route.
+            assert.ok(html.includes('id="tabStatutoryMasters"'), 'Must have the Statutory Masters tab');
+            assert.ok(html.includes('data-master="nps"'), 'Must offer the nps master inside it');
             assert.ok(html.includes('id="npsMasterManagementView"'), 'Must have #npsMasterManagementView');
             assert.ok(html.includes('id="npsMasterParseResultsContainer"'), 'Must have #npsMasterParseResultsContainer');
             assert.ok(html.includes('id="parsedNpsMasterTableBody"'), 'Must have #parsedNpsMasterTableBody');

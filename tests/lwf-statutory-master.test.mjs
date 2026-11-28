@@ -589,7 +589,10 @@ test('PRD Sections 1, 4, 11 & 13: Labour Welfare Fund (LWF) Statutory Master Mod
             const htmlPath = path.join(rootDir, 'admin-onboarding-upload.html');
             const html = fs.readFileSync(htmlPath, 'utf8');
 
-            assert.ok(html.includes('id="tabLwfMaster"'), 'Must have #tabLwfMaster');
+            // The six statutory masters were six near-identical top-level tabs; they now share
+            // one tab and are chosen inside it. Still reachable, by a different route.
+            assert.ok(html.includes('id="tabStatutoryMasters"'), 'Must have the Statutory Masters tab');
+            assert.ok(html.includes('data-master="lwf"'), 'Must offer the lwf master inside it');
             assert.ok(html.includes('id="lwfMasterManagementView"'), 'Must have #lwfMasterManagementView');
             assert.ok(html.includes('id="lwfMasterParseResultsContainer"'), 'Must have #lwfMasterParseResultsContainer');
             assert.ok(html.includes('id="parsedLwfMasterTableBody"'), 'Must have #parsedLwfMasterTableBody');

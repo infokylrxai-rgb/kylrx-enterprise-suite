@@ -399,7 +399,10 @@ test('PRD Sections 1, 4, 11 & 13: ESIC Statutory Master Module', async (t) => {
 
         await st.test('admin-onboarding-upload.html contains ESIC elements and scripts', () => {
             const html = fs.readFileSync(path.join(rootDir, 'admin-onboarding-upload.html'), 'utf8');
-            assert.ok(html.includes('id="tabEsicMaster"'), 'Must have tabEsicMaster');
+            // The six statutory masters were six near-identical top-level tabs; they now share
+            // one tab and are chosen inside it. Still reachable, by a different route.
+            assert.ok(html.includes('id="tabStatutoryMasters"'), 'Must have the Statutory Masters tab');
+            assert.ok(html.includes('data-master="esic"'), 'Must offer the esic master inside it');
             assert.ok(html.includes('id="esicMasterParseResultsContainer"'), 'Must have esicMasterParseResultsContainer');
             assert.ok(html.includes('id="esicMasterManagementView"'), 'Must have esicMasterManagementView');
             assert.ok(html.includes('esicDetailsParser.js'), 'Must include esicDetailsParser.js');
